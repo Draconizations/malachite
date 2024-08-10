@@ -1,11 +1,13 @@
+import type Engine from "./engine.ts";
 import Malachite from "./malachite.ts";
 
-window.Malachite = new Malachite()
+const malachite = new Malachite()
 
-window.Malachite.start()
+window.Engine = malachite.engine
+window.Engine.start()
 
 declare global {
   interface Window {
-    Malachite: Malachite
+    Engine: Engine
   }
 }

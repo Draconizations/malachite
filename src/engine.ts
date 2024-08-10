@@ -1,3 +1,4 @@
+import Markup from "./markup/markup.ts";
 import type Passage from "./passage.ts";
 import Story from "./story.ts";
 
@@ -31,7 +32,11 @@ export default class Engine {
 
     let html = passage.render()
 
-    this.#passageEl.innerHTML = html
+    this.show(html)
   }
 
+  show(html: string) {
+    this.#passageEl.innerHTML = html
+    Markup.addListeners()
+  }
 }

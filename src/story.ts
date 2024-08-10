@@ -1,4 +1,4 @@
-import Markup from "./markup.ts"
+import Markup from "./markup/markup.ts"
 import Passage from "./passage.ts"
 
 export default class Story {

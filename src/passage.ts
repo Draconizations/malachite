@@ -1,4 +1,4 @@
-import Markup from "./markup.ts"
+import Markup from "./markup/markup.ts"
 
 export default class Passage {
   name: string
@@ -16,13 +16,18 @@ export default class Passage {
    */
   render() {
     let result = this.source
+
+    result = Markup.parse(result)
+
     if (this.tags.includes("snippet")) {
       try {
-        result = Markup.snippet(this.source, {})
+        result = Markup.snippet(result, {})
       } catch (e) {
         console.error(new Error(`Could not render snippet: ${(e as Error).message}`))
       }
     }
+
+    result = Markup.markdown(result)
 
     return result
   }
