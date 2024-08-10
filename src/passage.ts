@@ -1,4 +1,4 @@
-import Markup from "./markup/markup.ts"
+import Markup from "./markup.ts"
 
 export default class Passage {
   name: string

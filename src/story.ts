@@ -1,4 +1,4 @@
-import Markup from "./markup/markup.ts"
+import Markup from "./markup.ts"
 import Passage from "./passage.ts"
 
 export default class Story {
@@ -12,6 +12,8 @@ export default class Story {
   }
 
   passages: Passage[] = []
+  snippets: Passage[] = []
+
   #startPassage: Passage
   get startPassage() {
     return this.#startPassage.name
@@ -30,10 +32,14 @@ export default class Story {
     // get all the passage elements and add them to the passage array
     this.#storydata?.querySelectorAll("tw-passagedata").forEach((p) => {
       let name = p.attributes.getNamedItem("name")?.value || "Passage"
-      let tags = p.attributes.getNamedItem("tags")?.value
+      let tags = p.attributes.getNamedItem("tags")?.value.split(" ")
       let source = Markup.unescape(p.innerHTML)
-
-      this.passages.push(new Passage(name, tags?.split(" ") || [], source))
+      
+      if (!tags || !tags?.includes("snippet")) {
+        this.passages.push(new Passage(name, tags || [], source))
+      } else {
+        this.snippets.push(new Passage(name, tags || [], source))
+      }
     })
 
     // get the start passage
@@ -63,7 +69,7 @@ export default class Story {
       // get the starting passage
       let startPassage: Passage
       try {
-        startPassage = this.passage(startPassageName)
+        startPassage = this.passage(startPassageName || "")
       } catch (e) {
         throw Error("Starting passage does not exist!")
       }
@@ -71,9 +77,23 @@ export default class Story {
       return startPassage
   }
 
-  passage(name: string|null) {
-    const passage = this.passages.find(p => p.name === name)
-    if (!passage) throw new Error(`No passage with name "${name}" found.`)
+  passagesByTag(tag: string) {
+    return this.passages.filter(p => p.tags.includes(tag))
+  }
+
+  snippet(name: string) {
+    const snippet = this.snippets.find(p => {
+      return p.name.split(" ").join("-").toLowerCase() === name.trim()
+    })
+    if (!snippet) throw new Error(`No passage with name "${name}" found.`)
+    return snippet
+  }
+
+  passage(name: string) {
+    const passage = this.passages.find(p => {
+      return p.name === name.trim()
+    })
+    if (!passage) throw new Error(`No snippet with name "${name}" found.`)
     return passage
   }
 }

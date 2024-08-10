@@ -1,5 +1,6 @@
 import nj from "nunjucks"
 import markdown from "markdown-it"
+import type Passage from "./passage.ts"
 
 const md = markdown({
   html: true,
@@ -13,7 +14,7 @@ interface ParserRule {
 
 export default class Markup {
   static nunjucks = nj.configure({
-    autoescape: false,
+    autoescape: true,
   })
 
   static unescape(text: string) {
@@ -62,6 +63,42 @@ export default class Markup {
     linkRules.forEach(rule => {
       source = source.replaceAll(rule.match, (text) => rule.render(rule.match.exec(text) || []))
     })
+    
+    const renderSnippet = (name = "", attrs = "", content = "") => {
+      if (!name) return ""
+      let passage: Passage|null = null
+      try {
+        passage = window.Story.snippet(name)
+      } catch (e) {
+        console.error(new Error(`Could not render snippet: ${(e as Error).message}`))
+      }
+
+      if (!passage) return ""
+
+      let context: Record<string, any> = {}
+
+      let attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g
+      let stuff: RegExpExecArray|null
+      while ((stuff = attrRegex.exec(attrs)) !== null) {
+        context[stuff[1]] = stuff[2]
+      }
+
+      if (content) context.content = snippet(content)
+
+      const snip = this.snippet(passage.source, context)
+      return snip 
+    }
+
+    const snippetRule: ParserRule = {
+      match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/?%>(([\s\S]*?)<%\/\1%>)?/g,
+      render: ([_, name, _2, attrs = "", _4, content = ""]) => renderSnippet(name, attrs, content)
+    }
+
+    function snippet(source: string) {
+      return source.replaceAll(snippetRule.match, (text) => snippetRule.render(snippetRule.match.exec(text) || []))
+    }
+
+    source = snippet(source)
 
     return source
   }

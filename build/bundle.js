@@ -15285,6 +15285,7 @@
 	    /**
 	   * Parses format-specific syntax like passage links and snippet references
 	   */ Markup1.parse = function parse(source) {
+	        var _this = this;
 	        var twineLink = function(dest, text, func) {
 	            if (dest === void 0) dest = "";
 	            if (text === void 0) text = "";
@@ -15326,6 +15327,41 @@
 	                return rule.render(rule.match.exec(text) || []);
 	            });
 	        });
+	        var renderSnippet = function(name, attrs, content) {
+	            if (name === void 0) name = "";
+	            if (attrs === void 0) attrs = "";
+	            if (content === void 0) content = "";
+	            if (!name) return "";
+	            var passage = null;
+	            try {
+	                passage = window.Story.snippet(name);
+	            } catch (e) {
+	                console.error(new Error("Could not render snippet: " + e.message));
+	            }
+	            if (!passage) return "";
+	            var context = {};
+	            var attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g;
+	            var stuff;
+	            while((stuff = attrRegex.exec(attrs)) !== null){
+	                context[stuff[1]] = stuff[2];
+	            }
+	            if (content) context.content = snippet(content);
+	            var snip = _this.snippet(passage.source, context);
+	            return snip;
+	        };
+	        var snippetRule = {
+	            match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/?%>(([\s\S]*?)<%\/\1%>)?/g,
+	            render: function(param) {
+	                param[0]; var name = param[1]; param[2]; var tmp = param[3], attrs = tmp === void 0 ? "" : tmp; param[4]; var tmp1 = param[5], content = tmp1 === void 0 ? "" : tmp1;
+	                return renderSnippet(name, attrs, content);
+	            }
+	        };
+	        function snippet(source) {
+	            return source.replaceAll(snippetRule.match, function(text) {
+	                return snippetRule.render(snippetRule.match.exec(text) || []);
+	            });
+	        }
+	        source = snippet(source);
 	        return source;
 	    };
 	    /**
@@ -15363,8 +15399,65 @@
 	    return Markup1;
 	}();
 	Markup.nunjucks = nj.configure({
-	    autoescape: false
+	    autoescape: true
 	});
+
+	function _class_private_field_loose_base$1(receiver, privateKey) {
+	    if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
+	        throw new TypeError("attempted to use private field on non-instance");
+	    }
+	    return receiver;
+	}
+	var id$1 = 0;
+	function _class_private_field_loose_key$1(name) {
+	    return "__private_" + id$1++ + "_" + name;
+	}
+	var _passageEl = /*#__PURE__*/ _class_private_field_loose_key$1("_passageEl");
+	var Engine = /*#__PURE__*/ function() {
+	    function Engine() {
+	        Object.defineProperty(this, _passageEl, {
+	            writable: true,
+	            value: void 0
+	        });
+	        // init with the passage element
+	        var passageEl = document.querySelector("tw-passage");
+	        if (!passageEl) throw new Error("tw-passage element is missing!");
+	        _class_private_field_loose_base$1(this, _passageEl)[_passageEl] = passageEl;
+	    }
+	    var _proto = Engine.prototype;
+	    _proto.start = function start() {
+	        this.jump(window.Story.startPassage);
+	    };
+	    /**
+	   * Finds, renders and displays the passage by the given name. 
+	  */ _proto.jump = function jump(name) {
+	        var passage;
+	        try {
+	            passage = window.Story.passage(name);
+	        } catch (e) {
+	            console.error(new Error("Could not jump to passage: " + e.message));
+	            return;
+	        }
+	        var html = passage.render();
+	        this.show(html);
+	    };
+	    _proto.show = function show(html) {
+	        _class_private_field_loose_base$1(this, _passageEl)[_passageEl].innerHTML = html;
+	        Markup.addListeners();
+	    };
+	    return Engine;
+	}();
+
+	var Malachite = /*#__PURE__*/ function() {
+	    function Malachite() {
+	        this.engine = new Engine();
+	    }
+	    var _proto = Malachite.prototype;
+	    _proto.start = function start() {
+	        this.engine.start();
+	    };
+	    return Malachite;
+	}();
 
 	var Passage = /*#__PURE__*/ function() {
 	    function Passage(name, tags, source) {
@@ -15391,15 +15484,15 @@
 	    return Passage;
 	}();
 
-	function _class_private_field_loose_base$1(receiver, privateKey) {
+	function _class_private_field_loose_base(receiver, privateKey) {
 	    if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
 	        throw new TypeError("attempted to use private field on non-instance");
 	    }
 	    return receiver;
 	}
-	var id$1 = 0;
-	function _class_private_field_loose_key$1(name) {
-	    return "__private_" + id$1++ + "_" + name;
+	var id = 0;
+	function _class_private_field_loose_key(name) {
+	    return "__private_" + id++ + "_" + name;
 	}
 	function _defineProperties(target, props) {
 	    for(var i = 0; i < props.length; i++){
@@ -15414,7 +15507,7 @@
 	    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
 	    return Constructor;
 	}
-	var _storydata = /*#__PURE__*/ _class_private_field_loose_key$1("_storydata"), _ifid = /*#__PURE__*/ _class_private_field_loose_key$1("_ifid"), _startPassage = /*#__PURE__*/ _class_private_field_loose_key$1("_startPassage"), _getStartPassage = /*#__PURE__*/ _class_private_field_loose_key$1("_getStartPassage");
+	var _storydata = /*#__PURE__*/ _class_private_field_loose_key("_storydata"), _ifid = /*#__PURE__*/ _class_private_field_loose_key("_ifid"), _startPassage = /*#__PURE__*/ _class_private_field_loose_key("_startPassage"), _getStartPassage = /*#__PURE__*/ _class_private_field_loose_key("_getStartPassage");
 	var Story = /*#__PURE__*/ function() {
 	    function Story() {
 	        var _this = this;
@@ -15436,48 +15529,65 @@
 	        });
 	        this.name = this.getAttr("name") || "A Malachite Story";
 	        this.passages = [];
+	        this.snippets = [];
 	        // init the story data, get the story name
 	        var dataEl = document.querySelector("tw-storydata");
 	        if (!dataEl) throw Error("Story data element is missing!");
-	        _class_private_field_loose_base$1(this, _storydata)[_storydata] = dataEl;
+	        _class_private_field_loose_base(this, _storydata)[_storydata] = dataEl;
 	        // same for the ifid
 	        var ifid = this.getAttr("ifid");
 	        if (!ifid) throw Error("Story data ifid field is missing!");
-	        _class_private_field_loose_base$1(this, _ifid)[_ifid] = ifid;
+	        _class_private_field_loose_base(this, _ifid)[_ifid] = ifid;
 	        // get all the passage elements and add them to the passage array
-	        (_class_private_field_loose_base__storydata = _class_private_field_loose_base$1(this, _storydata)[_storydata]) == null ? void 0 : _class_private_field_loose_base__storydata.querySelectorAll("tw-passagedata").forEach(function(p) {
+	        (_class_private_field_loose_base__storydata = _class_private_field_loose_base(this, _storydata)[_storydata]) == null ? void 0 : _class_private_field_loose_base__storydata.querySelectorAll("tw-passagedata").forEach(function(p) {
 	            var _p_attributes_getNamedItem, _p_attributes_getNamedItem1;
 	            var name = ((_p_attributes_getNamedItem = p.attributes.getNamedItem("name")) == null ? void 0 : _p_attributes_getNamedItem.value) || "Passage";
-	            var tags = (_p_attributes_getNamedItem1 = p.attributes.getNamedItem("tags")) == null ? void 0 : _p_attributes_getNamedItem1.value;
+	            var tags = (_p_attributes_getNamedItem1 = p.attributes.getNamedItem("tags")) == null ? void 0 : _p_attributes_getNamedItem1.value.split(" ");
 	            var source = Markup.unescape(p.innerHTML);
-	            _this.passages.push(new Passage(name, (tags == null ? void 0 : tags.split(" ")) || [], source));
+	            if (!tags || !(tags == null ? void 0 : tags.includes("snippet"))) {
+	                _this.passages.push(new Passage(name, tags || [], source));
+	            } else {
+	                _this.snippets.push(new Passage(name, tags || [], source));
+	            }
 	        });
 	        // get the start passage
-	        _class_private_field_loose_base$1(this, _startPassage)[_startPassage] = _class_private_field_loose_base$1(this, _getStartPassage)[_getStartPassage]();
+	        _class_private_field_loose_base(this, _startPassage)[_startPassage] = _class_private_field_loose_base(this, _getStartPassage)[_getStartPassage]();
 	    }
 	    var _proto = Story.prototype;
 	    _proto.getAttr = function getAttr(attr) {
 	        var _class_private_field_loose_base__storydata_attributes_getNamedItem, _class_private_field_loose_base__storydata;
-	        return ((_class_private_field_loose_base__storydata = _class_private_field_loose_base$1(this, _storydata)[_storydata]) == null ? void 0 : (_class_private_field_loose_base__storydata_attributes_getNamedItem = _class_private_field_loose_base__storydata.attributes.getNamedItem(attr)) == null ? void 0 : _class_private_field_loose_base__storydata_attributes_getNamedItem.value) || null;
+	        return ((_class_private_field_loose_base__storydata = _class_private_field_loose_base(this, _storydata)[_storydata]) == null ? void 0 : (_class_private_field_loose_base__storydata_attributes_getNamedItem = _class_private_field_loose_base__storydata.attributes.getNamedItem(attr)) == null ? void 0 : _class_private_field_loose_base__storydata_attributes_getNamedItem.value) || null;
+	    };
+	    _proto.passagesByTag = function passagesByTag(tag) {
+	        return this.passages.filter(function(p) {
+	            return p.tags.includes(tag);
+	        });
+	    };
+	    _proto.snippet = function snippet(name) {
+	        var snippet = this.snippets.find(function(p) {
+	            return p.name.split(" ").join("-").toLowerCase() === name.trim();
+	        });
+	        if (!snippet) throw new Error('No passage with name "' + name + '" found.');
+	        return snippet;
 	    };
 	    _proto.passage = function passage(name) {
 	        var passage = this.passages.find(function(p) {
-	            return p.name === name;
+	            return p.name === name.trim();
 	        });
-	        if (!passage) throw new Error('No passage with name "' + name + '" found.');
+	        if (!passage) throw new Error('No snippet with name "' + name + '" found.');
 	        return passage;
 	    };
 	    _create_class(Story, [
 	        {
 	            key: "ifid",
 	            get: function get() {
-	                return _class_private_field_loose_base$1(this, _ifid)[_ifid];
+	                return _class_private_field_loose_base(this, _ifid)[_ifid];
 	            }
 	        },
 	        {
 	            key: "startPassage",
 	            get: function get() {
-	                return _class_private_field_loose_base$1(this, _startPassage)[_startPassage].name;
+	                return _class_private_field_loose_base(this, _startPassage)[_startPassage].name;
 	            }
 	        }
 	    ]);
@@ -15486,9 +15596,9 @@
 	function getStartPassage() {
 	    var _class_private_field_loose_base__storydata_attributes_getNamedItem, _class_private_field_loose_base__storydata, _document_querySelector_attributes_getNamedItem, _document_querySelector;
 	    // check if we at leats have a story data element. throw an error if not
-	    if (!_class_private_field_loose_base$1(this, _storydata)[_storydata]) throw Error("No story data element found.");
+	    if (!_class_private_field_loose_base(this, _storydata)[_storydata]) throw Error("No story data element found.");
 	    // get the passage id of the starting passage
-	    var startPassageId = parseInt(((_class_private_field_loose_base__storydata = _class_private_field_loose_base$1(this, _storydata)[_storydata]) == null ? void 0 : (_class_private_field_loose_base__storydata_attributes_getNamedItem = _class_private_field_loose_base__storydata.attributes.getNamedItem("startnode")) == null ? void 0 : _class_private_field_loose_base__storydata_attributes_getNamedItem.value) || "nah");
+	    var startPassageId = parseInt(((_class_private_field_loose_base__storydata = _class_private_field_loose_base(this, _storydata)[_storydata]) == null ? void 0 : (_class_private_field_loose_base__storydata_attributes_getNamedItem = _class_private_field_loose_base__storydata.attributes.getNamedItem("startnode")) == null ? void 0 : _class_private_field_loose_base__storydata_attributes_getNamedItem.value) || "nah");
 	    // and throw an error if it doesn't return a valid id ("nah")
 	    if (isNaN(startPassageId)) throw Error("No start passage ID found.");
 	    // get the starting passage name
@@ -15496,73 +15606,16 @@
 	    // get the starting passage
 	    var startPassage;
 	    try {
-	        startPassage = this.passage(startPassageName);
+	        startPassage = this.passage(startPassageName || "");
 	    } catch (e) {
 	        throw Error("Starting passage does not exist!");
 	    }
 	    return startPassage;
 	}
 
-	function _class_private_field_loose_base(receiver, privateKey) {
-	    if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
-	        throw new TypeError("attempted to use private field on non-instance");
-	    }
-	    return receiver;
-	}
-	var id = 0;
-	function _class_private_field_loose_key(name) {
-	    return "__private_" + id++ + "_" + name;
-	}
-	var _passageEl = /*#__PURE__*/ _class_private_field_loose_key("_passageEl");
-	var Engine = /*#__PURE__*/ function() {
-	    function Engine() {
-	        Object.defineProperty(this, _passageEl, {
-	            writable: true,
-	            value: void 0
-	        });
-	        this.story = new Story();
-	        // init with the passage element
-	        var passageEl = document.querySelector("tw-passage");
-	        if (!passageEl) throw new Error("tw-passage element is missing!");
-	        _class_private_field_loose_base(this, _passageEl)[_passageEl] = passageEl;
-	    }
-	    var _proto = Engine.prototype;
-	    _proto.start = function start() {
-	        this.jump(this.story.startPassage);
-	    };
-	    /**
-	   * Finds, renders and displays the passage by the given name. 
-	  */ _proto.jump = function jump(name) {
-	        var passage;
-	        try {
-	            passage = this.story.passage(name);
-	        } catch (e) {
-	            console.error(new Error("Could not jump to passage: " + e.message));
-	            return;
-	        }
-	        var html = passage.render();
-	        this.show(html);
-	    };
-	    _proto.show = function show(html) {
-	        _class_private_field_loose_base(this, _passageEl)[_passageEl].innerHTML = html;
-	        Markup.addListeners();
-	    };
-	    return Engine;
-	}();
-
-	var Malachite = /*#__PURE__*/ function() {
-	    function Malachite() {
-	        this.engine = new Engine();
-	    }
-	    var _proto = Malachite.prototype;
-	    _proto.start = function start() {
-	        this.engine.start();
-	    };
-	    return Malachite;
-	}();
-
 	var malachite = new Malachite();
 	window.Engine = malachite.engine;
+	window.Story = new Story();
 	window.Engine.start();
 
 })();

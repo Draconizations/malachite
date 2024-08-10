@@ -1,10 +1,8 @@
-import Markup from "./markup/markup.ts";
+import Markup from "./markup.ts";
 import type Passage from "./passage.ts";
 import Story from "./story.ts";
 
 export default class Engine {
-  story: Story = new Story()
-
   #passageEl: HTMLElement
 
   constructor() {
@@ -15,7 +13,7 @@ export default class Engine {
   }
 
   start() {
-    this.jump(this.story.startPassage)
+    this.jump(window.Story.startPassage)
   }
 
   /**
@@ -24,7 +22,7 @@ export default class Engine {
   jump(name: string) {
     let passage: Passage
     try {
-      passage = this.story.passage(name)
+      passage = window.Story.passage(name)
     } catch (e) {
       console.error(new Error(`Could not jump to passage: ${(e as Error).message}`))
       return
