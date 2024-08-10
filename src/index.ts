@@ -1,11 +1,11 @@
-import type Engine from "./engine.ts";
-import Malachite from "./malachite.ts";
+import Engine from "./engine.ts";
 import Story from "./story.ts";
 
-const malachite = new Malachite()
-
-window.Engine = malachite.engine
+// initialize globals
+window.Engine = new Engine()
 window.Story = new Story()
+
+// start the story
 window.Engine.start()
 
 declare global {

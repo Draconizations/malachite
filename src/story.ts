@@ -1,10 +1,13 @@
 import Markup from "./markup.ts"
 import Passage from "./passage.ts"
 
+/**
+ * The story. Stores a list of all passages, snippets and handles these.
+ */
 export default class Story {
   #storydata: HTMLElement
 
-  name: string = this.getAttr("name") || "A Malachite Story"
+  name: string = this.getStoryAttr("name") || "A Malachite Story"
   
   #ifid: string
   get ifid() {
@@ -25,7 +28,7 @@ export default class Story {
     if (!dataEl) throw Error("Story data element is missing!")
     this.#storydata = dataEl as HTMLElement
     // same for the ifid
-    const ifid = this.getAttr("ifid")
+    const ifid = this.getStoryAttr("ifid")
     if (!ifid) throw Error("Story data ifid field is missing!")
     this.#ifid = ifid
 
@@ -46,7 +49,10 @@ export default class Story {
     this.#startPassage = this.#getStartPassage()
   }
 
-  getAttr(attr: string) {
+  /**
+   * Returns a story attribute's value by the given attribute name
+   */
+  getStoryAttr(attr: string) {
     return this.#storydata?.attributes.getNamedItem(attr)?.value || null
   }
 
@@ -77,10 +83,16 @@ export default class Story {
       return startPassage
   }
 
+  /**
+   * Finds all passages with a certain tag.
+   */
   passagesByTag(tag: string) {
     return this.passages.filter(p => p.tags.includes(tag))
   }
 
+  /**
+   * Gets a snippet by its name Throws an error if it cannot find a snippet with the given name.
+   */
   snippet(name: string) {
     const snippet = this.snippets.find(p => {
       return p.name.split(" ").join("-").toLowerCase() === name.trim()
@@ -89,6 +101,9 @@ export default class Story {
     return snippet
   }
 
+  /**
+   * Gets a regular passage by its name. Throws an error if it cannot find a passage with the given name.
+   */
   passage(name: string) {
     const passage = this.passages.find(p => {
       return p.name === name.trim()

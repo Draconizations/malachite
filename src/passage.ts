@@ -1,5 +1,8 @@
 import Markup from "./markup.ts"
 
+/**
+ * A singular twee passage.
+ */
 export default class Passage {
   name: string
   tags: string[]
@@ -15,20 +18,19 @@ export default class Passage {
    * Renders the passage contents and returns the rendered html.
    */
   render() {
-    let result = this.source
+    let rendered = this.source
 
-    result = Markup.parse(result)
-
+    // TODO: make snippets their own separate class!
     if (this.tags.includes("snippet")) {
       try {
-        result = Markup.snippet(result, {})
+        rendered = Markup.snippet(rendered, {})
       } catch (e) {
         console.error(new Error(`Could not render snippet: ${(e as Error).message}`))
       }
+    } else {
+      rendered = Markup.parse(rendered)
     }
 
-    result = Markup.markdown(result)
-
-    return result
+    return rendered
   }
 }
