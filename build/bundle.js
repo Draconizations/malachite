@@ -15349,17 +15349,30 @@
 	            var snip = _this.snippet(passage.source, context);
 	            return snip;
 	        };
-	        var snippetRule = {
-	            match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/?%>(([\s\S]*?)<%\/\1%>)?/g,
-	            render: function(param) {
-	                param[0]; var name = param[1]; param[2]; var tmp = param[3], attrs = tmp === void 0 ? "" : tmp; param[4]; var tmp1 = param[5], content = tmp1 === void 0 ? "" : tmp1;
-	                return renderSnippet(name, attrs, content);
+	        var snippetRules = [
+	            {
+	                match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?%>(([\s\S]*?)<%\/\1%>)/g,
+	                render: function(param) {
+	                    param[0]; var name = param[1]; param[2]; var tmp = param[3], attrs = tmp === void 0 ? "" : tmp; param[4]; var tmp1 = param[5], content = tmp1 === void 0 ? "" : tmp1;
+	                    return renderSnippet(name, attrs, content);
+	                }
+	            },
+	            {
+	                match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/%>/g,
+	                render: function(param) {
+	                    param[0]; var name = param[1]; param[2]; var tmp = param[3], attrs = tmp === void 0 ? "" : tmp;
+	                    return renderSnippet(name, attrs);
+	                }
 	            }
-	        };
+	        ];
 	        function snippet(source) {
-	            return source.replaceAll(snippetRule.match, function(text) {
-	                return snippetRule.render(snippetRule.match.exec(text) || []);
+	            var temp = source;
+	            snippetRules.forEach(function(snippetRule) {
+	                temp = temp.replaceAll(snippetRule.match, function(text) {
+	                    return snippetRule.render(snippetRule.match.exec(text) || []);
+	                });
 	            });
+	            return temp;
 	        }
 	        source = snippet(source);
 	        return source;
