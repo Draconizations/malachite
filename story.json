@@ -1,0 +1,8 @@
+{
+  "name": "Malachite",
+  "version": "0.1.0",
+  "description": "A very work in progress story format using nunjucks and signals.",
+  "proofing": false,
+  "license": "MIT",
+  "setup": ""
+}

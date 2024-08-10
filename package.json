@@ -11,9 +11,11 @@
     "@rollup/plugin-swc": "^0.3.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@types/bun": "latest",
+    "@types/nunjucks": "^3.2.6",
     "nunjucks": "^3.2.4",
     "prettier": "^3.3.3",
-    "rollup": "^4.20.0"
+    "rollup": "^4.20.0",
+    "rollup-plugin-polyfill-node": "^0.13.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

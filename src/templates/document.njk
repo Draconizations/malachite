@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <title>{% raw %}{{STORY_NAME}}{% endraw %}</title>
+  </head>
+  <body>
+    {% raw %}{{STORY_DATA}}{% endraw %}
+    <tw-story>
+      <tw-passage></tw-passage>
+    </tw-story>
+    <script title="malachite">
+      {{ bundle | safe }}
+    </script>
+  </body>
+</html>
