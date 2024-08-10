@@ -18,19 +18,6 @@ export default class Passage {
    * Renders the passage contents and returns the rendered html.
    */
   render() {
-    let rendered = this.source
-
-    // TODO: make snippets their own separate class!
-    if (this.tags.includes("snippet")) {
-      try {
-        rendered = Markup.snippet(rendered, {})
-      } catch (e) {
-        console.error(new Error(`Could not render snippet: ${(e as Error).message}`))
-      }
-    } else {
-      rendered = Markup.parse(rendered)
-    }
-
-    return rendered
+    return Markup.parse(this.source)
   }
 }

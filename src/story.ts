@@ -1,5 +1,6 @@
 import Markup from "./markup.ts"
 import Passage from "./passage.ts"
+import Snippet from "./snippet.ts"
 
 /**
  * The story. Stores a list of all passages, snippets and handles these.
@@ -15,7 +16,7 @@ export default class Story {
   }
 
   passages: Passage[] = []
-  snippets: Passage[] = []
+  snippets: Snippet[] = []
 
   #startPassage: Passage
   get startPassage() {
@@ -41,7 +42,7 @@ export default class Story {
       if (!tags || !tags?.includes("snippet")) {
         this.passages.push(new Passage(name, tags || [], source))
       } else {
-        this.snippets.push(new Passage(name, tags || [], source))
+        this.snippets.push(new Snippet(name, tags || [], source))
       }
     })
 

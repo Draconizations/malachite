@@ -1,6 +1,7 @@
 import nj from "nunjucks"
 import markdown from "markdown-it"
 import type Passage from "./passage.ts"
+import type Snippet from "./snippet.ts"
 
 // markdown-it environment
 const md = markdown({
@@ -128,14 +129,14 @@ export default class Markup {
       // this shouldn't happen, but just in case.
       if (!name) return ""
 
-      let passage: Passage | null = null
+      let snip: Snippet | null = null
       try {
-        passage = window.Story.snippet(name)
+        snip = window.Story.snippet(name)
       } catch (e) {
         // failing to find a snippet by name throws an error, so we catch it here
         console.error(new Error(`Could not render snippet: ${(e as Error).message}`))
       }
-      if (!passage) return ""
+      if (!snip) return ""
 
       let context: Record<string, any> = {}
       let attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g
@@ -148,7 +149,7 @@ export default class Markup {
       // render snippet content as well, to allow for nesting
       if (content) context.content = snippet(content)
 
-      return this.snippet(passage.source, context)
+      return this.snippet(snip.source, context)
     }
 
     source = snippet(source)

@@ -15384,14 +15384,14 @@
 	            if (content === void 0) content = "";
 	            // this shouldn't happen, but just in case.
 	            if (!name) return "";
-	            var passage = null;
+	            var snip = null;
 	            try {
-	                passage = window.Story.snippet(name);
+	                snip = window.Story.snippet(name);
 	            } catch (e) {
 	                // failing to find a snippet by name throws an error, so we catch it here
 	                console.error(new Error("Could not render snippet: " + e.message));
 	            }
-	            if (!passage) return "";
+	            if (!snip) return "";
 	            var context = {};
 	            var attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g;
 	            var regexArray;
@@ -15402,7 +15402,7 @@
 	            }
 	            // render snippet content as well, to allow for nesting
 	            if (content) context.content = snippet(content);
-	            return _this.snippet(passage.source, context);
+	            return _this.snippet(snip.source, context);
 	        };
 	        source = snippet(source);
 	        return source;
@@ -15502,21 +15502,48 @@
 	    /**
 	   * Renders the passage contents and returns the rendered html.
 	   */ _proto.render = function render() {
-	        var rendered = this.source;
-	        // TODO: make snippets their own separate class!
-	        if (this.tags.includes("snippet")) {
-	            try {
-	                rendered = Markup.snippet(rendered, {});
-	            } catch (e) {
-	                console.error(new Error("Could not render snippet: " + e.message));
-	            }
-	        } else {
-	            rendered = Markup.parse(rendered);
-	        }
-	        return rendered;
+	        return Markup.parse(this.source);
 	    };
 	    return Passage;
 	}();
+
+	function _inherits(subClass, superClass) {
+	    if (typeof superClass !== "function" && superClass !== null) {
+	        throw new TypeError("Super expression must either be null or a function");
+	    }
+	    subClass.prototype = Object.create(superClass && superClass.prototype, {
+	        constructor: {
+	            value: subClass,
+	            writable: true,
+	            configurable: true
+	        }
+	    });
+	    if (superClass) _set_prototype_of(subClass, superClass);
+	}
+	function _set_prototype_of(o, p) {
+	    _set_prototype_of = Object.setPrototypeOf || function setPrototypeOf(o, p) {
+	        o.__proto__ = p;
+	        return o;
+	    };
+	    return _set_prototype_of(o, p);
+	}
+	var Snippet = /*#__PURE__*/ function(Passage) {
+	    _inherits(Snippet, Passage);
+	    function Snippet() {
+	        return Passage.apply(this, arguments);
+	    }
+	    var _proto = Snippet.prototype;
+	    _proto.render = function render() {
+	        var rendered = this.source;
+	        try {
+	            rendered = Markup.snippet(rendered, {});
+	        } catch (e) {
+	            console.error(new Error("Could not render snippet: " + e.message));
+	        }
+	        return rendered;
+	    };
+	    return Snippet;
+	}(Passage);
 
 	function _class_private_field_loose_base(receiver, privateKey) {
 	    if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
@@ -15581,7 +15608,7 @@
 	            if (!tags || !(tags == null ? void 0 : tags.includes("snippet"))) {
 	                _this.passages.push(new Passage(name, tags || [], source));
 	            } else {
-	                _this.snippets.push(new Passage(name, tags || [], source));
+	                _this.snippets.push(new Snippet(name, tags || [], source));
 	            }
 	        });
 	        // get the start passage
