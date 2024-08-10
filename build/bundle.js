@@ -15243,13 +15243,16 @@
 	    return this.renderer.render(this.parseInline(src, env), this.options, env);
 	};
 
+	// markdown-it environment
 	var md = MarkdownIt({
 	    html: true,
 	    xhtmlOut: true
 	});
 	var Markup = /*#__PURE__*/ function() {
-	    function Markup1() {}
-	    Markup1.unescape = function unescape(text) {
+	    function Markup() {}
+	    /**
+	   * Converts escaped HTML characters back into the original characters
+	   */ Markup.unescape = function unescape(text) {
 	        var unescapeRules = [
 	            [
 	                "&amp;",
@@ -15283,9 +15286,24 @@
 	        return text;
 	    };
 	    /**
-	   * Parses format-specific syntax like passage links and snippet references
-	   */ Markup1.parse = function parse(source) {
-	        var _this = this;
+	   * Parses raw passage content and returns the rendered passage. It does not handle unescaping.
+	   */ Markup.parse = function parse(source) {
+	        source = this.links(source);
+	        source = this.snippets(source);
+	        source = this.markdown(source);
+	        return source;
+	    };
+	    /**
+	   * Renders markdown and returns the rendered source.
+	   */ Markup.markdown = function markdown(source) {
+	        return md.render(source);
+	    };
+	    /**
+	   * Renders passage link markup and returns the rendered source.
+	   *
+	   * NOTE: This does not attach the event listeners to the links, as the links need to be attached to the DOM first.
+	   */ Markup.links = function links(source) {
+	        // default twine link
 	        var twineLink = function(dest, text, func) {
 	            if (dest === void 0) dest = "";
 	            if (text === void 0) text = "";
@@ -15323,32 +15341,17 @@
 	            }
 	        ];
 	        linkRules.forEach(function(rule) {
+	            // match and replace each link
 	            source = source.replaceAll(rule.match, function(text) {
 	                return rule.render(rule.match.exec(text) || []);
 	            });
 	        });
-	        var renderSnippet = function(name, attrs, content) {
-	            if (name === void 0) name = "";
-	            if (attrs === void 0) attrs = "";
-	            if (content === void 0) content = "";
-	            if (!name) return "";
-	            var passage = null;
-	            try {
-	                passage = window.Story.snippet(name);
-	            } catch (e) {
-	                console.error(new Error("Could not render snippet: " + e.message));
-	            }
-	            if (!passage) return "";
-	            var context = {};
-	            var attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g;
-	            var stuff;
-	            while((stuff = attrRegex.exec(attrs)) !== null){
-	                context[stuff[1]] = stuff[2];
-	            }
-	            if (content) context.content = snippet(content);
-	            var snip = _this.snippet(passage.source, context);
-	            return snip;
-	        };
+	        return source;
+	    };
+	    /**
+	   * Parses snippet blocks and renders them recursively. Returns the rendered source.
+	   */ Markup.snippets = function snippets(source) {
+	        var _this = this;
 	        var snippetRules = [
 	            {
 	                match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?%>(([\s\S]*?)<%\/\1%>)/g,
@@ -15365,28 +15368,57 @@
 	                }
 	            }
 	        ];
+	        // this gets called recursively as long as the latest snippet has content
 	        function snippet(source) {
-	            var temp = source;
 	            snippetRules.forEach(function(snippetRule) {
-	                temp = temp.replaceAll(snippetRule.match, function(text) {
+	                // match and replace each snippet tag
+	                source = source.replaceAll(snippetRule.match, function(text) {
 	                    return snippetRule.render(snippetRule.match.exec(text) || []);
 	                });
 	            });
-	            return temp;
+	            return source;
 	        }
+	        var renderSnippet = function(name, attrs, content) {
+	            if (name === void 0) name = "";
+	            if (attrs === void 0) attrs = "";
+	            if (content === void 0) content = "";
+	            // this shouldn't happen, but just in case.
+	            if (!name) return "";
+	            var passage = null;
+	            try {
+	                passage = window.Story.snippet(name);
+	            } catch (e) {
+	                // failing to find a snippet by name throws an error, so we catch it here
+	                console.error(new Error("Could not render snippet: " + e.message));
+	            }
+	            if (!passage) return "";
+	            var context = {};
+	            var attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g;
+	            var regexArray;
+	            // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
+	            // so we iterate over the attributes this way instead.
+	            while((regexArray = attrRegex.exec(attrs)) !== null){
+	                context[regexArray[1]] = regexArray[2];
+	            }
+	            // render snippet content as well, to allow for nesting
+	            if (content) context.content = snippet(content);
+	            return _this.snippet(passage.source, context);
+	        };
 	        source = snippet(source);
 	        return source;
 	    };
 	    /**
-	   * Parses markdown (not snippets) and returns the parsed content
-	   */ Markup1.markdown = function markdown1(source) {
-	        return md.render(source);
+	   * Renders a snippet and returns the rendered html
+	   */ Markup.snippet = function snippet(source, context) {
+	        return this.nunjucks.renderString(source, context);
 	    };
 	    /**
-	   * Adds the needed event listeners to elements like passage links.
-	   */ Markup1.addListeners = function addListeners() {
+	   * Adds event listeners to to make elements like passage links functional.
+	   */ Markup.addListeners = function addListeners() {
+	        // TODO: move each listener type to its own method
 	        document.querySelectorAll("tw-link").forEach(function(l) {
 	            var _l_attributes_getNamedItem, _l_attributes_getNamedItem1;
+	            // get each link's attribute
 	            var dest = (_l_attributes_getNamedItem = l.attributes.getNamedItem("data-destination")) == null ? void 0 : _l_attributes_getNamedItem.value;
 	            var text = l.innerText;
 	            var funcStr = (_l_attributes_getNamedItem1 = l.attributes.getNamedItem("data-onclick")) == null ? void 0 : _l_attributes_getNamedItem1.value;
@@ -15394,23 +15426,19 @@
 	                console.warn('Could not find destination for link with text "' + text + '"');
 	            }
 	            l.addEventListener("click", function() {
-	                if (funcStr) eval(funcStr);
+	                if (funcStr) new Function(funcStr);
 	                if (dest) window.Engine.jump(dest);
 	            });
 	            l.addEventListener("keypress", function(e) {
 	                if (e.key !== "Enter" && e.key !== " ") return;
-	                if (funcStr) eval(funcStr);
+	                if (funcStr) new Function(funcStr);
 	                if (dest) window.Engine.jump(dest);
 	            });
 	        });
 	    };
-	    /**
-	   * Renders a snippet and returns the rendered html
-	   */ Markup1.snippet = function snippet(source, context) {
-	        return this.nunjucks.renderString(source, context);
-	    };
-	    return Markup1;
+	    return Markup;
 	}();
+	// nunjucks environment
 	Markup.nunjucks = nj.configure({
 	    autoescape: true
 	});
@@ -15442,34 +15470,26 @@
 	        this.jump(window.Story.startPassage);
 	    };
 	    /**
-	   * Finds, renders and displays the passage by the given name. 
-	  */ _proto.jump = function jump(name) {
+	   * Finds, renders and displays the passage by the given name. Optionally ignores the history.
+	   */ _proto.jump = function jump(name) {
 	        var passage;
 	        try {
 	            passage = window.Story.passage(name);
 	        } catch (e) {
+	            // catch the error if one is thrown
 	            console.error(new Error("Could not jump to passage: " + e.message));
 	            return;
 	        }
 	        var html = passage.render();
 	        this.show(html);
 	    };
-	    _proto.show = function show(html) {
+	    /**
+	   * Displays the given html as the current passage. Does not handle history or state.
+	   */ _proto.show = function show(html) {
 	        _class_private_field_loose_base$1(this, _passageEl)[_passageEl].innerHTML = html;
 	        Markup.addListeners();
 	    };
 	    return Engine;
-	}();
-
-	var Malachite = /*#__PURE__*/ function() {
-	    function Malachite() {
-	        this.engine = new Engine();
-	    }
-	    var _proto = Malachite.prototype;
-	    _proto.start = function start() {
-	        this.engine.start();
-	    };
-	    return Malachite;
 	}();
 
 	var Passage = /*#__PURE__*/ function() {
@@ -15482,17 +15502,18 @@
 	    /**
 	   * Renders the passage contents and returns the rendered html.
 	   */ _proto.render = function render() {
-	        var result = this.source;
-	        result = Markup.parse(result);
+	        var rendered = this.source;
+	        // TODO: make snippets their own separate class!
 	        if (this.tags.includes("snippet")) {
 	            try {
-	                result = Markup.snippet(result, {});
+	                rendered = Markup.snippet(rendered, {});
 	            } catch (e) {
 	                console.error(new Error("Could not render snippet: " + e.message));
 	            }
+	        } else {
+	            rendered = Markup.parse(rendered);
 	        }
-	        result = Markup.markdown(result);
-	        return result;
+	        return rendered;
 	    };
 	    return Passage;
 	}();
@@ -15540,7 +15561,7 @@
 	            writable: true,
 	            value: void 0
 	        });
-	        this.name = this.getAttr("name") || "A Malachite Story";
+	        this.name = this.getStoryAttr("name") || "A Malachite Story";
 	        this.passages = [];
 	        this.snippets = [];
 	        // init the story data, get the story name
@@ -15548,7 +15569,7 @@
 	        if (!dataEl) throw Error("Story data element is missing!");
 	        _class_private_field_loose_base(this, _storydata)[_storydata] = dataEl;
 	        // same for the ifid
-	        var ifid = this.getAttr("ifid");
+	        var ifid = this.getStoryAttr("ifid");
 	        if (!ifid) throw Error("Story data ifid field is missing!");
 	        _class_private_field_loose_base(this, _ifid)[_ifid] = ifid;
 	        // get all the passage elements and add them to the passage array
@@ -15567,23 +15588,31 @@
 	        _class_private_field_loose_base(this, _startPassage)[_startPassage] = _class_private_field_loose_base(this, _getStartPassage)[_getStartPassage]();
 	    }
 	    var _proto = Story.prototype;
-	    _proto.getAttr = function getAttr(attr) {
+	    /**
+	   * Returns a story attribute's value by the given attribute name
+	   */ _proto.getStoryAttr = function getStoryAttr(attr) {
 	        var _class_private_field_loose_base__storydata_attributes_getNamedItem, _class_private_field_loose_base__storydata;
 	        return ((_class_private_field_loose_base__storydata = _class_private_field_loose_base(this, _storydata)[_storydata]) == null ? void 0 : (_class_private_field_loose_base__storydata_attributes_getNamedItem = _class_private_field_loose_base__storydata.attributes.getNamedItem(attr)) == null ? void 0 : _class_private_field_loose_base__storydata_attributes_getNamedItem.value) || null;
 	    };
-	    _proto.passagesByTag = function passagesByTag(tag) {
+	    /**
+	   * Finds all passages with a certain tag.
+	   */ _proto.passagesByTag = function passagesByTag(tag) {
 	        return this.passages.filter(function(p) {
 	            return p.tags.includes(tag);
 	        });
 	    };
-	    _proto.snippet = function snippet(name) {
+	    /**
+	   * Gets a snippet by its name Throws an error if it cannot find a snippet with the given name.
+	   */ _proto.snippet = function snippet(name) {
 	        var snippet = this.snippets.find(function(p) {
 	            return p.name.split(" ").join("-").toLowerCase() === name.trim();
 	        });
 	        if (!snippet) throw new Error('No passage with name "' + name + '" found.');
 	        return snippet;
 	    };
-	    _proto.passage = function passage(name) {
+	    /**
+	   * Gets a regular passage by its name. Throws an error if it cannot find a passage with the given name.
+	   */ _proto.passage = function passage(name) {
 	        var passage = this.passages.find(function(p) {
 	            return p.name === name.trim();
 	        });
@@ -15626,9 +15655,10 @@
 	    return startPassage;
 	}
 
-	var malachite = new Malachite();
-	window.Engine = malachite.engine;
+	// initialize globals
+	window.Engine = new Engine();
 	window.Story = new Story();
+	// start the story
 	window.Engine.start();
 
 })();
