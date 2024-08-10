@@ -1,5 +1,5 @@
-import Engine from "./engine.ts";
-import Story from "./story.ts";
+import Engine from "./engine.ts"
+import Story from "./story.ts"
 
 // initialize globals
 window.Engine = new Engine()
@@ -10,7 +10,7 @@ window.Engine.start()
 
 declare global {
   interface Window {
-    Engine: Engine,
+    Engine: Engine
     Story: Story
   }
 }

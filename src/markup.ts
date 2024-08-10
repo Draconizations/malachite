@@ -59,10 +59,10 @@ export default class Markup {
   static markdown(source: string) {
     return md.render(source)
   }
-  
+
   /**
    * Renders passage link markup and returns the rendered source.
-   * 
+   *
    * NOTE: This does not attach the event listeners to the links, as the links need to be attached to the DOM first.
    */
   static links(source: string) {
@@ -104,11 +104,12 @@ export default class Markup {
     const snippetRules: ParserRule[] = [
       {
         match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?%>(([\s\S]*?)<%\/\1%>)/g,
-        render: ([_, name, _2, attrs = "", _4, content = ""]) => renderSnippet(name, attrs, content)
+        render: ([_, name, _2, attrs = "", _4, content = ""]) =>
+          renderSnippet(name, attrs, content),
       },
       {
         match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/%>/g,
-        render: ([_, name, _2, attrs = ""]) => renderSnippet(name, attrs)
+        render: ([_, name, _2, attrs = ""]) => renderSnippet(name, attrs),
       },
     ]
 
@@ -130,7 +131,8 @@ export default class Markup {
       let passage: Passage | null = null
       try {
         passage = window.Story.snippet(name)
-      } catch (e) { // failing to find a snippet by name throws an error, so we catch it here
+      } catch (e) {
+        // failing to find a snippet by name throws an error, so we catch it here
         console.error(new Error(`Could not render snippet: ${(e as Error).message}`))
       }
       if (!passage) return ""
@@ -160,33 +162,33 @@ export default class Markup {
     return this.nunjucks.renderString(source, context)
   }
 
-    /**
+  /**
    * Adds event listeners to to make elements like passage links functional.
    */
-    static addListeners() {
-      // TODO: move each listener type to its own method
-      document.querySelectorAll("tw-link").forEach((l) => {
-        // get each link's attribute
-        const dest = l.attributes.getNamedItem("data-destination")?.value
-        const text = (l as HTMLElement).innerText
-        const funcStr = l.attributes.getNamedItem("data-onclick")?.value
-  
-        if (!dest) {
-          console.warn(`Could not find destination for link with text "${text}"`)
-        }
-  
-        // add the onclick event listener
-        ;(l as HTMLButtonElement).addEventListener("click", function () {
-          if (funcStr) new Function(funcStr)
-          if (dest) window.Engine.jump(dest)
-        })
-        // also add the keypress event listener, as role="button" does not handle this automatically
-        ;(l as HTMLButtonElement).addEventListener("keypress", function (e) {
-          if (e.key !== "Enter" && e.key !== " ") return
-  
-          if (funcStr) new Function(funcStr)
-          if (dest) window.Engine.jump(dest)
-        })
+  static addListeners() {
+    // TODO: move each listener type to its own method
+    document.querySelectorAll("tw-link").forEach((l) => {
+      // get each link's attribute
+      const dest = l.attributes.getNamedItem("data-destination")?.value
+      const text = (l as HTMLElement).innerText
+      const funcStr = l.attributes.getNamedItem("data-onclick")?.value
+
+      if (!dest) {
+        console.warn(`Could not find destination for link with text "${text}"`)
+      }
+
+      // add the onclick event listener
+      ;(l as HTMLButtonElement).addEventListener("click", function () {
+        if (funcStr) new Function(funcStr)
+        if (dest) window.Engine.jump(dest)
       })
-    }
+      // also add the keypress event listener, as role="button" does not handle this automatically
+      ;(l as HTMLButtonElement).addEventListener("keypress", function (e) {
+        if (e.key !== "Enter" && e.key !== " ") return
+
+        if (funcStr) new Function(funcStr)
+        if (dest) window.Engine.jump(dest)
+      })
+    })
+  }
 }

@@ -8,7 +8,7 @@ export default class Story {
   #storydata: HTMLElement
 
   name: string = this.getStoryAttr("name") || "A Malachite Story"
-  
+
   #ifid: string
   get ifid() {
     return this.#ifid
@@ -37,7 +37,7 @@ export default class Story {
       let name = p.attributes.getNamedItem("name")?.value || "Passage"
       let tags = p.attributes.getNamedItem("tags")?.value.split(" ")
       let source = Markup.unescape(p.innerHTML)
-      
+
       if (!tags || !tags?.includes("snippet")) {
         this.passages.push(new Passage(name, tags || [], source))
       } else {
@@ -59,42 +59,40 @@ export default class Story {
   #getStartPassage() {
     // check if we at leats have a story data element. throw an error if not
     if (!this.#storydata) throw Error("No story data element found.")
-      // get the passage id of the starting passage
-      const startPassageId = parseInt(
-        this.#storydata?.attributes.getNamedItem("startnode")?.value || "nah"
-      )
-      // and throw an error if it doesn't return a valid id ("nah")
-      if (isNaN(startPassageId)) throw Error("No start passage ID found.")
-      // get the starting passage name
-      const startPassageName =
-        document
-          .querySelector(`[pid="${startPassageId}"]`)
-          ?.attributes.getNamedItem("name")
-          ?.value || null
-      
-      // get the starting passage
-      let startPassage: Passage
-      try {
-        startPassage = this.passage(startPassageName || "")
-      } catch (e) {
-        throw Error("Starting passage does not exist!")
-      }
+    // get the passage id of the starting passage
+    const startPassageId = parseInt(
+      this.#storydata?.attributes.getNamedItem("startnode")?.value || "nah"
+    )
+    // and throw an error if it doesn't return a valid id ("nah")
+    if (isNaN(startPassageId)) throw Error("No start passage ID found.")
+    // get the starting passage name
+    const startPassageName =
+      document.querySelector(`[pid="${startPassageId}"]`)?.attributes.getNamedItem("name")?.value ||
+      null
 
-      return startPassage
+    // get the starting passage
+    let startPassage: Passage
+    try {
+      startPassage = this.passage(startPassageName || "")
+    } catch (e) {
+      throw Error("Starting passage does not exist!")
+    }
+
+    return startPassage
   }
 
   /**
    * Finds all passages with a certain tag.
    */
   passagesByTag(tag: string) {
-    return this.passages.filter(p => p.tags.includes(tag))
+    return this.passages.filter((p) => p.tags.includes(tag))
   }
 
   /**
    * Gets a snippet by its name Throws an error if it cannot find a snippet with the given name.
    */
   snippet(name: string) {
-    const snippet = this.snippets.find(p => {
+    const snippet = this.snippets.find((p) => {
       return p.name.split(" ").join("-").toLowerCase() === name.trim()
     })
     if (!snippet) throw new Error(`No passage with name "${name}" found.`)
@@ -105,7 +103,7 @@ export default class Story {
    * Gets a regular passage by its name. Throws an error if it cannot find a passage with the given name.
    */
   passage(name: string) {
-    const passage = this.passages.find(p => {
+    const passage = this.passages.find((p) => {
       return p.name === name.trim()
     })
     if (!passage) throw new Error(`No snippet with name "${name}" found.`)

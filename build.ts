@@ -1,4 +1,4 @@
-import {rollup, type OutputOptions, type RollupOptions } from "rollup"
+import { rollup, type OutputOptions, type RollupOptions } from "rollup"
 import swc from "@rollup/plugin-swc"
 import commonjs from "@rollup/plugin-commonjs"
 import resolve from "@rollup/plugin-node-resolve"
@@ -10,13 +10,13 @@ async function bundle() {
   // we want to bundle each config separately
   for (let o of options) {
     console.log(`Bundling ${o.output.file ? `to ${o.output.file}` : "file"} using rollup...`)
-    
+
     let bundle
     let failed = false
     try {
       // TODO: better logging here
       bundle = await rollup(o)
-  
+
       await bundle.write(o.output)
     } catch (e) {
       failed = true
@@ -27,7 +27,7 @@ async function bundle() {
 
     // don't continue the build process if rollup failecd
     if (failed) process.exit(1)
-    
+
     console.log(`Successfully bundled ${o.output.file ? `to ${o.output.file}` : "file"}!`)
   }
 }
@@ -40,11 +40,11 @@ async function build() {
 
   // the base HTML file is a nunjuck template, so we render it
   const source = render("src/templates/document.njk", {
-    bundle
+    bundle,
   })
 
   // embed the source into the story json
-  const story = {...storyJson, source}
+  const story = { ...storyJson, source }
 
   // create the format string
   let format = `window.storyFormat(${JSON.stringify(story)});`
@@ -55,13 +55,18 @@ async function build() {
 }
 
 const input = "./src/index.ts"
-const sharedPlugins = [resolve(), commonjs(), polyfill(), swc({
-  swc: {
-    jsc: {
-      target: "es5"
-    }
-  }
-})]
+const sharedPlugins = [
+  resolve(),
+  commonjs(),
+  polyfill(),
+  swc({
+    swc: {
+      jsc: {
+        target: "es5",
+      },
+    },
+  }),
+]
 
 const options: (RollupOptions & { output: OutputOptions })[] = [
   {
@@ -69,22 +74,20 @@ const options: (RollupOptions & { output: OutputOptions })[] = [
 
     output: {
       file: "./build/bundle.min.js",
-      format: "iife"
+      format: "iife",
     },
 
-    plugins: [
-      ...sharedPlugins, terser()
-    ],
+    plugins: [...sharedPlugins, terser()],
   },
   {
     input,
 
     output: {
       file: "./build/bundle.js",
-      format: "iife"
+      format: "iife",
     },
 
-    plugins: sharedPlugins
+    plugins: sharedPlugins,
   },
 ]
 

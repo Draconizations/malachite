@@ -1,6 +1,5 @@
-import Markup from "./markup.ts";
-import type Passage from "./passage.ts";
-
+import Markup from "./markup.ts"
+import type Passage from "./passage.ts"
 
 /**
  * The story engine. It handles overarching utilities such as state, history and passage navigation.
@@ -21,7 +20,7 @@ export default class Engine {
 
   /**
    * Finds, renders and displays the passage by the given name. Optionally ignores the history.
-  */
+   */
   jump(name: string) {
     let passage: Passage
     try {
