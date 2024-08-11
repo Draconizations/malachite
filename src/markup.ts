@@ -178,7 +178,7 @@ export default class Markup {
       return source
     }
 
-    const renderSnippet = (name = "", attrs = "", content = "") => {
+    const renderSnippet = (escape = "", name = "", attrs = "", content = "") => {
       // this shouldn't happen, but just in case.
       if (!name) return ""
 
@@ -239,5 +239,27 @@ export default class Markup {
         if (dest) window.Engine.jump(dest)
       })
     })
+  }
+
+  /**
+   * Finds and executes any script element in the passage body
+   */
+  static executeScriptElements() {
+    const containerElement = document.querySelector("tw-passage")
+
+    // taken from https://stackoverflow.com/a/69190644
+    const scriptElements = containerElement?.querySelectorAll("script");
+  
+    scriptElements?.forEach((scriptElement) => {
+      const clonedElement = document.createElement("script");
+  
+      Array.from(scriptElement.attributes).forEach((attribute) => {
+        clonedElement.setAttribute(attribute.name, attribute.value);
+      });
+      
+      clonedElement.text = scriptElement.text;
+  
+      scriptElement.parentNode?.replaceChild(clonedElement, scriptElement);
+    });
   }
 }

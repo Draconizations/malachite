@@ -15385,12 +15385,18 @@
 	   */ static snippets(source) {
 	        const snippetRules = [
 	            {
-	                match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?%>(([\s\S]*?)<%\/\1%>)/g,
-	                render: (_, name, _2, attrs = "", _4, content = "")=>renderSnippet(name, attrs, content)
+	                match: /<%(\\?)([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?%>(([\s\S]*?)<%\/\2%>)/g,
+	                render: (m, escape, name, _2, attrs = "", _4, content = "")=>{
+	                    if (escape) return m.replace(escape, "");
+	                    return renderSnippet(escape, name, attrs, content);
+	                }
 	            },
 	            {
-	                match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/%>/g,
-	                render: (_, name, _2, attrs = "")=>renderSnippet(name, attrs)
+	                match: /<%(\\?)([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/%>/g,
+	                render: (m, escape, name, _2, attrs = "")=>{
+	                    if (escape) return m.replace(escape, "");
+	                    return renderSnippet(escape, name, attrs);
+	                }
 	            }
 	        ];
 	        // this gets called recursively as long as the latest snippet has content
@@ -15401,7 +15407,7 @@
 	            });
 	            return source;
 	        }
-	        const renderSnippet = (name = "", attrs = "", content = "")=>{
+	        const renderSnippet = (escape = "", name = "", attrs = "", content = "")=>{
 	            // this shouldn't happen, but just in case.
 	            if (!name) return "";
 	            let snip = null;
@@ -15452,6 +15458,21 @@
 	            });
 	        });
 	    }
+	    /**
+	   * Finds and executes any script element in the passage body
+	   */ static executeScriptElements() {
+	        const containerElement = document.querySelector("tw-passage");
+	        // taken from https://stackoverflow.com/a/69190644
+	        const scriptElements = containerElement?.querySelectorAll("script");
+	        scriptElements?.forEach((scriptElement)=>{
+	            const clonedElement = document.createElement("script");
+	            Array.from(scriptElement.attributes).forEach((attribute)=>{
+	                clonedElement.setAttribute(attribute.name, attribute.value);
+	            });
+	            clonedElement.text = scriptElement.text;
+	            scriptElement.parentNode?.replaceChild(clonedElement, scriptElement);
+	        });
+	    }
 	}
 	// nunjucks environment
 	Markup.nunjucks = nj.configure({
@@ -15492,6 +15513,7 @@
 	   */ show(html) {
 	        _class_private_field_loose_base$1(this, _passageEl)[_passageEl].innerHTML = html;
 	        Markup.addListeners();
+	        Markup.executeScriptElements();
 	    }
 	    constructor(){
 	        Object.defineProperty(this, _passageEl, {

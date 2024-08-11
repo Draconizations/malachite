@@ -41,5 +41,6 @@ export default class Engine {
   show(html: string) {
     this.#passageEl.innerHTML = html
     Markup.addListeners()
+    Markup.executeScriptElements()
   }
 }
