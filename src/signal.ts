@@ -32,7 +32,7 @@ export function effect(fn: Function) {
 export function derived(fn: Function) {
   let derived = signal()
   effect(() => {
-    derived = fn()
+    derived.value = fn()
   })
   return derived
 }

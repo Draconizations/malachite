@@ -15150,6 +15150,13 @@
 	    subscriber = fn;
 	    fn();
 	}
+	function derived(fn) {
+	    let derived = signal();
+	    effect(()=>{
+	        derived.value = fn();
+	    });
+	    return derived;
+	}
 
 	function _class_private_field_loose_base$2(receiver, privateKey) {
 	    if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
@@ -15346,31 +15353,58 @@
 	            {
 	                // @signal() - inside the parentheses is an expression
 	                // declares a signal and initializes it if it does not exist yet
-	                match: /(\\?)\@([\.\_\w]+)\((.*)\)/g,
+	                match: /(\\?)\@([\.\_\w\d]+)\((.*)\)/g,
 	                render: (_ = "", escape = "", key = "", expr = "")=>{
 	                    if (escape) return _;
+	                    let fn = null;
 	                    if (expr) {
 	                        try {
-	                            // retun the value from the expression
-	                            const value = new Function(`const value = ${expr}; return value;`);
-	                            if (getPath(key) !== undefined) setPath(key, value());
-	                            else setPath(key, signal(value()));
+	                            fn = new Function(`const value = ${expr}; return value;`);
 	                        } catch (e) {
 	                            console.error(e);
 	                        }
+	                    } else fn = new Function("undefined");
+	                    if (fn) {
+	                        if (getPath(key) !== undefined) setPath(key, fn());
+	                        else setPath(key, signal(fn()));
 	                    }
 	                    return "";
 	                }
 	            },
 	            {
-	                match: /(\\?)\@([\.\_\w]+)/g,
+	                // @!derived()
+	                // declares a derived signal and initializes it if it doesn't exist yet
+	                match: /(\\?)\@\!([\.\_\w\d]+)\((.*)\)/g,
+	                render: (_ = "", escape = "", key = "", expr = "")=>{
+	                    if (escape) return _.replace(escape, "");
+	                    let fn = null;
+	                    if (expr) {
+	                        try {
+	                            fn = new Function(`const value = ${expr}; return value;`);
+	                        } catch (e) {
+	                            console.error(e);
+	                        }
+	                    } else fn = new Function("undefined");
+	                    if (fn) {
+	                        if (getPath(key) !== undefined) setPath(key, fn());
+	                        else setPath(key, derived(fn));
+	                    }
+	                    return "";
+	                }
+	            },
+	            {
+	                // @signal
+	                // displays a signal's value
+	                match: /(\\?)\@([\.\_\w\d]+)/g,
 	                render: (_ = "", escape = "", key = "")=>{
-	                    if (escape) return _.replace("\\", "");
+	                    if (escape) return _.replace(escape, "");
 	                    effect(()=>{
-	                        document.querySelectorAll(`tw-var[data-signal="${key}"]`).forEach((i)=>i.innerText = getPath(key));
+	                        document.querySelectorAll(`tw-var[data-signal="${key}"]`).forEach((i)=>i.innerHTML = getPath(key));
 	                    });
 	                    let print = getPath(key);
 	                    if (typeof print === "object") print = JSON.stringify(print);
+	                    // each signal value is displayed in a <tw-var> element with [data-signal="key"]
+	                    // this gets updates whenever the effect function above re-runs
 	                    return `<tw-var data-signal="${key}" style="display: contents; ">${print}</tw-var>`;
 	                }
 	            }

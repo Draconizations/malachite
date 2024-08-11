@@ -1,7 +1,7 @@
 import nj from "nunjucks"
 import markdown from "markdown-it"
 import type Snippet from "./snippet.ts"
-import { effect, signal } from "./signal.ts"
+import { derived, effect, signal } from "./signal.ts"
 import { getPath, setPath } from "./state.ts"
 
 // markdown-it environment
@@ -108,34 +108,63 @@ export default class Markup {
       {
         // @signal() - inside the parentheses is an expression
         // declares a signal and initializes it if it does not exist yet
-        match: /(\\?)\@([\.\_\w]+)\((.*)\)/g,
+        match: /(\\?)\@([\.\_\w\d]+)\((.*)\)/g,
         render: (_ = "", escape = "", key = "", expr = "") => {
           if (escape) return _
+
+          let fn: Function|null = null
           if (expr) {
             try {
-              // retun the value from the expression
-              const value = new Function(`const value = ${expr}; return value;`)
+              // evaluate the expression
+              fn = new Function(`const value = ${expr}; return value;`)
 
-              if (getPath(key) !== undefined) setPath(key, value())
-              else setPath(key, signal(value()))
-            } catch (e) {
+            } catch(e) {
               console.error(e)
             }
+          } else fn = new Function("undefined")
+
+          if (fn) {
+            if (getPath(key) !== undefined) setPath(key, fn())
+            else setPath(key, signal(fn()))
           }
 
           return ""
         },
       },
       {
+        // @!derived()
+        // declares a derived signal and initializes it if it doesn't exist yet
+        match: /(\\?)\@\!([\.\_\w\d]+)\((.*)\)/g,
+        render: (_ = "", escape = "", key = "", expr = "") => {
+          if (escape) return _.replace(escape, "")
+          let fn: Function|null = null
+          if (expr) {
+            try { 
+              fn = new Function(`const value = ${expr}; return value;`)
+
+            } catch(e) {
+              console.error(e)
+            }
+          } else fn = new Function("undefined")
+
+          if (fn) {
+            if (getPath(key) !== undefined) setPath(key, fn())
+            else setPath(key, derived(fn))
+          }
+
+          return ""
+        }
+      },
+      {
         // @signal
         // displays a signal's value
-        match: /(\\?)\@([\.\_\w]+)/g,
+        match: /(\\?)\@([\.\_\w\d]+)/g,
         render: (_ = "", escape = "", key = "") => {
-          if (escape) return _.replace("\\", "")
+          if (escape) return _.replace(escape, "")
           effect(() => {
             document
               .querySelectorAll(`tw-var[data-signal="${key}"]`)
-              .forEach((i) => ((i as HTMLElement).innerText = getPath(key)))
+              .forEach((i) => ((i as HTMLElement).innerHTML = getPath(key)))
           })
           let print = getPath(key)
           if (typeof print === "object") print = JSON.stringify(print)
