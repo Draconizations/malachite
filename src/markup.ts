@@ -127,6 +127,8 @@ export default class Markup {
         },
       },
       {
+        // @signal
+        // displays a signal's value
         match: /(\\?)\@([\.\_\w]+)/g,
         render: (_ = "", escape = "", key = "") => {
           if (escape) return _.replace("\\", "")
@@ -137,6 +139,9 @@ export default class Markup {
           })
           let print = getPath(key)
           if (typeof print === "object") print = JSON.stringify(print)
+
+          // each signal value is displayed in a <tw-var> element with [data-signal="key"]
+          // this gets updates whenever the effect function above re-runs
           return `<tw-var data-signal="${key}" style="display: contents; ">${print}</tw-var>`
         },
       },
