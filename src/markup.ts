@@ -154,13 +154,18 @@ export default class Markup {
   static snippets(source: string) {
     const snippetRules: ParserRule[] = [
       {
-        match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?%>(([\s\S]*?)<%\/\1%>)/g,
-        render: (_, name, _2, attrs = "", _4, content = "") =>
-          renderSnippet(name, attrs, content),
+        match: /<%(\\?)([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?%>(([\s\S]*?)<%\/\2%>)/g,
+        render: (m, escape, name, _2, attrs = "", _4, content = "") => {
+          if (escape) return m.replace(escape, "")
+          return renderSnippet(escape, name, attrs, content)
+        }
       },
       {
-        match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/%>/g,
-        render: (_, name, _2, attrs = "") => renderSnippet(name, attrs),
+        match: /<%(\\?)([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/%>/g,
+        render: (m, escape, name, _2, attrs = "") => {
+          if (escape) return m.replace(escape, "")
+          return renderSnippet(escape, name, attrs)
+        },
       },
     ]
 
