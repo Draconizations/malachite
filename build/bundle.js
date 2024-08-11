@@ -15151,6 +15151,109 @@
 	    fn();
 	}
 
+	function _class_private_field_loose_base$2(receiver, privateKey) {
+	    if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
+	        throw new TypeError("attempted to use private field on non-instance");
+	    }
+	    return receiver;
+	}
+	var id$2 = 0;
+	function _class_private_field_loose_key$2(name) {
+	    return "__private_" + id$2++ + "_" + name;
+	}
+	const handler = {
+	    get: (target, key)=>{
+	        if (key === "isProxy") return true;
+	        if (typeof target[key] === "undefined") return;
+	        if (target[key].isSignal) return target[key].value;
+	        if (!target[key].isProxy && typeof target[key] === "object") target[key] = new Proxy(target[key], handler);
+	        return target[key];
+	    },
+	    set: (target, key, value)=>{
+	        if (target[key] && target[key].isSignal) {
+	            target[key].value = value;
+	            return true;
+	        }
+	        target[key] = value;
+	        // TODO: make the engine handle pushing history here
+	        return true;
+	    },
+	    ownKeys (target) {
+	        return Object.keys(target);
+	    },
+	    has (target, prop) {
+	        return prop in target;
+	    },
+	    deleteProperty (target, key) {
+	        let result = false;
+	        if (key in target) {
+	            result = Reflect.deleteProperty(target, key);
+	        }
+	        return result;
+	    }
+	};
+	var _store = /*#__PURE__*/ _class_private_field_loose_key$2("_store");
+	class State {
+	    get store() {
+	        return _class_private_field_loose_base$2(this, _store)[_store];
+	    }
+	    constructor(){
+	        Object.defineProperty(this, _store, {
+	            writable: true,
+	            value: void 0
+	        });
+	        _class_private_field_loose_base$2(this, _store)[_store] = new Proxy({}, handler);
+	    }
+	}
+	/**
+	 * Gets the value at the given path
+	 */ function getPath(path) {
+	    if (!isValidPath(path)) {
+	        console.warn("Invalid variable path " + path);
+	        return;
+	    }
+	    const arr = path.split(".");
+	    let previous = window.State.store;
+	    for(let i = 0; i < arr.length; i++){
+	        previous = previous[arr[i]];
+	        if (typeof previous === "undefined") break;
+	    }
+	    return previous;
+	}
+	/**
+	 * Recursively sets a value in the store at the given path
+	 */ function setPath(path, value) {
+	    if (!isValidPath(path)) {
+	        console.warn("Invalid variable path " + path);
+	        return true;
+	    }
+	    const arr = path.split(".");
+	    let previous = window.State.store;
+	    let fail = false;
+	    for(let i = 0; i < arr.length - 1; i++){
+	        if (typeof previous[arr[i]] === "undefined") previous[arr[i]] = {};
+	        if (typeof previous[arr[i]] !== "object") {
+	            // can't set a new property here!
+	            fail = true;
+	            console.warn(`Failed to set ${path}: ${arr.slice(0, i + 1).join(".")} is not an object.`);
+	            break;
+	        }
+	        previous = previous[arr[i]];
+	    }
+	    if (!fail) previous[arr[arr.length - 1]] = value;
+	    return true;
+	}
+	function isValidPath(path) {
+	    const arr = path.split(".");
+	    try {
+	        arr.forEach((a)=>new Function(`var ${a}`));
+	    } catch (e) {
+	        console.error(e);
+	        return false;
+	    }
+	    return true;
+	}
+
 	// markdown-it environment
 	const md = MarkdownIt({
 	    html: true,
@@ -15194,10 +15297,10 @@
 	    /**
 	   * Parses raw passage content and returns the rendered passage. It does not handle unescaping.
 	   */ static parse(source) {
+	        source = this.variables(source);
 	        source = this.links(source);
 	        source = this.snippets(source);
 	        source = this.markdown(source);
-	        source = this.variables(source);
 	        return source;
 	    }
 	    /**
@@ -15211,43 +15314,47 @@
 	   * NOTE: This does not attach the event listeners to the links, as the links need to be attached to the DOM first.
 	   */ static links(source) {
 	        // default twine link
-	        const twineLink = (dest = "", text = "", func = "")=>`<tw-link role="button" tabindex="0" data-destination="${dest}" ${func ? `data-onclick="${func}"` : ""}>${text}</tw-link>`;
+	        const twineLink = (dest = "", text = "", func = "")=>`<button data-tw-link data-destination="${dest}" ${func ? `data-onclick="${func}"` : ""}>${text}</button>`;
 	        const linkRules = [
 	            {
 	                match: /\[\[(.+?)\|(.+?)\]\s?\[(.+?)\]\]/g,
-	                render: ([_, dest, text, func])=>twineLink(dest, text, func)
+	                render: (_, dest, text, func)=>twineLink(dest, text, func)
 	            },
 	            {
 	                match: /\[\[(.+?)\]\s?\[(.+?)\]\]/g,
-	                render: ([_, dest, func])=>twineLink(dest, dest, func)
+	                render: (_, dest, func)=>twineLink(dest, dest, func)
 	            },
 	            {
 	                match: /\[\[(.+?)\|(.+?)\]\]/g,
-	                render: ([_, dest, text])=>twineLink(dest, text)
+	                render: (_, dest, text)=>twineLink(dest, text)
 	            },
 	            {
 	                match: /\[\[(.+?)\]\]/g,
-	                render: ([_, dest])=>twineLink(dest, dest)
+	                render: (_, dest)=>twineLink(dest, dest)
 	            }
 	        ];
 	        linkRules.forEach((rule)=>{
 	            // match and replace each link
-	            source = source.replaceAll(rule.match, (text)=>rule.render(rule.match.exec(text) || []));
+	            source = source.replaceAll(rule.match, rule.render);
 	        });
 	        return source;
 	    }
-	    static variables(source) {
+	    /**
+	   * Renders passage variable declarations and handles variable declaration and assignments.
+	   */ static variables(source) {
 	        const varRules = [
 	            {
-	                match: /(\\?)\@(\w*)\((.*)\)/g,
-	                render: ([_ = "", escape = "", key = "", expr = ""])=>{
-	                    if (escape) return _.replace("\\", "");
+	                // @signal() - inside the parentheses is an expression
+	                // declares a signal and initializes it if it does not exist yet
+	                match: /(\\?)\@([\.\_\w]+)\((.*)\)/g,
+	                render: (_ = "", escape = "", key = "", expr = "")=>{
+	                    if (escape) return _;
 	                    if (expr) {
 	                        try {
-	                            const aaa = expr.replaceAll(key, `window.State.store["${key}"]`);
-	                            const value = new Function(`const value = ${aaa}; return value;`);
-	                            if (window.State.store[key] !== undefined) window.State.store[key] = value();
-	                            else window.State.store[key] = signal(value());
+	                            // retun the value from the expression
+	                            const value = new Function(`const value = ${expr}; return value;`);
+	                            if (getPath(key) !== undefined) setPath(key, value());
+	                            else setPath(key, signal(value()));
 	                        } catch (e) {
 	                            console.error(e);
 	                        }
@@ -15256,18 +15363,20 @@
 	                }
 	            },
 	            {
-	                match: /(\\?)\@(\w*)/g,
-	                render: ([_ = "", escape = "", key = ""])=>{
+	                match: /(\\?)\@([\.\_\w]+)/g,
+	                render: (_ = "", escape = "", key = "")=>{
 	                    if (escape) return _.replace("\\", "");
 	                    effect(()=>{
-	                        document.querySelectorAll(`tw-var[data-signal="${key}"]`).forEach((i)=>i.innerText = window.State.store[key]);
+	                        document.querySelectorAll(`tw-var[data-signal="${key}"]`).forEach((i)=>i.innerText = getPath(key));
 	                    });
-	                    return `<tw-var data-signal="${key}" style="display: contents; ">${window.State.store[key]}</tw-var>`;
+	                    let print = getPath(key);
+	                    if (typeof print === "object") print = JSON.stringify(print);
+	                    return `<tw-var data-signal="${key}" style="display: contents; ">${print}</tw-var>`;
 	                }
 	            }
 	        ];
 	        varRules.forEach((rule)=>{
-	            source = source.replaceAll(rule.match, (text)=>rule.render(rule.match.exec(text) || []));
+	            source = source.replaceAll(rule.match, rule.render);
 	        });
 	        return source;
 	    }
@@ -15277,18 +15386,18 @@
 	        const snippetRules = [
 	            {
 	                match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?%>(([\s\S]*?)<%\/\1%>)/g,
-	                render: ([_, name, _2, attrs = "", _4, content = ""])=>renderSnippet(name, attrs, content)
+	                render: (_, name, _2, attrs = "", _4, content = "")=>renderSnippet(name, attrs, content)
 	            },
 	            {
 	                match: /<%([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/%>/g,
-	                render: ([_, name, _2, attrs = ""])=>renderSnippet(name, attrs)
+	                render: (_, name, _2, attrs = "")=>renderSnippet(name, attrs)
 	            }
 	        ];
 	        // this gets called recursively as long as the latest snippet has content
 	        function snippet(source) {
 	            snippetRules.forEach((snippetRule)=>{
 	                // match and replace each snippet tag
-	                source = source.replaceAll(snippetRule.match, (text)=>snippetRule.render(snippetRule.match.exec(text) || []));
+	                source = source.replaceAll(snippetRule.match, snippetRule.render);
 	            });
 	            return source;
 	        }
@@ -15329,7 +15438,7 @@
 	   * Adds event listeners to to make elements like passage links functional.
 	   */ static addListeners() {
 	        // TODO: move each listener type to its own method
-	        document.querySelectorAll("tw-link").forEach((l)=>{
+	        document.querySelectorAll("[data-tw-link]").forEach((l)=>{
 	            // get each link's attribute
 	            const dest = l.attributes.getNamedItem("data-destination")?.value;
 	            const text = l.innerText;
@@ -15341,11 +15450,6 @@
 	                if (funcStr) new Function(funcStr)();
 	                if (dest) window.Engine.jump(dest);
 	            });
-	            l.addEventListener("keypress", function(e) {
-	                if (e.key !== "Enter" && e.key !== " ") return;
-	                if (funcStr) new Function(funcStr)();
-	                if (dest) window.Engine.jump(dest);
-	            });
 	        });
 	    }
 	}
@@ -15354,17 +15458,17 @@
 	    autoescape: true
 	});
 
-	function _class_private_field_loose_base$2(receiver, privateKey) {
+	function _class_private_field_loose_base$1(receiver, privateKey) {
 	    if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
 	        throw new TypeError("attempted to use private field on non-instance");
 	    }
 	    return receiver;
 	}
-	var id$2 = 0;
-	function _class_private_field_loose_key$2(name) {
-	    return "__private_" + id$2++ + "_" + name;
+	var id$1 = 0;
+	function _class_private_field_loose_key$1(name) {
+	    return "__private_" + id$1++ + "_" + name;
 	}
-	var _passageEl = /*#__PURE__*/ _class_private_field_loose_key$2("_passageEl");
+	var _passageEl = /*#__PURE__*/ _class_private_field_loose_key$1("_passageEl");
 	class Engine {
 	    start() {
 	        this.jump(window.Story.startPassage);
@@ -15386,7 +15490,7 @@
 	    /**
 	   * Displays the given html as the current passage. Does not handle history or state.
 	   */ show(html) {
-	        _class_private_field_loose_base$2(this, _passageEl)[_passageEl].innerHTML = html;
+	        _class_private_field_loose_base$1(this, _passageEl)[_passageEl].innerHTML = html;
 	        Markup.addListeners();
 	    }
 	    constructor(){
@@ -15397,62 +15501,7 @@
 	        // init with the passage element
 	        const passageEl = document.querySelector("tw-passage");
 	        if (!passageEl) throw new Error("tw-passage element is missing!");
-	        _class_private_field_loose_base$2(this, _passageEl)[_passageEl] = passageEl;
-	    }
-	}
-
-	function _class_private_field_loose_base$1(receiver, privateKey) {
-	    if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
-	        throw new TypeError("attempted to use private field on non-instance");
-	    }
-	    return receiver;
-	}
-	var id$1 = 0;
-	function _class_private_field_loose_key$1(name) {
-	    return "__private_" + id$1++ + "_" + name;
-	}
-	const handler = {
-	    get: (target, key)=>{
-	        if (key === "isProxy") return true;
-	        if (typeof target[key] === "undefined") return;
-	        if (target[key].isSignal) return target[key].value;
-	        if (!target[key].isProxy && typeof target[key] === "object") target[key] = new Proxy(target[key], handler);
-	        return target[key];
-	    },
-	    set: (target, key, value)=>{
-	        if (target[key] && target[key].isSignal) {
-	            target[key].value = value;
-	            return true;
-	        }
-	        target[key] = value;
-	        // TODO: make the engine handle pushing history here
-	        return true;
-	    },
-	    ownKeys (target) {
-	        return Object.keys(target);
-	    },
-	    has (target, prop) {
-	        return prop in target;
-	    },
-	    deleteProperty (target, key) {
-	        let result = false;
-	        if (key in target) {
-	            result = Reflect.deleteProperty(target, key);
-	        }
-	        return result;
-	    }
-	};
-	var _store = /*#__PURE__*/ _class_private_field_loose_key$1("_store");
-	class State {
-	    get store() {
-	        return _class_private_field_loose_base$1(this, _store)[_store];
-	    }
-	    constructor(){
-	        Object.defineProperty(this, _store, {
-	            writable: true,
-	            value: void 0
-	        });
-	        _class_private_field_loose_base$1(this, _store)[_store] = new Proxy({}, handler);
+	        _class_private_field_loose_base$1(this, _passageEl)[_passageEl] = passageEl;
 	    }
 	}
 

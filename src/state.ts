@@ -43,3 +43,63 @@ export default class State {
     return this.#store
   }
 }
+
+/**
+ * Gets the value at the given path
+ */
+export function getPath(path: string) {
+  if (!isValidPath(path)) {
+    console.warn("Invalid variable path " + path)
+    return
+  }
+
+  const arr = path.split(".")
+  let previous: any = window.State.store
+
+  for (let i = 0; i < arr.length; i++) {
+    previous = previous[arr[i]]
+    if (typeof previous === "undefined") break
+  }
+
+  return previous
+}
+
+/**
+ * Recursively sets a value in the store at the given path
+ */
+export function setPath(path: string, value: any) {
+  if (!isValidPath(path)) {
+    console.warn("Invalid variable path " + path)
+    return true
+  }
+
+  const arr = path.split(".")
+  let previous = window.State.store
+  let fail = false
+
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (typeof previous[arr[i]] === "undefined") previous[arr[i]] = {}
+    if (typeof previous[arr[i]] !== "object") {
+      // can't set a new property here!
+      fail = true
+      console.warn(`Failed to set ${path}: ${arr.slice(0, i + 1).join(".")} is not an object.`)
+      break
+    }
+    previous = previous[arr[i]]
+  }
+
+  if (!fail) previous[arr[arr.length - 1]] = value
+
+  return true
+}
+
+function isValidPath(path: string) {
+  const arr = path.split(".")
+  try {
+    arr.forEach((a) => new Function(`var ${a}`))
+  } catch (e) {
+    console.error(e)
+    return false
+  }
+  return true
+}
