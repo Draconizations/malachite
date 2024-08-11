@@ -129,11 +129,10 @@ export default class Markup {
             document
               .querySelectorAll(`tw-var[data-signal="${key}"]`)
               .forEach((i) => ((i as HTMLElement).innerText = window.State.store[key]))
-            }
-          )
+          })
           return `<tw-var data-signal="${key}" style="display: contents; ">${window.State.store[key]}</tw-var>`
-        }
-      }
+        },
+      },
     ]
     varRules.forEach((rule) => {
       source = source.replaceAll(rule.match, (text) => rule.render(rule.match.exec(text) || []))

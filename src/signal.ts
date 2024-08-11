@@ -1,4 +1,4 @@
-let subscriber: Function|null = null
+let subscriber: Function | null = null
 
 export function signal(value?: any) {
   const subscriptions = new Set<Function>()
@@ -20,19 +20,19 @@ export function signal(value?: any) {
     },
     unsubscribe(fn: Function) {
       return subscriptions.delete(fn)
-    }
+    },
   }
 }
 
 export function effect(fn: Function) {
-	subscriber = fn
+  subscriber = fn
   fn()
 }
 
 export function derived(fn: Function) {
-	let derived = signal()
-	effect(() => {
-		derived = fn()
-	})
-	return derived
+  let derived = signal()
+  effect(() => {
+    derived = fn()
+  })
+  return derived
 }

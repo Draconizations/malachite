@@ -55,12 +55,7 @@ async function build() {
 }
 
 const input = "./src/index.ts"
-const sharedPlugins = [
-  resolve(),
-  commonjs(),
-  polyfill(),
-  swc(),
-]
+const sharedPlugins = [resolve(), commonjs(), polyfill(), swc()]
 
 const options: (RollupOptions & { output: OutputOptions })[] = [
   {

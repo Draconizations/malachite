@@ -15,8 +15,8 @@ window.Engine.start()
 declare global {
   interface Window {
     Engine: Engine
-    Story: Story,
-    State: State,
-    s: Record<string,any>
+    Story: Story
+    State: State
+    s: Record<string, any>
   }
 }
