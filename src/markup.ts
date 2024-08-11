@@ -112,13 +112,12 @@ export default class Markup {
         render: (_ = "", escape = "", key = "", expr = "") => {
           if (escape) return _
 
-          let fn: Function|null = null
+          let fn: Function | null = null
           if (expr) {
             try {
               // evaluate the expression
               fn = new Function(`const value = ${expr}; return value;`)
-
-            } catch(e) {
+            } catch (e) {
               console.error(e)
             }
           } else fn = new Function("undefined")
@@ -137,12 +136,11 @@ export default class Markup {
         match: /(\\?)\@\!([\.\_\w\d]+)\((.*)\)/g,
         render: (_ = "", escape = "", key = "", expr = "") => {
           if (escape) return _.replace(escape, "")
-          let fn: Function|null = null
+          let fn: Function | null = null
           if (expr) {
-            try { 
+            try {
               fn = new Function(`const value = ${expr}; return value;`)
-
-            } catch(e) {
+            } catch (e) {
               console.error(e)
             }
           } else fn = new Function("undefined")
@@ -153,7 +151,7 @@ export default class Markup {
           }
 
           return ""
-        }
+        },
       },
       {
         // @signal
@@ -192,7 +190,7 @@ export default class Markup {
         render: (m, escape, name, _2, attrs = "", _4, content = "") => {
           if (escape) return m.replace(escape, "")
           return renderSnippet(escape, name, attrs, content)
-        }
+        },
       },
       {
         match: /<%(\\?)([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/%>/g,
@@ -282,18 +280,18 @@ export default class Markup {
     const containerElement = document.querySelector("tw-passage")
 
     // taken from https://stackoverflow.com/a/69190644
-    const scriptElements = containerElement?.querySelectorAll("script");
-  
+    const scriptElements = containerElement?.querySelectorAll("script")
+
     scriptElements?.forEach((scriptElement) => {
-      const clonedElement = document.createElement("script");
-  
+      const clonedElement = document.createElement("script")
+
       Array.from(scriptElement.attributes).forEach((attribute) => {
-        clonedElement.setAttribute(attribute.name, attribute.value);
-      });
-      
-      clonedElement.text = scriptElement.text;
-  
-      scriptElement.parentNode?.replaceChild(clonedElement, scriptElement);
-    });
+        clonedElement.setAttribute(attribute.name, attribute.value)
+      })
+
+      clonedElement.text = scriptElement.text
+
+      scriptElement.parentNode?.replaceChild(clonedElement, scriptElement)
+    })
   }
 }
