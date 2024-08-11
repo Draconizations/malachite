@@ -2,16 +2,24 @@ const handler = {
   get: (target: Record<string,any>, key: string) => {
     if (key === "isProxy") return true
 
-    const prop = target[key]
-    if (typeof prop === "undefined") return
+    if (typeof target[key] === "undefined") return
 
-    if (!prop.isProxy && typeof prop === "object") target[key] = new Proxy(prop, handler)
+    if (target[key].isSignal) return target[key].value
+
+    if (!target[key].isProxy && typeof target[key] === "object")
+      target[key] = new Proxy(target[key], handler)
 
     return target[key]
   },
   set: (target: Record<string,any>, key: string, value: any) => {
+    if (target[key] && target[key].isSignal) {
+      target[key].value = value
+      return true
+    }
+
     target[key] = value
     // TODO: make the engine handle pushing history here
+
     return true
   },
   ownKeys (target: Record<string,any>) {
@@ -23,7 +31,7 @@ const handler = {
   deleteProperty (target: Record<string,any>, key: string) {
     let result = false;
     if (key in target) {
-      // Delete via Reflection.
+
       result = Reflect.deleteProperty(target, key);
     }
     return result;

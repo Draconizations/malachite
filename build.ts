@@ -36,7 +36,7 @@ async function build() {
   // get the story json file and read it as json
   const storyJson = await Bun.file("./story.json").json()
   // also get the *minified* bundle file
-  const bundle = await Bun.file("./build/bundle.min.js").text()
+  const bundle = await Bun.file("./build/bundle.js").text()
 
   // the base HTML file is a nunjuck template, so we render it
   const source = render("src/templates/document.njk", {
@@ -59,13 +59,7 @@ const sharedPlugins = [
   resolve(),
   commonjs(),
   polyfill(),
-  swc({
-    swc: {
-      jsc: {
-        target: "es5",
-      },
-    },
-  }),
+  swc(),
 ]
 
 const options: (RollupOptions & { output: OutputOptions })[] = [

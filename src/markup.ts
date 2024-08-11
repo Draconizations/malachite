@@ -1,7 +1,7 @@
 import nj from "nunjucks"
 import markdown from "markdown-it"
-import type Passage from "./passage.ts"
 import type Snippet from "./snippet.ts"
+import { effect, signal } from "./signal.ts"
 
 // markdown-it environment
 const md = markdown({
@@ -51,6 +51,7 @@ export default class Markup {
     source = this.links(source)
     source = this.snippets(source)
     source = this.markdown(source)
+    source = this.variables(source)
     return source
   }
 
@@ -92,6 +93,49 @@ export default class Markup {
 
     linkRules.forEach((rule) => {
       // match and replace each link
+      source = source.replaceAll(rule.match, (text) => rule.render(rule.match.exec(text) || []))
+    })
+
+    return source
+  }
+
+  static variables(source: string) {
+    const varRules: ParserRule[] = [
+      {
+        match: /(\\?)\@(\w*)\((.*)\)/g,
+        render: ([_ = "", escape = "", key = "", expr = ""]) => {
+          if (escape) return _.replace("\\", "")
+
+          if (expr) {
+            try {
+              const aaa = expr.replaceAll(key, `window.State.store["${key}"]`)
+              const value = new Function(`const value = ${aaa}; return value;`)
+
+              if (window.State.store[key] !== undefined) window.State.store[key] = value()
+              else window.State.store[key] = signal(value())
+            } catch (e) {
+              console.error(e)
+            }
+          }
+
+          return ""
+        },
+      },
+      {
+        match: /(\\?)\@(\w*)/g,
+        render: ([_ = "", escape = "", key = ""]) => {
+          if (escape) return _.replace("\\", "")
+          effect(() => {
+            document
+              .querySelectorAll(`tw-var[data-signal="${key}"]`)
+              .forEach((i) => ((i as HTMLElement).innerText = window.State.store[key]))
+            }
+          )
+          return `<tw-var data-signal="${key}" style="display: contents; ">${window.State.store[key]}</tw-var>`
+        }
+      }
+    ]
+    varRules.forEach((rule) => {
       source = source.replaceAll(rule.match, (text) => rule.render(rule.match.exec(text) || []))
     })
 
@@ -159,8 +203,10 @@ export default class Markup {
   /**
    * Renders a snippet and returns the rendered html
    */
-  static snippet(source: string, context: Record<string, any>) {
-    return this.nunjucks.renderString(source, context)
+  static snippet(source: string, context: Record<string, any> = {}) {
+    source = this.nunjucks.renderString(source, context)
+    source = this.variables(source)
+    return source
   }
 
   /**
@@ -180,14 +226,14 @@ export default class Markup {
 
       // add the onclick event listener
       ;(l as HTMLButtonElement).addEventListener("click", function () {
-        if (funcStr) new Function(funcStr)
+        if (funcStr) new Function(funcStr)()
         if (dest) window.Engine.jump(dest)
       })
       // also add the keypress event listener, as role="button" does not handle this automatically
       ;(l as HTMLButtonElement).addEventListener("keypress", function (e) {
         if (e.key !== "Enter" && e.key !== " ") return
 
-        if (funcStr) new Function(funcStr)
+        if (funcStr) new Function(funcStr)()
         if (dest) window.Engine.jump(dest)
       })
     })
