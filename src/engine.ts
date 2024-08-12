@@ -27,7 +27,7 @@ export default class Engine {
       passage = window.Story.passage(name)
     } catch (e) {
       // catch the error if one is thrown
-      console.error(new Error(`Could not jump to passage: ${(e as Error).message}`))
+      console.warn(`Could not jump to passage: ${(e as Error).message}`)
       return
     }
 
