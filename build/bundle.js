@@ -15151,7 +15151,7 @@
 	    fn();
 	}
 	function derived(fn) {
-	    let derived = signal();
+	    const derived = signal();
 	    effect(()=>{
 	        derived.value = fn();
 	    });
@@ -15177,7 +15177,7 @@
 	        return target[key];
 	    },
 	    set: (target, key, value)=>{
-	        if (target[key] && target[key].isSignal) {
+	        if (target[key]?.isSignal) {
 	            target[key].value = value;
 	            return true;
 	        }
@@ -15216,7 +15216,7 @@
 	 * Gets the value at the given path
 	 */ function getPath(path) {
 	    if (!isValidPath(path)) {
-	        console.warn("Invalid variable path " + path);
+	        console.warn(`Invalid variable path ${path}`);
 	        return;
 	    }
 	    const arr = path.split(".");
@@ -15231,7 +15231,7 @@
 	 * Recursively sets a value in the store at the given path
 	 */ function setPath(path, value) {
 	    if (!isValidPath(path)) {
-	        console.warn("Invalid variable path " + path);
+	        console.warn(`Invalid variable path ${path}`);
 	        return true;
 	    }
 	    const arr = path.split(".");
@@ -15351,62 +15351,63 @@
 	   */ static variables(source) {
 	        const varRules = [
 	            {
-	                // @signal() - inside the parentheses is an expression
-	                // declares a signal and initializes it if it does not exist yet
-	                match: /(\\?)\@([\.\_\w\d]+)\((.*)\)/g,
-	                render: (_ = "", escape = "", key = "", expr = "")=>{
-	                    if (escape) return _;
-	                    let fn = null;
+	                // @signal() OR @signal OR @!derived()
+	                // declares a a signal OR reactively displays a signal OR declares a derived signal
+	                match: /(\\?)\@(\!)?([\.\_\w\d]+)(?:\(([\s\S]*?)?\))?/g,
+	                render: (m = "", esc = "", d = "", key = "", expr = "")=>{
+	                    if (esc) return m.replace(esc, "");
+	                    // check if there's an expression included
 	                    if (expr) {
-	                        try {
-	                            // evaluate the expression
-	                            fn = new Function(`const value = ${expr}; return value;`);
-	                        } catch (e) {
-	                            console.error(e);
-	                        }
-	                    } else fn = new Function("undefined");
-	                    if (fn) {
-	                        if (getPath(key) !== undefined) setPath(key, fn());
-	                        else setPath(key, signal(fn()));
-	                    }
-	                    return "";
-	                }
-	            },
-	            {
-	                // @!derived()
-	                // declares a derived signal and initializes it if it doesn't exist yet
-	                match: /(\\?)\@\!([\.\_\w\d]+)\((.*)\)/g,
-	                render: (_ = "", escape = "", key = "", expr = "")=>{
-	                    if (escape) return _.replace(escape, "");
-	                    let fn = null;
-	                    if (expr) {
+	                        let fn = null;
 	                        try {
 	                            fn = new Function(`const value = ${expr}; return value;`);
 	                        } catch (e) {
 	                            console.error(e);
 	                        }
-	                    } else fn = new Function("undefined");
-	                    if (fn) {
-	                        if (getPath(key) !== undefined) setPath(key, fn());
-	                        else setPath(key, derived(fn));
+	                        // we got valid expression! set the signal to it
+	                        if (fn) {
+	                            if (getPath(key) !== undefined) setPath(key, fn());
+	                            else {
+	                                if (d) setPath(key, derived(fn));
+	                                else setPath(key, signal(fn()));
+	                            }
+	                        }
+	                        return "";
 	                    }
-	                    return "";
-	                }
-	            },
-	            {
-	                // @signal
-	                // displays a signal's value
-	                match: /(\\?)\@([\.\_\w\d]+)/g,
-	                render: (_ = "", escape = "", key = "")=>{
-	                    if (escape) return _.replace(escape, "");
-	                    effect(()=>{
-	                        document.querySelectorAll(`tw-var[data-signal="${key}"]`).forEach((i)=>i.innerHTML = getPath(key));
-	                    });
+	                    // no expression found, so we display the signal instead
 	                    let print = getPath(key);
 	                    if (typeof print === "object") print = JSON.stringify(print);
+	                    // register a new effect that updates every element with that references this signal
+	                    effect(()=>{
+	                        document.querySelectorAll(`tw-var[data-signal="${key}"]`).forEach((i)=>{
+	                            i.innerHTML = getPath(key);
+	                        });
+	                    });
 	                    // each signal value is displayed in a <tw-var> element with [data-signal="key"]
 	                    // this gets updates whenever the effect function above re-runs
-	                    return `<tw-var data-signal="${key}" style="display: contents; ">${print}</tw-var>`;
+	                    return `<tw-var data-var="${key}" data-signal="${key}" style="display: contents; ">${print}</tw-var>`;
+	                }
+	            },
+	            {
+	                // $variable() OR $variable
+	                // declares a static variable OR displays it
+	                match: /(\\?)\$([\.\_\w\d]+)(?:\(([\s\S]*?)?\))?/g,
+	                render: (_ = "", esc = "", key = "", expr = "")=>{
+	                    if (esc) return _.replace(esc, "");
+	                    if (expr) {
+	                        let fn = null;
+	                        try {
+	                            fn = new Function(`const value = ${expr}; return value;`);
+	                        } catch (e) {
+	                            console.error(e);
+	                        }
+	                        if (fn) setPath(key, fn());
+	                        return "";
+	                    }
+	                    // no expression found, so display the variable instead
+	                    let print = getPath(key);
+	                    if (typeof print === "object") print = JSON.stringify(print);
+	                    return `<tw-var data-var="${key}" style="display: contents; ">${print}</tw-var>`;
 	                }
 	            }
 	        ];
@@ -15421,16 +15422,16 @@
 	        const snippetRules = [
 	            {
 	                match: /<%(\\?)([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?%>(([\s\S]*?)<%\/\2%>)/g,
-	                render: (m, escape, name, _2, attrs = "", _4, content = "")=>{
-	                    if (escape) return m.replace(escape, "");
-	                    return renderSnippet(escape, name, attrs, content);
+	                render: (m, esc, name, _2 = "", attrs = "", _4 = "", content = "")=>{
+	                    if (esc) return m.replace(esc, "");
+	                    return renderSnippet(esc, name, attrs, content);
 	                }
 	            },
 	            {
 	                match: /<%(\\?)([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/%>/g,
-	                render: (m, escape, name, _2, attrs = "")=>{
-	                    if (escape) return m.replace(escape, "");
-	                    return renderSnippet(escape, name, attrs);
+	                render: (m, esc, name, _2 = "", attrs = "")=>{
+	                    if (esc) return m.replace(esc, "");
+	                    return renderSnippet(esc, name, attrs);
 	                }
 	            }
 	        ];
@@ -15442,7 +15443,7 @@
 	            });
 	            return source;
 	        }
-	        const renderSnippet = (escape = "", name = "", attrs = "", content = "")=>{
+	        const renderSnippet = (_ = "", name = "", attrs = "", content = "")=>{
 	            // this shouldn't happen, but just in case.
 	            if (!name) return "";
 	            let snip = null;
@@ -15453,8 +15454,8 @@
 	                console.error(new Error(`Could not render snippet: ${e.message}`));
 	            }
 	            if (!snip) return "";
-	            let context = {};
-	            let attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g;
+	            const context = {};
+	            const attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g;
 	            let regexArray;
 	            // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
 	            // so we iterate over the attributes this way instead.
@@ -15487,7 +15488,7 @@
 	            if (!dest) {
 	                console.warn(`Could not find destination for link with text "${text}"`);
 	            }
-	            l.addEventListener("click", function() {
+	            l.addEventListener("click", ()=>{
 	                if (funcStr) new Function(funcStr)();
 	                if (dest) window.Engine.jump(dest);
 	            });
@@ -15537,10 +15538,10 @@
 	            passage = window.Story.passage(name);
 	        } catch (e) {
 	            // catch the error if one is thrown
-	            console.error(new Error(`Could not jump to passage: ${e.message}`));
+	            console.warn(`Could not jump to passage: ${e.message}`);
 	            return;
 	        }
-	        let html = passage.render();
+	        const html = passage.render();
 	        this.show(html);
 	    }
 	    /**
@@ -15662,9 +15663,9 @@
 	        _class_private_field_loose_base(this, _ifid)[_ifid] = ifid;
 	        // get all the passage elements and add them to the passage array
 	        _class_private_field_loose_base(this, _storydata)[_storydata]?.querySelectorAll("tw-passagedata").forEach((p)=>{
-	            let name = p.attributes.getNamedItem("name")?.value || "Passage";
-	            let tags = p.attributes.getNamedItem("tags")?.value.split(" ");
-	            let source = Markup.unescape(p.innerHTML);
+	            const name = p.attributes.getNamedItem("name")?.value || "Passage";
+	            const tags = p.attributes.getNamedItem("tags")?.value.split(" ");
+	            const source = Markup.unescape(p.innerHTML);
 	            if (!tags || !tags?.includes("snippet")) {
 	                this.passages.push(new Passage(name, tags || [], source));
 	            } else {
@@ -15679,9 +15680,9 @@
 	    // check if we at leats have a story data element. throw an error if not
 	    if (!_class_private_field_loose_base(this, _storydata)[_storydata]) throw Error("No story data element found.");
 	    // get the passage id of the starting passage
-	    const startPassageId = parseInt(_class_private_field_loose_base(this, _storydata)[_storydata]?.attributes.getNamedItem("startnode")?.value || "nah");
+	    const startPassageId = Number.parseInt(_class_private_field_loose_base(this, _storydata)[_storydata]?.attributes.getNamedItem("startnode")?.value || "nah");
 	    // and throw an error if it doesn't return a valid id ("nah")
-	    if (isNaN(startPassageId)) throw Error("No start passage ID found.");
+	    if (Number.isNaN(startPassageId)) throw Error("No start passage ID found.");
 	    // get the starting passage name
 	    const startPassageName = document.querySelector(`[pid="${startPassageId}"]`)?.attributes.getNamedItem("name")?.value || null;
 	    // get the starting passage

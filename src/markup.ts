@@ -1,7 +1,7 @@
-import nj from "nunjucks"
 import markdown from "markdown-it"
-import type Snippet from "./snippet.ts"
+import nj from "nunjucks"
 import { derived, effect, signal } from "./signal.ts"
+import type Snippet from "./snippet.ts"
 import { getPath, setPath } from "./state.ts"
 
 // markdown-it environment
@@ -106,70 +106,67 @@ export default class Markup {
   static variables(source: string) {
     const varRules: ParserRule[] = [
       {
-        // @signal() - inside the parentheses is an expression
-        // declares a signal and initializes it if it does not exist yet
-        match: /(\\?)\@([\.\_\w\d]+)\((.*)\)/g,
-        render: (_ = "", esc = "", key = "", expr = "") => {
-          if (esc) return _
-
-          let fn: Function | null = null
+        // @signal() OR @signal OR @!derived()
+        // declares a a signal OR reactively displays a signal OR declares a derived signal
+        match: /(\\?)\@(\!)?([\.\_\w\d]+)(?:\(([\s\S]*?)?\))?/g,
+        render: (m = "", esc = "", d = "", key = "", expr = "") => {
+          if (esc) return m.replace(esc, "")
+          // check if there's an expression included
           if (expr) {
-            try {
-              // evaluate the expression
-              fn = new Function(`const value = ${expr}; return value;`)
-            } catch (e) {
-              console.error(e)
-            }
-          } else fn = new Function("undefined")
-
-          if (fn) {
-            if (getPath(key) !== undefined) setPath(key, fn())
-            else setPath(key, signal(fn()))
-          }
-
-          return ""
-        },
-      },
-      {
-        // @!derived()
-        // declares a derived signal and initializes it if it doesn't exist yet
-        match: /(\\?)\@\!([\.\_\w\d]+)\((.*)\)/g,
-        render: (_ = "", esc = "", key = "", expr = "") => {
-          if (esc) return _.replace(esc, "")
-          let fn: Function | null = null
-          if (expr) {
+            let fn: Function | null = null
             try {
               fn = new Function(`const value = ${expr}; return value;`)
             } catch (e) {
               console.error(e)
             }
-          } else fn = new Function("undefined")
-
-          if (fn) {
-            if (getPath(key) !== undefined) setPath(key, fn())
-            else setPath(key, derived(fn))
+            // we got valid expression! set the signal to it
+            if (fn) {
+              if (getPath(key) !== undefined) setPath(key, fn())
+              else {
+                if (d) setPath(key, derived(fn))
+                else setPath(key, signal(fn()))
+              }
+            }
+            return ""
           }
+          // no expression found, so we display the signal instead
+          let print = getPath(key)
+          if (typeof print === "object") print = JSON.stringify(print)
 
-          return ""
-        },
-      },
-      {
-        // @signal
-        // displays a signal's value
-        match: /(\\?)\@([\.\_\w\d]+)/g,
-        render: (_ = "", esc = "", key = "") => {
-          if (esc) return _.replace(esc, "")
+          // register a new effect that updates every element with that references this signal
           effect(() => {
             document.querySelectorAll(`tw-var[data-signal="${key}"]`).forEach((i) => {
               ;(i as HTMLElement).innerHTML = getPath(key)
             })
           })
-          let print = getPath(key)
-          if (typeof print === "object") print = JSON.stringify(print)
 
           // each signal value is displayed in a <tw-var> element with [data-signal="key"]
           // this gets updates whenever the effect function above re-runs
-          return `<tw-var data-signal="${key}" style="display: contents; ">${print}</tw-var>`
+          return `<tw-var data-var="${key}" data-signal="${key}" style="display: contents; ">${print}</tw-var>`
+        },
+      },
+      {
+        // $variable() OR $variable
+        // declares a static variable OR displays it
+        match: /(\\?)\$([\.\_\w\d]+)(?:\(([\s\S]*?)?\))?/g,
+        render: (_ = "", esc = "", key = "", expr = "") => {
+          if (esc) return _.replace(esc, "")
+          if (expr) {
+            let fn: Function | null = null
+            try {
+              fn = new Function(`const value = ${expr}; return value;`)
+            } catch (e) {
+              console.error(e)
+            }
+            if (fn) setPath(key, fn())
+            return ""
+          }
+
+          // no expression found, so display the variable instead
+          let print = getPath(key)
+          if (typeof print === "object") print = JSON.stringify(print)
+
+          return `<tw-var data-var="${key}" style="display: contents; ">${print}</tw-var>`
         },
       },
     ]
