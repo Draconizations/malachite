@@ -93,17 +93,30 @@ export default class Markup {
   static variables(source: string) {
     const varRules: ParserRule[] = [
       {
-        match: /(\\?)(\@|\$)(\!)?([\.\_\w\d]+)(?:\(([\s\S]*?)?\))?/g,
-        render: (m = "", esc = "", prefix = "", d = "", key = "", expr = "") => {
+        match: /(\\?)(\@|\$)(\!)?([\.\_\w\d]+)(?:\(([\s\S]*?)\);|\(([\s\S]*?)\))?/g,
+        render: (
+          m = "",
+          esc = "",
+          prefix = "",
+          d = "",
+          key = "",
+          greedyExpr = "",
+          lazyExpr = ""
+        ) => {
           if (esc) return m.replace(esc, "")
           // check if there's an expression included
-          if (expr) {
+          // the greedy expression ends in a semicolon ();
+          // this allows one to use arrow functions inside variable assignments
+          if (greedyExpr || lazyExpr) {
             let fn: Function | null = null
             try {
-              fn = new Function(`const value = ${expr}; return value;`)
+              fn = new Function(
+                `const value = ${greedyExpr ? greedyExpr : lazyExpr}; if (typeof value === 'function') return value(); else return value;`
+              )
             } catch (e) {
               console.error(e)
             }
+
             // we got valid expression! set the variable to it
             if (fn) {
               if (getPath(key) !== undefined) setPath(key, fn())
