@@ -31,7 +31,7 @@ export default class Engine {
       return
     }
 
-    let html = passage.render()
+    const html = passage.render()
     this.show(html)
   }
 
