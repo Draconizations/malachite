@@ -15359,6 +15359,7 @@
 	                    let fn = null;
 	                    if (expr) {
 	                        try {
+	                            // evaluate the expression
 	                            fn = new Function(`const value = ${expr}; return value;`);
 	                        } catch (e) {
 	                            console.error(e);
@@ -15510,7 +15511,7 @@
 	}
 	// nunjucks environment
 	Markup.nunjucks = nj.configure({
-	    autoescape: true
+	    autoescape: false
 	});
 
 	function _class_private_field_loose_base$1(receiver, privateKey) {
@@ -15620,7 +15621,7 @@
 	        const snippet = this.snippets.find((p)=>{
 	            return p.name.split(" ").join("-").toLowerCase() === name.trim();
 	        });
-	        if (!snippet) throw new Error(`No passage with name "${name}" found.`);
+	        if (!snippet) throw new Error(`No snippet with name "${name}" found.`);
 	        return snippet;
 	    }
 	    /**
@@ -15629,7 +15630,7 @@
 	        const passage = this.passages.find((p)=>{
 	            return p.name === name.trim();
 	        });
-	        if (!passage) throw new Error(`No snippet with name "${name}" found.`);
+	        if (!passage) throw new Error(`No passage with name "${name}" found.`);
 	        return passage;
 	    }
 	    constructor(){
