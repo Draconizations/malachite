@@ -9,7 +9,7 @@ import { render } from "nunjucks"
 async function bundle() {
   // we want to bundle each config separately
   for (let o of options) {
-    console.log(`Bundling ${o.output.file ? `to ${o.output.file}` : "file"} using rollup...`)
+    console.log(`Bundling ${o.output.file ? `to ${o.output.file}` : "file"}...`)
 
     let bundle
     let failed = false
@@ -28,15 +28,17 @@ async function bundle() {
     // don't continue the build process if rollup failecd
     if (failed) process.exit(1)
 
-    console.log(`Successfully bundled ${o.output.file ? `to ${o.output.file}` : "file"}!`)
+    console.log(`Successfully bundled ${o.output.file ? `to ${o.output.file}` : "file"}!\n`)
   }
 }
 
-async function build() {
+async function build(input: string, output: string) {
+  console.log(`Building to ./dist/${output} using ./build/${input}...`)
+
   // get the story json file and read it as json
   const storyJson = await Bun.file("./story.json").json()
-  // also get the *minified* bundle file
-  const bundle = await Bun.file("./build/bundle.js").text()
+  // also get the bundle file
+  const bundle = await Bun.file(`./build/${input}`).text()
 
   // the base HTML file is a nunjuck template, so we render it
   const source = render("src/templates/document.njk", {
@@ -50,8 +52,10 @@ async function build() {
   let format = `window.storyFormat(${JSON.stringify(story)});`
 
   // and write that to the dist directory!
-  const formatFile = Bun.file("./dist/format.js")
+  const formatFile = Bun.file(`./dist/${output}`)
   await Bun.write(formatFile, format)
+
+  console.log(`Sucessfully built ./dist/${output}!\n`)
 }
 
 const input = "./src/index.ts"
@@ -83,4 +87,7 @@ const options: (RollupOptions & { output: OutputOptions })[] = [
 // bundle the format javascript to a singular file
 await bundle()
 // then embed that into the story format
-await build()
+await build("bundle.js", "format.js")
+await build("bundle.min.js", "format.min.js")
+
+console.log("Done.")
