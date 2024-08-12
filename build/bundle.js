@@ -15320,24 +15320,13 @@
      *
      * NOTE: This does not attach the event listeners to the links, as the links need to be attached to the DOM first.
      */ static links(source) {
-          // default twine link
-          const twineLink = (dest = "", text = "", func = "")=>`<button data-tw-link data-destination="${dest}" ${func ? `data-onclick="${func}"` : ""}>${text}</button>`;
           const linkRules = [
               {
-                  match: /\[\[(.+?)\|(.+?)\]\s?\[(.+?)\]\]/g,
-                  render: (_, dest, text, func)=>twineLink(dest, text, func)
-              },
-              {
-                  match: /\[\[(.+?)\]\s?\[(.+?)\]\]/g,
-                  render: (_, dest, func)=>twineLink(dest, dest, func)
-              },
-              {
-                  match: /\[\[(.+?)\|(.+?)\]\]/g,
-                  render: (_, dest, text)=>twineLink(dest, text)
-              },
-              {
-                  match: /\[\[(.+?)\]\]/g,
-                  render: (_, dest)=>twineLink(dest, dest)
+                  match: /(\*)?\[\[(?:(.+?)(?:\|(.+?))?\])\s*(?:\[(.*?)\])?\]/g,
+                  render: (m, esc = "", dest = "", text = "", func = "")=>{
+                      if (esc) return m.replace(esc, "");
+                      return `<button data-tw-link data-destination="${dest}" ${func ? `data-onclick="${func.replaceAll(`"`, `'`)}"` : ""}>${text ? text : dest}</button>`;
+                  }
               }
           ];
           linkRules.forEach((rule)=>{
