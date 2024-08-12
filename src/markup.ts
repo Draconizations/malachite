@@ -24,7 +24,7 @@ interface ParserRule {
 export default class Markup {
   // nunjucks environment
   static nunjucks = nj.configure({
-    autoescape: true, // do not render html into snippet content by default
+    autoescape: false, // render html into snippet content by default
   })
 
   /**
