@@ -106,10 +106,8 @@ export default class Markup {
   static variables(source: string) {
     const varRules: ParserRule[] = [
       {
-        // @signal() OR @signal OR @!derived()
-        // declares a a signal OR reactively displays a signal OR declares a derived signal
-        match: /(\\?)\@(\!)?([\.\_\w\d]+)(?:\(([\s\S]*?)?\))?/g,
-        render: (m = "", esc = "", d = "", key = "", expr = "") => {
+        match: /(\\?)(\@|\$)(\!)?([\.\_\w\d]+)(?:\(([\s\S]*?)?\))?/g,
+        render: (m = "", esc = "", prefix = "", d = "", key = "", expr = "") => {
           if (esc) return m.replace(esc, "")
           // check if there's an expression included
           if (expr) {
@@ -119,54 +117,38 @@ export default class Markup {
             } catch (e) {
               console.error(e)
             }
-            // we got valid expression! set the signal to it
+            // we got valid expression! set the variable to it
             if (fn) {
               if (getPath(key) !== undefined) setPath(key, fn())
-              else {
-                if (d) setPath(key, derived(fn))
-                else setPath(key, signal(fn()))
+              else if (prefix === "@") {
+                // @ denotes a signal
+                if (!d) setPath(key, signal(fn()))
+                // @! denotes a derived signal
+                else if (d === "!") setPath(key, derived(fn))
+                // not a signal
+              } else if (prefix === "$") {
+                // $ denotes a static variable
+                setPath(key, fn())
               }
             }
             return ""
           }
-          // no expression found, so we display the signal instead
+          // no expression found, so we display the variable instead
           let print = getPath(key)
           if (typeof print === "object") print = JSON.stringify(print)
 
-          // register a new effect that updates every element with that references this signal
-          effect(() => {
-            document.querySelectorAll(`tw-var[data-signal="${key}"]`).forEach((i) => {
-              ;(i as HTMLElement).innerHTML = getPath(key)
+          if (prefix === "@") {
+            // register a new effect that updates every element with that references this signal
+            effect(() => {
+              document.querySelectorAll(`tw-var[data-signal="${key}"]`).forEach((i) => {
+                ;(i as HTMLElement).innerHTML = getPath(key)
+              })
             })
-          })
+          }
 
           // each signal value is displayed in a <tw-var> element with [data-signal="key"]
           // this gets updates whenever the effect function above re-runs
-          return `<tw-var data-var="${key}" data-signal="${key}" style="display: contents; ">${print}</tw-var>`
-        },
-      },
-      {
-        // $variable() OR $variable
-        // declares a static variable OR displays it
-        match: /(\\?)\$([\.\_\w\d]+)(?:\(([\s\S]*?)?\))?/g,
-        render: (_ = "", esc = "", key = "", expr = "") => {
-          if (esc) return _.replace(esc, "")
-          if (expr) {
-            let fn: Function | null = null
-            try {
-              fn = new Function(`const value = ${expr}; return value;`)
-            } catch (e) {
-              console.error(e)
-            }
-            if (fn) setPath(key, fn())
-            return ""
-          }
-
-          // no expression found, so display the variable instead
-          let print = getPath(key)
-          if (typeof print === "object") print = JSON.stringify(print)
-
-          return `<tw-var data-var="${key}" style="display: contents; ">${print}</tw-var>`
+          return `<tw-var data-var="${key}" ${prefix === "@" ? `data-signal="${key}"` : ""} style="display: contents; ">${print}</tw-var>`
         },
       },
     ]
