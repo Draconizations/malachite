@@ -15171,9 +15171,8 @@
   const handler = {
       get: (target, key)=>{
           if (key === "isProxy") return true;
-          if (typeof target[key] === "undefined") return;
-          if (target[key].isSignal) return target[key].value;
-          if (!target[key].isProxy && typeof target[key] === "object") target[key] = new Proxy(target[key], handler);
+          if (target[key]?.isSignal) return target[key].value;
+          if (!target[key]?.isProxy && typeof target[key] === "object") target[key] = new Proxy(target[key], handler);
           return target[key];
       },
       set: (target, key, value)=>{
@@ -15369,8 +15368,6 @@
                           return "";
                       }
                       // no expression found, so we display the variable instead
-                      let print = getPath(key);
-                      if (typeof print === "object") print = JSON.stringify(print);
                       if (prefix === "@") {
                           // register a new effect that updates every element with that references this signal
                           effect(()=>{
@@ -15379,6 +15376,8 @@
                               });
                           });
                       }
+                      let print = getPath(key);
+                      if (typeof print === "object") print = JSON.stringify(print);
                       // each signal value is displayed in a <tw-var> element with [data-signal="key"]
                       // this gets updates whenever the effect function above re-runs
                       return `<tw-var data-var="${key}" ${prefix === "@" ? `data-signal="${key}"` : ""} style="display: contents; ">${print}</tw-var>`;

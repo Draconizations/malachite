@@ -123,7 +123,6 @@ export default class Markup {
               else if (prefix === "@") {
                 // @ denotes a signal
                 if (!d) setPath(key, signal(fn()))
-                // @! denotes a derived signal
                 else if (d === "!") setPath(key, derived(fn))
                 // not a signal
               } else if (prefix === "$") {
@@ -134,9 +133,6 @@ export default class Markup {
             return ""
           }
           // no expression found, so we display the variable instead
-          let print = getPath(key)
-          if (typeof print === "object") print = JSON.stringify(print)
-
           if (prefix === "@") {
             // register a new effect that updates every element with that references this signal
             effect(() => {
@@ -145,6 +141,9 @@ export default class Markup {
               })
             })
           }
+
+          let print = getPath(key)
+          if (typeof print === "object") print = JSON.stringify(print)
 
           // each signal value is displayed in a <tw-var> element with [data-signal="key"]
           // this gets updates whenever the effect function above re-runs

@@ -2,11 +2,9 @@ const handler = {
   get: (target: Record<string, any>, key: string) => {
     if (key === "isProxy") return true
 
-    if (typeof target[key] === "undefined") return
+    if (target[key]?.isSignal) return target[key].value
 
-    if (target[key].isSignal) return target[key].value
-
-    if (!target[key].isProxy && typeof target[key] === "object")
+    if (!target[key]?.isProxy && typeof target[key] === "object")
       target[key] = new Proxy(target[key], handler)
 
     return target[key]
