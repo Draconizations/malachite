@@ -15411,9 +15411,10 @@
                   }
               },
               {
-                  match: /<%(\\?)([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/%>/g,
-                  render: (m, esc, name, _2 = "", attrs = "")=>{
+                  match: /<%(\\?)([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?(\/)?%>/g,
+                  render: (m, esc, name, _2 = "", attrs = "", closing = "")=>{
                       if (esc) return m.replace(esc, "");
+                      if (!closing) return m;
                       return renderSnippet(esc, name, attrs);
                   }
               }
