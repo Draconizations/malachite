@@ -35,9 +35,9 @@ export default class Story {
 
     // get all the passage elements and add them to the passage array
     this.#storydata?.querySelectorAll("tw-passagedata").forEach((p) => {
-      let name = p.attributes.getNamedItem("name")?.value || "Passage"
-      let tags = p.attributes.getNamedItem("tags")?.value.split(" ")
-      let source = Markup.unescape(p.innerHTML)
+      const name = p.attributes.getNamedItem("name")?.value || "Passage"
+      const tags = p.attributes.getNamedItem("tags")?.value.split(" ")
+      const source = Markup.unescape(p.innerHTML)
 
       if (!tags || !tags?.includes("snippet")) {
         this.passages.push(new Passage(name, tags || [], source))
@@ -61,11 +61,11 @@ export default class Story {
     // check if we at leats have a story data element. throw an error if not
     if (!this.#storydata) throw Error("No story data element found.")
     // get the passage id of the starting passage
-    const startPassageId = parseInt(
+    const startPassageId = Number.parseInt(
       this.#storydata?.attributes.getNamedItem("startnode")?.value || "nah"
     )
     // and throw an error if it doesn't return a valid id ("nah")
-    if (isNaN(startPassageId)) throw Error("No start passage ID found.")
+    if (Number.isNaN(startPassageId)) throw Error("No start passage ID found.")
     // get the starting passage name
     const startPassageName =
       document.querySelector(`[pid="${startPassageId}"]`)?.attributes.getNamedItem("name")?.value ||

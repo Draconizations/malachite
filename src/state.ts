@@ -12,7 +12,7 @@ const handler = {
     return target[key]
   },
   set: (target: Record<string, any>, key: string, value: any) => {
-    if (target[key] && target[key].isSignal) {
+    if (target[key]?.isSignal) {
       target[key].value = value
       return true
     }
@@ -49,7 +49,7 @@ export default class State {
  */
 export function getPath(path: string) {
   if (!isValidPath(path)) {
-    console.warn("Invalid variable path " + path)
+    console.warn(`Invalid variable path ${path}`)
     return
   }
 
@@ -69,7 +69,7 @@ export function getPath(path: string) {
  */
 export function setPath(path: string, value: any) {
   if (!isValidPath(path)) {
-    console.warn("Invalid variable path " + path)
+    console.warn(`Invalid variable path ${path}`)
     return true
   }
 

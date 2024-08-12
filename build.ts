@@ -1,17 +1,24 @@
-import { rollup, type OutputOptions, type RollupOptions } from "rollup"
-import swc from "@rollup/plugin-swc"
-import commonjs from "@rollup/plugin-commonjs"
-import resolve from "@rollup/plugin-node-resolve"
-import terser from "@rollup/plugin-terser"
-import polyfill from "rollup-plugin-polyfill-node"
+import { rollup, type OutputOptions, type RollupBuild, type RollupOptions } from "rollup"
+import _swc from "@rollup/plugin-swc"
+import _commonjs from "@rollup/plugin-commonjs"
+import _resolve from "@rollup/plugin-node-resolve"
+import _terser from "@rollup/plugin-terser"
+import _polyfill from "rollup-plugin-polyfill-node"
 import { render } from "nunjucks"
+
+// typescript shenanigans...
+const swc = _swc as unknown as typeof _swc.default
+const commonjs = _commonjs as unknown as typeof _commonjs.default
+const resolve = _resolve as unknown as typeof _resolve.default
+const terser = _terser as unknown as typeof _terser.default
+const polyfill = _polyfill as unknown as typeof _polyfill.default
 
 async function bundle() {
   // we want to bundle each config separately
-  for (let o of options) {
+  for (const o of options) {
     console.log(`Bundling ${o.output.file ? `to ${o.output.file}` : "file"}...`)
 
-    let bundle
+    let bundle: RollupBuild|undefined
     let failed = false
     try {
       // TODO: better logging here
@@ -49,7 +56,7 @@ async function build(input: string, output: string) {
   const story = { ...storyJson, source }
 
   // create the format string
-  let format = `window.storyFormat(${JSON.stringify(story)});`
+  const format = `window.storyFormat(${JSON.stringify(story)});`
 
   // and write that to the dist directory!
   const formatFile = Bun.file(`./dist/${output}`)

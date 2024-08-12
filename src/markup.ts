@@ -70,7 +70,7 @@ export default class Markup {
    */
   static links(source: string) {
     // default twine link
-    const twineLink = (dest: string = "", text: string = "", func: string = "") =>
+    const twineLink = (dest = "", text = "", func = "") =>
       `<button data-tw-link data-destination="${dest}" ${func ? `data-onclick="${func}"` : ""}>${text}</button>`
 
     const linkRules: ParserRule[] = [
@@ -109,8 +109,8 @@ export default class Markup {
         // @signal() - inside the parentheses is an expression
         // declares a signal and initializes it if it does not exist yet
         match: /(\\?)\@([\.\_\w\d]+)\((.*)\)/g,
-        render: (_ = "", escape = "", key = "", expr = "") => {
-          if (escape) return _
+        render: (_ = "", esc = "", key = "", expr = "") => {
+          if (esc) return _
 
           let fn: Function | null = null
           if (expr) {
@@ -134,8 +134,8 @@ export default class Markup {
         // @!derived()
         // declares a derived signal and initializes it if it doesn't exist yet
         match: /(\\?)\@\!([\.\_\w\d]+)\((.*)\)/g,
-        render: (_ = "", escape = "", key = "", expr = "") => {
-          if (escape) return _.replace(escape, "")
+        render: (_ = "", esc = "", key = "", expr = "") => {
+          if (esc) return _.replace(esc, "")
           let fn: Function | null = null
           if (expr) {
             try {
@@ -157,12 +157,14 @@ export default class Markup {
         // @signal
         // displays a signal's value
         match: /(\\?)\@([\.\_\w\d]+)/g,
-        render: (_ = "", escape = "", key = "") => {
-          if (escape) return _.replace(escape, "")
+        render: (_ = "", esc = "", key = "") => {
+          if (esc) return _.replace(esc, "")
           effect(() => {
             document
               .querySelectorAll(`tw-var[data-signal="${key}"]`)
-              .forEach((i) => ((i as HTMLElement).innerHTML = getPath(key)))
+              .forEach((i) => {
+                ((i as HTMLElement).innerHTML = getPath(key))
+              })
           })
           let print = getPath(key)
           if (typeof print === "object") print = JSON.stringify(print)
@@ -187,16 +189,16 @@ export default class Markup {
     const snippetRules: ParserRule[] = [
       {
         match: /<%(\\?)([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?%>(([\s\S]*?)<%\/\2%>)/g,
-        render: (m, escape, name, _2, attrs = "", _4, content = "") => {
-          if (escape) return m.replace(escape, "")
-          return renderSnippet(escape, name, attrs, content)
+        render: (m, esc, name, _2 = "", attrs = "", _4 = "", content = "") => {
+          if (esc) return m.replace(esc, "")
+          return renderSnippet(esc, name, attrs, content)
         },
       },
       {
         match: /<%(\\?)([a-z][a-z0-9\-]*)(\s+([\s\S]*?))?\/%>/g,
-        render: (m, escape, name, _2, attrs = "") => {
-          if (escape) return m.replace(escape, "")
-          return renderSnippet(escape, name, attrs)
+        render: (m, esc, name, _2 = "", attrs = "") => {
+          if (esc) return m.replace(esc, "")
+          return renderSnippet(esc, name, attrs)
         },
       },
     ]
@@ -210,7 +212,7 @@ export default class Markup {
       return source
     }
 
-    const renderSnippet = (escape = "", name = "", attrs = "", content = "") => {
+    const renderSnippet = (_ = "", name = "", attrs = "", content = "") => {
       // this shouldn't happen, but just in case.
       if (!name) return ""
 
@@ -223,8 +225,8 @@ export default class Markup {
       }
       if (!snip) return ""
 
-      let context: Record<string, any> = {}
-      let attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g
+      const context: Record<string, any> = {}
+      const attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g
       let regexArray: RegExpExecArray | null
       // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
       // so we iterate over the attributes this way instead.
@@ -266,7 +268,7 @@ export default class Markup {
       }
 
       // add the onclick event listener
-      ;(l as HTMLButtonElement).addEventListener("click", function () {
+      ;(l as HTMLButtonElement).addEventListener("click", () => {
         if (funcStr) new Function(funcStr)()
         if (dest) window.Engine.jump(dest)
       })
