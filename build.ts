@@ -18,7 +18,7 @@ async function bundle() {
   for (const o of options) {
     console.log(`Bundling ${o.output.file ? `to ${o.output.file}` : "file"}...`)
 
-    let bundle: RollupBuild|undefined
+    let bundle: RollupBuild | undefined
     let failed = false
     try {
       // TODO: better logging here

@@ -160,11 +160,9 @@ export default class Markup {
         render: (_ = "", esc = "", key = "") => {
           if (esc) return _.replace(esc, "")
           effect(() => {
-            document
-              .querySelectorAll(`tw-var[data-signal="${key}"]`)
-              .forEach((i) => {
-                ((i as HTMLElement).innerHTML = getPath(key))
-              })
+            document.querySelectorAll(`tw-var[data-signal="${key}"]`).forEach((i) => {
+              ;(i as HTMLElement).innerHTML = getPath(key)
+            })
           })
           let print = getPath(key)
           if (typeof print === "object") print = JSON.stringify(print)
@@ -266,7 +264,6 @@ export default class Markup {
       if (!dest) {
         console.warn(`Could not find destination for link with text "${text}"`)
       }
-
       // add the onclick event listener
       ;(l as HTMLButtonElement).addEventListener("click", () => {
         if (funcStr) new Function(funcStr)()
