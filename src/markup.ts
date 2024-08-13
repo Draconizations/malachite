@@ -198,7 +198,7 @@ export default class Markup {
         snip = window.Story.snippet(name)
       } catch (e) {
         // failing to find a snippet by name throws an error, so we catch it here
-        console.error(new Error(`Could not render snippet: ${(e as Error).message}`))
+        console.warn(`Could not render snippet: ${(e as Error).message}`)
       }
       if (!snip) return ""
 
@@ -225,6 +225,7 @@ export default class Markup {
    */
   static snippet(source: string, context: Record<string, any> = {}) {
     source = this.nunjucks.renderString(source, context)
+    source = this.links(source)
     source = this.variables(source)
     return source
   }

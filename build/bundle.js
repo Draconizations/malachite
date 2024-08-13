@@ -15425,7 +15425,7 @@
                   snip = window.Story.snippet(name);
               } catch (e) {
                   // failing to find a snippet by name throws an error, so we catch it here
-                  console.error(new Error(`Could not render snippet: ${e.message}`));
+                  console.warn(`Could not render snippet: ${e.message}`);
               }
               if (!snip) return "";
               const context = {};
@@ -15447,6 +15447,7 @@
      * Renders a snippet and returns the rendered html
      */ static snippet(source, context = {}) {
           source = this.nunjucks.renderString(source, context);
+          source = this.links(source);
           source = this.variables(source);
           return source;
       }
