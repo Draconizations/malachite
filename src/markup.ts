@@ -1,11 +1,12 @@
 import markdown from "markdown-it"
 import nj from "nunjucks"
+import type Conditional from "./conditional.ts"
 import { derived, effect, signal } from "./signal.ts"
 import type Snippet from "./snippet.ts"
 import { getPath, setPath } from "./state.ts"
 
 // markdown-it environment
-const md = markdown({
+export const md = markdown({
   html: true,
   xhtmlOut: true,
 })
@@ -55,6 +56,7 @@ export default class Markup {
    */
   static parse(source: string) {
     source = this.variables(source)
+    source = this.conditionals(source)
     source = this.links(source)
     source = this.snippets(source)
     source = this.markdown(source)
@@ -161,6 +163,36 @@ export default class Markup {
     })
 
     return source
+  }
+
+  static conditionals(source: string) {
+    const conditionRegex =
+      /(\\)?#(if|elseif|else|elif)(?:\(([\s\S]*)\))?\s?(?:{([\s\S]*)};|{([\s\S]*?)})/gi
+
+    const matches = source.matchAll(conditionRegex)
+
+    let conditional: Conditional | null = null
+
+    for (const match of matches) {
+      const [m, esc, statement, expression = "", greedyContent = "", lazyContent = ""] = match
+      const s = statement.toLowerCase()
+
+      // end the conditional if one of the statements was escaped
+      if (esc) {
+        if (conditional) conditional.render()
+        continue
+      }
+
+      if (!expression && s !== "else") {
+        console.warn(`Expression required for ${s} statement:\n${m}`)
+        conditional = null
+        continue
+      }
+
+      if (expression && s === "else") {
+        console.warn(`Expression not allowed for else statement:\m${m}`)
+      }
+    }
   }
 
   /**
