@@ -15395,28 +15395,28 @@
           const snippetRules = [
               {
                   match: /<%(\\?)\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?%>(?:([\s\S]*?)<(?:%\/|\/%)\s?\2\s?%>)/g,
-                  render: (m, esc, name, attrs = "", content = "")=>{
+                  render: (context, m, esc, name, attrs = "", content = "")=>{
                       if (esc) return m.replace(esc, "");
-                      return renderSnippet(esc, name, attrs, content);
+                      return renderSnippet(context, esc, name, attrs, content);
                   }
               },
               {
                   match: /<%(\\?)\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?(?:\/\%|%\/)>/g,
-                  render: (m, esc, name, attrs = "")=>{
+                  render: (context, m, esc, name, attrs = "")=>{
                       if (esc) return m.replace(esc, "");
-                      return renderSnippet(esc, name, attrs);
+                      return renderSnippet(context, esc, name, attrs);
                   }
               }
           ];
           // this gets called recursively as long as the latest snippet has content
-          function snippet(source) {
+          function snippet(source, context) {
               snippetRules.forEach((snippetRule)=>{
                   // match and replace each snippet tag
-                  source = source.replaceAll(snippetRule.match, snippetRule.render);
+                  source = source.replaceAll(snippetRule.match, (m, esc, name, attrs, content)=>snippetRule.render(context, m, esc, name, attrs, content));
               });
               return source;
           }
-          const renderSnippet = (_ = "", name = "", attrs = "", content = "")=>{
+          const renderSnippet = (parentContext = {}, _ = "", name = "", attrs = "", content = "")=>{
               // this shouldn't happen, but just in case.
               if (!name) return "";
               let snip = null;
@@ -15427,19 +15427,22 @@
                   console.warn(`Could not render snippet: ${e.message}`);
               }
               if (!snip) return "";
-              const context = {};
+              const newContext = {};
               const attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g;
               let regexArray;
               // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
               // so we iterate over the attributes this way instead.
               while((regexArray = attrRegex.exec(attrs)) !== null){
-                  context[regexArray[1]] = regexArray[2];
+                  newContext[regexArray[1]] = regexArray[2];
               }
+              const context = Object.assign(parentContext, newContext, {
+                  content: ""
+              });
               // render snippet content as well, to allow for nesting
-              if (content) context.content = snippet(content);
+              if (content) context.content = snippet(content, context);
               return this.snippet(snip.source, context);
           };
-          source = snippet(source);
+          source = snippet(source, {});
           return source;
       }
       /**
@@ -15669,11 +15672,20 @@
       return startPassage;
   }
 
+  // utility functions and whatnot
+  class Malachite {
+  }
+  Malachite.signal = (value)=>signal(value);
+  Malachite.effect = (fn)=>effect(fn);
+  Malachite.derived = (fn)=>derived(fn);
+
   // initialize globals
   window.Engine = new Engine();
   window.Story = new Story();
   window.State = new State();
   window.s = window.State.store;
+  window.Malachite = new Malachite();
+  window.m = window.Malachite;
   // start the story
   window.Engine.start();
 
