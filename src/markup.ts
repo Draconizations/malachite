@@ -15,7 +15,12 @@ const md = markdown({
  */
 interface ParserRule {
   match: RegExp
-  render: (match: string, ...args: string[]) => string
+  render: (match: string, ...args: any[]) => string
+}
+
+interface ContextParserRule {
+  match: RegExp
+  render: (context: Record<string, any>, match: string, ...args: any[]) => string
 }
 
 /**
@@ -162,34 +167,42 @@ export default class Markup {
    * Parses snippet blocks and renders them recursively. Returns the rendered source.
    */
   static snippets(source: string) {
-    const snippetRules: ParserRule[] = [
+    const snippetRules: ContextParserRule[] = [
       {
         match:
           /<%(\\?)\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?%>(?:([\s\S]*?)<(?:%\/|\/%)\s?\2\s?%>)/g,
-        render: (m, esc, name, attrs = "", content = "") => {
+        render: (context, m, esc, name, attrs = "", content = "") => {
           if (esc) return m.replace(esc, "")
-          return renderSnippet(esc, name, attrs, content)
+          return renderSnippet(context, esc, name, attrs, content)
         },
       },
       {
         match: /<%(\\?)\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?(?:\/\%|%\/)>/g,
-        render: (m, esc, name, attrs = "") => {
+        render: (context, m, esc, name, attrs = "") => {
           if (esc) return m.replace(esc, "")
-          return renderSnippet(esc, name, attrs)
+          return renderSnippet(context, esc, name, attrs)
         },
       },
     ]
 
     // this gets called recursively as long as the latest snippet has content
-    function snippet(source: string) {
+    function snippet(source: string, context: Record<string, any>) {
       snippetRules.forEach((snippetRule) => {
         // match and replace each snippet tag
-        source = source.replaceAll(snippetRule.match, snippetRule.render)
+        source = source.replaceAll(snippetRule.match, (m, esc, name, attrs, content) =>
+          snippetRule.render(context, m, esc, name, attrs, content)
+        )
       })
       return source
     }
 
-    const renderSnippet = (_ = "", name = "", attrs = "", content = "") => {
+    const renderSnippet = (
+      parentContext: Record<string, any> = {},
+      _ = "",
+      name = "",
+      attrs = "",
+      content = ""
+    ) => {
       // this shouldn't happen, but just in case.
       if (!name) return ""
 
@@ -202,21 +215,24 @@ export default class Markup {
       }
       if (!snip) return ""
 
-      const context: Record<string, any> = {}
+      const newContext: Record<string, any> = {}
       const attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g
       let regexArray: RegExpExecArray | null
       // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
       // so we iterate over the attributes this way instead.
       while ((regexArray = attrRegex.exec(attrs)) !== null) {
-        context[regexArray[1]] = regexArray[2]
+        newContext[regexArray[1]] = regexArray[2]
       }
+
+      const context = Object.assign(parentContext, newContext, { content: "" })
+
       // render snippet content as well, to allow for nesting
-      if (content) context.content = snippet(content)
+      if (content) context.content = snippet(content, context)
 
       return this.snippet(snip.source, context)
     }
 
-    source = snippet(source)
+    source = snippet(source, {})
     return source
   }
 
