@@ -271,11 +271,9 @@ export default class Markup {
   /**
    * Finds and executes any script element in the passage body
    */
-  static executeScriptElements() {
-    const containerElement = document.querySelector("tw-passage")
-
+  static executeScriptElements(containerElement: HTMLElement) {
     // taken from https://stackoverflow.com/a/69190644
-    const scriptElements = containerElement?.querySelectorAll("script")
+    const scriptElements = containerElement.querySelectorAll("script")
 
     scriptElements?.forEach((scriptElement) => {
       const clonedElement = document.createElement("script")
