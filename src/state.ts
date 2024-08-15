@@ -1,3 +1,5 @@
+import type Snippet from "./snippet.ts"
+
 const handler = {
   get: (target: Record<string, any>, key: string) => {
     if (key === "isProxy") return true
@@ -40,6 +42,15 @@ export default class State {
   get store() {
     return this.#store
   }
+
+  snippets: Map<
+    string,
+    {
+      snippet: Snippet
+      context: Record<string, string>
+      element?: HTMLElement
+    }
+  > = new Map()
 }
 
 /**

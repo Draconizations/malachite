@@ -1,4 +1,4 @@
-import Markup from "./markup.ts"
+import Markup from "./markup/markup.ts"
 import type Passage from "./passage.ts"
 import type Snippet from "./snippet.ts"
 
@@ -27,9 +27,9 @@ export default class Engine {
     if (html) this.show(html)
   }
 
-  /*
-    Finds a passage by name, renders it, and returns the rendered HTML
-  */
+  /**
+   * Finds a passage by name, renders it, and returns the rendered HTML
+   */
   render(name: string) {
     let passage: Passage
     try {
@@ -43,9 +43,9 @@ export default class Engine {
     return html
   }
 
-  /*
-    Finds a snippet by name, renders it, and returns the rendered HTML
-  */
+  /**
+   * Finds a snippet by name, renders it, and returns the rendered HTML
+   */
   snippet(name: string) {
     let snippet: Snippet
     try {
@@ -71,7 +71,6 @@ export default class Engine {
    */
   innerHTML(el: HTMLElement, html: string) {
     el.innerHTML = html
-    Markup.addListeners()
     Markup.executeScriptElements(el)
   }
 }

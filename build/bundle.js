@@ -7715,6 +7715,519 @@
       return this.renderer.render(this.parseInline(src, env), this.options, env);
   };
 
+  function _class_private_field_loose_base$2(receiver, privateKey) {
+      if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
+          throw new TypeError("attempted to use private field on non-instance");
+      }
+      return receiver;
+  }
+  var id$2 = 0;
+  function _class_private_field_loose_key$2(name) {
+      return "__private_" + id$2++ + "_" + name;
+  }
+  const handler = {
+      get: (target, key)=>{
+          if (key === "isProxy") return true;
+          if (target[key]?.isSignal) return target[key].value;
+          if (!target[key]?.isProxy && typeof target[key] === "object") target[key] = new Proxy(target[key], handler);
+          return target[key];
+      },
+      set: (target, key, value)=>{
+          if (target[key]?.isSignal) {
+              target[key].value = value;
+              return true;
+          }
+          target[key] = value;
+          // TODO: make the engine handle pushing history here
+          return true;
+      },
+      ownKeys (target) {
+          return Object.keys(target);
+      },
+      has (target, prop) {
+          return prop in target;
+      },
+      deleteProperty (target, key) {
+          let result = false;
+          if (key in target) {
+              result = Reflect.deleteProperty(target, key);
+          }
+          return result;
+      }
+  };
+  var _store = /*#__PURE__*/ _class_private_field_loose_key$2("_store");
+  class State {
+      get store() {
+          return _class_private_field_loose_base$2(this, _store)[_store];
+      }
+      constructor(){
+          Object.defineProperty(this, _store, {
+              writable: true,
+              value: void 0
+          });
+          _class_private_field_loose_base$2(this, _store)[_store] = new Proxy({}, handler);
+          this.snippets = new Map();
+      }
+  }
+  /**
+   * Gets the value at the given path
+   */ function getPath(path) {
+      if (!isValidPath(path)) {
+          console.warn(`Invalid variable path ${path}`);
+          return;
+      }
+      const arr = path.split(".");
+      let previous = window.State.store;
+      for(let i = 0; i < arr.length; i++){
+          previous = previous[arr[i]];
+          if (typeof previous === "undefined") break;
+      }
+      return previous;
+  }
+  /**
+   * Recursively sets a value in the store at the given path
+   */ function setPath(path, value) {
+      if (!isValidPath(path)) {
+          console.warn(`Invalid variable path ${path}`);
+          return true;
+      }
+      const arr = path.split(".");
+      let previous = window.State.store;
+      let fail = false;
+      for(let i = 0; i < arr.length - 1; i++){
+          if (typeof previous[arr[i]] === "undefined") previous[arr[i]] = {};
+          if (typeof previous[arr[i]] !== "object") {
+              // can't set a new property here!
+              fail = true;
+              console.warn(`Failed to set ${path}: ${arr.slice(0, i + 1).join(".")} is not an object.`);
+              break;
+          }
+          previous = previous[arr[i]];
+      }
+      if (!fail) previous[arr[arr.length - 1]] = value;
+      return true;
+  }
+  function isValidPath(path) {
+      const arr = path.split(".");
+      try {
+          arr.forEach((a)=>new Function(`var ${a}`));
+      } catch (e) {
+          console.error(e);
+          return false;
+      }
+      return true;
+  }
+
+  let subscriber = null;
+  function signal(value) {
+      const subscriptions = new Set();
+      return {
+          get value () {
+              if (subscriber) {
+                  subscriptions.add(subscriber);
+                  subscriber = null;
+              }
+              return value;
+          },
+          set value (updated){
+              value = updated;
+              subscriptions.forEach((fn)=>fn());
+          },
+          get isSignal () {
+              return true;
+          },
+          unsubscribe (fn) {
+              return subscriptions.delete(fn);
+          }
+      };
+  }
+  function effect(fn) {
+      subscriber = fn;
+      fn();
+  }
+  function derived(fn) {
+      const derived = signal();
+      effect(()=>{
+          derived.value = fn();
+      });
+      return derived;
+  }
+
+  const variableRule = (state)=>{
+      const start = state.pos;
+      const max = state.posMax;
+      let signal = false;
+      if (state.src.charCodeAt(start) === 0x40 /* @ */ ) signal = true;
+      else if (state.src.charCodeAt(start) !== 0x24 /* $ */ ) return false;
+      const match = state.src.slice(start, max).match(/^(?:\@|\$)(\!)?([\.\_\w\d]+)/);
+      if (!match) return false;
+      const [m, signifier, path] = match;
+      // if we're here, we found a variable
+      // see if it's a display or an assignment
+      const o = start + match[0].length;
+      let display = false;
+      if (state.src.charCodeAt(o) !== 0x28 /* ( */ ) display = true;
+      // if it's not a display, let's find the closing bracket
+      let expr = "";
+      if (!display) {
+          const e = o + 1;
+          let pos = e;
+          let valid = false;
+          for(; pos < max; pos++){
+              if (state.src.charCodeAt(pos) !== 0x29 /* ) */ ) continue;
+              expr += state.src.slice(e, pos);
+              // check if this is a valid expression
+              try {
+                  new Function(`const value = ${expr}; if (typeof value === 'function') return value(); else return value;`);
+                  // no error? we got a valid expression!
+                  valid = true;
+                  break;
+              } catch (_) {
+              // not a valid expression. swallow the error and continue
+              }
+          }
+          if (!valid) {
+              // we got all the way to the end without finding a valid expression
+              return false;
+          }
+          state.pos = pos + 1;
+      } else state.pos = start + m.length;
+      const token = state.push("variable", "", 0);
+      token.meta = {};
+      token.meta.expression = expr;
+      token.meta.signal = signal;
+      token.meta.path = path;
+      token.meta.signifier = signifier;
+      if (state.env.js) token.meta.isJs = true;
+      return true;
+  };
+  const variableRender = (tokens, idx, _, env)=>{
+      const token = tokens[idx];
+      const path = token.meta.path;
+      if (!path) throw new Error("Could not render variable: no path provided (this shouldn't happen!)");
+      const derivedSignal = token.meta.signifier?.includes("!");
+      if (token.meta.expression) {
+          let fn = null;
+          try {
+              fn = new Function(`const value = ${token.meta.expression}; if (typeof value === 'function') return value(); else return value;`);
+          } catch (e) {
+              console.error(e);
+          }
+          // we got valid expression! set the variable to it
+          if (fn && env.effect !== true) {
+              if (token.meta.signal && !env.effect) {
+                  if (getPath(path) !== undefined) setPath(path, fn());
+                  else if (!derivedSignal) setPath(path, signal(fn()));
+                  else setPath(path, derived(fn));
+                  if (env.snippet !== undefined && token.meta.isJs) {
+                      // re-render the snippet if the signal updates
+                      snippetEffect(path, env);
+                  }
+              } else if (!env.effect) {
+                  // $ denotes a static variable
+                  setPath(path, fn());
+              }
+          }
+          if (token.meta.isJs) return `s.${path}`;
+          return "";
+      }
+      // no expression found, so we display the variable instead
+      if (token.meta.signal) {
+          // register a new effect that updates every element with that references this signal
+          if (!token.meta.isJs) {
+              effect(()=>{
+                  document.querySelectorAll(`tw-var[data-signal="${path}"]`).forEach((i)=>{
+                      i.innerHTML = getPath(path);
+                  });
+              });
+          }
+          if (env.snippet !== undefined && token.meta.isJs && !env.effect) {
+              // re-render the snippet every time the signal updates
+              snippetEffect(path, env);
+          }
+      }
+      let print = getPath(path);
+      if (typeof print === "object") print = JSON.stringify(print);
+      // return the raw value if we're in a js environment
+      if (token.meta.isJs) return `s.${path}`;
+      // each signal value is displayed in a <tw-var> element with [data-signal="key"]
+      // this gets updates whenever the effect function above re-runs
+      return `<tw-var data-var="${path}" ${token.meta.signal ? `data-signal="${path}"` : ""}>${print}</tw-var>`;
+  };
+  function snippetEffect(path, env) {
+      const snippet = window.State.snippets.get(env.snippet);
+      if (!snippet) throw Error(`Snippet with id ${env.snippet} not found`);
+      if (snippet) {
+          effect(()=>{
+              getPath(path);
+              if (!snippet.element) snippet.element = document.querySelector(`tw-snippet[data-snippet-id="${env.snippet}"]`) || undefined;
+              if (snippet.element) {
+                  const html = Markup$1.snippet(snippet.snippet.source, Object.assign(snippet.context, {
+                      s: window.s
+                  }), {
+                      ...env,
+                      effect: true
+                  });
+                  window.Engine.innerHTML(snippet.element, html);
+              }
+          });
+      }
+  }
+
+  const attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g;
+  const blockRegex = /^<%\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?%>(?:([\s\S]*?)<(?:%\/|\/%)\s?\1\s?%>)/i;
+  const selfClosingRegex = /^<%\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?(?:\/\%|%\/)>/i;
+  const snippetRule = (state)=>{
+      const start = state.pos;
+      const max = state.posMax;
+      const text = state.src.slice(start, max + 1);
+      let match = text.match(blockRegex);
+      if (!match) match = text.match(selfClosingRegex);
+      // no snippet match found
+      if (!match) return false;
+      // we got a snippet!
+      const [m, name = "", attributes = "", content = ""] = match;
+      const end = start + m.length;
+      // this shouldn't happen, but just in case
+      if (!name) return false;
+      const attrArray = [];
+      if (attributes) {
+          let regexArray;
+          // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
+          // so we iterate over the attributes this way instead.
+          while((regexArray = attrRegex.exec(attributes)) !== null){
+              attrArray.push([
+                  regexArray[1],
+                  regexArray[2]
+              ]);
+          }
+      }
+      state.pos = end;
+      const token = state.push("snippet", "tw-snippet", 0);
+      token.meta = {};
+      token.content = content;
+      token.attrs = attrArray;
+      token.meta.name = name;
+      return true;
+  };
+  const jsTags = [
+      /^{{[\s\S]*?}}/,
+      /{%[\s\S]*?%}/
+  ];
+  const isJsRule = (state)=>{
+      const start = state.pos;
+      const max = state.posMax;
+      if (state.src.charCodeAt(start) !== 0x7b /* { */ ) return false;
+      let open = "";
+      let close = "";
+      const char = state.src.charCodeAt(start + 1);
+      if (char === 0x7b) {
+          open = "{{";
+          close = "}}";
+      } else if (char === 0x25 /* % */ ) {
+          open = "{%";
+          close = "%}";
+      } else return false;
+      const text = state.src.slice(start, max);
+      let match = null;
+      for (const tag of jsTags){
+          match = text.match(tag);
+          if (match) break;
+      }
+      if (!match) return false;
+      // got a js sequence, push the token
+      const end = start + match[0].length;
+      state.pos = end;
+      const tokens = [];
+      const content = match[0];
+      jsMd.inline.parse(match[0], state.md, {
+          ...state.env,
+          ...{
+              js: true
+          }
+      }, tokens);
+      const token = state.push("nunjucks_js", "", 0);
+      token.content = content;
+      token.children = tokens;
+      token.meta = {};
+      token.meta.open = open;
+      token.meta.close = close;
+      return true;
+  };
+  const snippetRender = (tokens, idx, _, env)=>{
+      const token = tokens[idx];
+      const name = token.meta.name;
+      if (!name) throw new Error("No snippet name found (this shouldn't happen!)");
+      const snippet = window.Story.snippet(name);
+      const parentContext = env.context || {};
+      let context = Object.assign({}, parentContext);
+      const id = (Math.random() + 1).toString(36).substring(7);
+      context = {};
+      for (const attr of token.attrs || []){
+          context[attr[0]] = attr[1];
+      }
+      const content = token.content ? Markup$1.snippet(token.content, context) : "";
+      window.State.snippets.set(id, {
+          snippet,
+          context: {
+              ...context,
+              content
+          }
+      });
+      const rendered = Markup$1.snippet(snippet.source, {
+          ...context,
+          content
+      }, {
+          ...env,
+          ...{
+              snippet: id
+          }
+      });
+      const open = `<tw-snippet data-snippet-id="${id}">`;
+      const close = "</tw-snippet>";
+      return `${open}${rendered}${close}`;
+  };
+
+  const linkRegex = [
+      [
+          /^\[\[(?:(.+?)(?:\|(.+?))?\])\s?(?:\[(.*?)\])?\]/,
+          [
+              "goto",
+              "name",
+              "func"
+          ]
+      ],
+      [
+          /^\[\[(?:(.+?)(?:\<\-(.+?))?\])\s?(?:\[(.*?)\])?\]/,
+          [
+              "goto",
+              "name",
+              "func"
+          ]
+      ],
+      [
+          /^\[\[(?:(.+?)(?:\-\>(.+?))?\])\s?(?:\[(.*?)\])?\]/,
+          [
+              "name",
+              "goto",
+              "func"
+          ]
+      ]
+  ];
+  const linkRule = (state)=>{
+      const start = state.pos;
+      const max = state.posMax;
+      const meta = {
+          name: "",
+          goto: "",
+          func: ""
+      };
+      if (state.src.charCodeAt(start) !== 0x5b /* [ */ ) return false;
+      if (state.src.charCodeAt(start + 1) !== 0x5b) return false;
+      const text = state.src.slice(start, max);
+      let match = null;
+      for (const regex of linkRegex){
+          match = text.match(regex[0]);
+          if (!match) continue;
+          for(let i = 0; i < regex[1].length; i++){
+              meta[regex[1][i]] = match[i + 1];
+          }
+          break;
+      }
+      if (!match) return false;
+      state.pos = start + match[0].length;
+      const token = state.push("tw_link", "", 0);
+      token.meta = {};
+      token.meta.name = meta.name;
+      token.meta.goto = meta.goto;
+      token.meta.func = meta.func;
+      return true;
+  };
+  const linkRender = (tokens, idx)=>{
+      const token = tokens[idx];
+      const meta = token.meta;
+      let func = null;
+      if (meta.func) {
+          try {
+              func = new Function(meta.func);
+          } catch (e) {
+              console.warn(`Could not attach function to link "${meta.goto}: ${e.message}"`);
+          }
+      }
+      let onClick = "";
+      if (func || meta.goto) {
+          onClick += 'onclick="';
+          if (func) onClick += `${meta.func.replaceAll('"', "&quot;").replaceAll("'", '"').replaceAll("&quot;", "'")}; `;
+          if (meta.goto) onClick += ` window.Engine.jump('${meta.goto}')"`;
+      }
+      const display = meta.name ? meta.name : meta.goto;
+      return `<button data-tw-link data-goto="${meta.goto}" ${onClick} >${display}</button>`;
+  };
+
+  // markdown-it environment
+  const md$1 = new MarkdownIt({
+      html: true,
+      xhtmlOut: true
+  });
+  const noParagraphRule = (state, startLine, endLine)=>{
+      state.line = endLine;
+      const token = state.push("inline", "", 0);
+      token.content = state.src;
+      token.map = [
+          startLine,
+          endLine
+      ];
+      token.children = [];
+      return true;
+  };
+  const noParagraphRender = ()=>{
+      return "";
+  };
+  const plugin = (md)=>{
+      md.configure("zero");
+      md.block.ruler.disable("paragraph");
+      md.inline.ruler.enable("escape");
+      md.core.ruler.enable("text_join");
+      md.block.ruler.enable("fence");
+      md.block.ruler.after("html_block", "no_paragraph", noParagraphRule);
+      md.inline.ruler.after("text", "snippet", snippetRule);
+      md.inline.ruler.after("snippet", "nunjucks_js", isJsRule);
+      md.inline.ruler.after("nunjucks_js", "variable", variableRule);
+      md.inline.ruler.after("variable", "tw_link", linkRule);
+      md.enable("nunjucks_js").enable("snippet").enable("variable").enable("no_paragraph");
+      md.renderer.render = (tokens, options, env)=>customRender(tokens, options, env, md.renderer);
+      md.renderer.rules.snippet = snippetRender;
+      md.renderer.rules.variable = variableRender;
+      md.renderer.rules.no_paragraph = noParagraphRender;
+      md.renderer.rules.tw_link = linkRender;
+  };
+  const snippetMd = new MarkdownIt().use(plugin);
+  const passageMd = new MarkdownIt().use(plugin).disable([
+      "nunjucks_js"
+  ]);
+  const jsMd = new MarkdownIt().use(plugin).disable([
+      "nunjucks_js",
+      "snippet",
+      "html_block",
+      "fence",
+      "escape",
+      "text_join"
+  ]);
+  function customRender(tokens, options, env, renderer) {
+      const rules = renderer.rules;
+      let result = "";
+      for(let i = 0, len = tokens.length; i < len; i++){
+          const token = tokens[i];
+          const type = token.type;
+          const rule = rules[type];
+          console.log(token);
+          if (token.children) {
+              result += customRender(token.children, options, env, renderer);
+          } else if (rule) result += rule(tokens, i, options, env, renderer);
+      }
+      return result;
+  }
+
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
   function getDefaultExportFromCjs (x) {
@@ -15081,7 +15594,7 @@
       }
       return e;
   }
-  var nunjucks = {
+  var nunjucks$1 = {
       Environment: Environment,
       Template: Template,
       Loader: Loader,
@@ -15121,144 +15634,155 @@
       precompile: precompile ? precompile.precompile : undefined,
       precompileString: precompile ? precompile.precompileString : undefined
   };
-  var nj = /*@__PURE__*/ getDefaultExportFromCjs(nunjucks);
+  var nj = /*@__PURE__*/ getDefaultExportFromCjs(nunjucks$1);
 
-  let subscriber = null;
-  function signal(value) {
-      const subscriptions = new Set();
-      return {
-          get value () {
-              if (subscriber) {
-                  subscriptions.add(subscriber);
-                  subscriber = null;
-              }
-              return value;
-          },
-          set value (updated){
-              value = updated;
-              subscriptions.forEach((fn)=>fn());
-          },
-          get isSignal () {
-              return true;
-          },
-          unsubscribe (fn) {
-              return subscriptions.delete(fn);
-          }
-      };
-  }
-  function effect(fn) {
-      subscriber = fn;
-      fn();
-  }
-  function derived(fn) {
-      const derived = signal();
-      effect(()=>{
-          derived.value = fn();
-      });
-      return derived;
-  }
+  const nunjucks = nj.configure({
+      autoescape: false
+  });
+  let Markup$1 = class Markup {
+      static snippet(source, context, env) {
+          context = Object.assign(context || {}, {
+              s: window.s
+          });
+          source = snippetMd.render(source, env);
+          source = this.unescape(source);
+          source = nunjucks.renderString(source, context);
+          return source;
+      }
+      /**
+     * Converts escaped HTML characters back into the original characters
+     */ static unescape(text) {
+          const unescapeRules = [
+              [
+                  "&amp;",
+                  "&"
+              ],
+              [
+                  "&lt;",
+                  "<"
+              ],
+              [
+                  "&gt;",
+                  ">"
+              ],
+              [
+                  "&quot;",
+                  '"'
+              ],
+              [
+                  "&#x27;",
+                  "'"
+              ],
+              [
+                  "&#x60;",
+                  "`"
+              ]
+          ];
+          unescapeRules.forEach(([rule, out])=>{
+              text = text.replaceAll(rule, out);
+          });
+          return text;
+      }
+      /**
+     * Parses raw passage content and returns the rendered passage.
+     */ static parse(source) {
+          source = passageMd.render(source);
+          source = this.unescape(source);
+          source = md$1.render(source);
+          return source;
+      }
+      /**
+     * Finds and executes any script element in the passage body
+     */ static executeScriptElements(containerElement) {
+          // taken from https://stackoverflow.com/a/69190644
+          const scriptElements = containerElement.querySelectorAll("script");
+          scriptElements?.forEach((scriptElement)=>{
+              const clonedElement = document.createElement("script");
+              Array.from(scriptElement.attributes).forEach((attribute)=>{
+                  clonedElement.setAttribute(attribute.name, attribute.value);
+              });
+              clonedElement.text = scriptElement.text;
+              scriptElement.parentNode?.replaceChild(clonedElement, scriptElement);
+          });
+      }
+  };
 
-  function _class_private_field_loose_base$2(receiver, privateKey) {
+  function _class_private_field_loose_base$1(receiver, privateKey) {
       if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
           throw new TypeError("attempted to use private field on non-instance");
       }
       return receiver;
   }
-  var id$2 = 0;
-  function _class_private_field_loose_key$2(name) {
-      return "__private_" + id$2++ + "_" + name;
+  var id$1 = 0;
+  function _class_private_field_loose_key$1(name) {
+      return "__private_" + id$1++ + "_" + name;
   }
-  const handler = {
-      get: (target, key)=>{
-          if (key === "isProxy") return true;
-          if (target[key]?.isSignal) return target[key].value;
-          if (!target[key]?.isProxy && typeof target[key] === "object") target[key] = new Proxy(target[key], handler);
-          return target[key];
-      },
-      set: (target, key, value)=>{
-          if (target[key]?.isSignal) {
-              target[key].value = value;
-              return true;
-          }
-          target[key] = value;
-          // TODO: make the engine handle pushing history here
-          return true;
-      },
-      ownKeys (target) {
-          return Object.keys(target);
-      },
-      has (target, prop) {
-          return prop in target;
-      },
-      deleteProperty (target, key) {
-          let result = false;
-          if (key in target) {
-              result = Reflect.deleteProperty(target, key);
-          }
-          return result;
+  var _passageEl = /*#__PURE__*/ _class_private_field_loose_key$1("_passageEl");
+  class Engine {
+      start() {
+          this.jump(window.Story.startPassage);
       }
-  };
-  var _store = /*#__PURE__*/ _class_private_field_loose_key$2("_store");
-  class State {
-      get store() {
-          return _class_private_field_loose_base$2(this, _store)[_store];
+      /**
+     * Finds, renders and displays the passage by the given name. Optionally ignores the history.
+     */ jump(name) {
+          const html = this.render(name);
+          if (html) this.show(html);
+      }
+      /**
+     * Finds a passage by name, renders it, and returns the rendered HTML
+    */ render(name) {
+          let passage;
+          try {
+              passage = window.Story.passage(name);
+          } catch (e) {
+              console.warn(`Could not render passage: ${e.message}`);
+              return;
+          }
+          const html = passage.render();
+          return html;
+      }
+      /**
+     * Finds a snippet by name, renders it, and returns the rendered HTML
+    */ snippet(name) {
+          let snippet;
+          try {
+              snippet = window.Story.snippet(name);
+          } catch (e) {
+              console.warn(`Could not render snippet: ${e.message}`);
+              return;
+          }
+          const html = snippet.render();
+          return html;
+      }
+      /**
+     * Displays the given html as the current passage. Does not handle history or state.
+     */ show(html) {
+          this.innerHTML(_class_private_field_loose_base$1(this, _passageEl)[_passageEl], html);
+      }
+      /**
+     * Attaches the rendered HTML to the given HTML element and executes any included JS.
+     */ innerHTML(el, html) {
+          el.innerHTML = html;
+          Markup$1.executeScriptElements(el);
       }
       constructor(){
-          Object.defineProperty(this, _store, {
+          Object.defineProperty(this, _passageEl, {
               writable: true,
               value: void 0
           });
-          _class_private_field_loose_base$2(this, _store)[_store] = new Proxy({}, handler);
+          // init with the passage element
+          const passageEl = document.querySelector("tw-passage");
+          if (!passageEl) throw new Error("tw-passage element is missing!");
+          _class_private_field_loose_base$1(this, _passageEl)[_passageEl] = passageEl;
       }
   }
-  /**
-   * Gets the value at the given path
-   */ function getPath(path) {
-      if (!isValidPath(path)) {
-          console.warn(`Invalid variable path ${path}`);
-          return;
-      }
-      const arr = path.split(".");
-      let previous = window.State.store;
-      for(let i = 0; i < arr.length; i++){
-          previous = previous[arr[i]];
-          if (typeof previous === "undefined") break;
-      }
-      return previous;
+
+  // utility functions and whatnot
+  class Malachite {
   }
-  /**
-   * Recursively sets a value in the store at the given path
-   */ function setPath(path, value) {
-      if (!isValidPath(path)) {
-          console.warn(`Invalid variable path ${path}`);
-          return true;
-      }
-      const arr = path.split(".");
-      let previous = window.State.store;
-      let fail = false;
-      for(let i = 0; i < arr.length - 1; i++){
-          if (typeof previous[arr[i]] === "undefined") previous[arr[i]] = {};
-          if (typeof previous[arr[i]] !== "object") {
-              // can't set a new property here!
-              fail = true;
-              console.warn(`Failed to set ${path}: ${arr.slice(0, i + 1).join(".")} is not an object.`);
-              break;
-          }
-          previous = previous[arr[i]];
-      }
-      if (!fail) previous[arr[arr.length - 1]] = value;
-      return true;
-  }
-  function isValidPath(path) {
-      const arr = path.split(".");
-      try {
-          arr.forEach((a)=>new Function(`var ${a}`));
-      } catch (e) {
-          console.error(e);
-          return false;
-      }
-      return true;
-  }
+  Malachite.signal = (value)=>signal(value);
+  Malachite.effect = (fn)=>effect(fn);
+  Malachite.derived = (fn)=>derived(fn);
 
   // markdown-it environment
   const md = MarkdownIt({
@@ -15389,6 +15913,29 @@
           });
           return source;
       }
+      // static conditionals(source: string) {
+      //   const conditionRegex =
+      //     /(\\)?#(if|elseif|else|elif)(?:\(([\s\S]*)\))?\s?(?:{([\s\S]*)};|{([\s\S]*?)})/gi
+      //   const matches = source.matchAll(conditionRegex)
+      //   let conditional: Conditional | null = null
+      //   for (const match of matches) {
+      //     const [m, esc, statement, expression = "", greedyContent = "", lazyContent = ""] = match
+      //     const s = statement.toLowerCase()
+      //     // end the conditional if one of the statements was escaped
+      //     if (esc) {
+      //       if (conditional) conditional.render()
+      //       continue
+      //     }
+      //     if (!expression && s !== "else") {
+      //       console.warn(`Expression required for ${s} statement:\n${m}`)
+      //       conditional = null
+      //       continue
+      //     }
+      //     if (expression && s === "else") {
+      //       console.warn(`Expression not allowed for else statement:\m${m}`)
+      //     }
+      //   }
+      // }
       /**
      * Parses snippet blocks and renders them recursively. Returns the rendered source.
      */ static snippets(source) {
@@ -15473,10 +16020,9 @@
       }
       /**
      * Finds and executes any script element in the passage body
-     */ static executeScriptElements() {
-          const containerElement = document.querySelector("tw-passage");
+     */ static executeScriptElements(containerElement) {
           // taken from https://stackoverflow.com/a/69190644
-          const scriptElements = containerElement?.querySelectorAll("script");
+          const scriptElements = containerElement.querySelectorAll("script");
           scriptElements?.forEach((scriptElement)=>{
               const clonedElement = document.createElement("script");
               Array.from(scriptElement.attributes).forEach((attribute)=>{
@@ -15492,59 +16038,11 @@
       autoescape: false
   });
 
-  function _class_private_field_loose_base$1(receiver, privateKey) {
-      if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
-          throw new TypeError("attempted to use private field on non-instance");
-      }
-      return receiver;
-  }
-  var id$1 = 0;
-  function _class_private_field_loose_key$1(name) {
-      return "__private_" + id$1++ + "_" + name;
-  }
-  var _passageEl = /*#__PURE__*/ _class_private_field_loose_key$1("_passageEl");
-  class Engine {
-      start() {
-          this.jump(window.Story.startPassage);
-      }
-      /**
-     * Finds, renders and displays the passage by the given name. Optionally ignores the history.
-     */ jump(name) {
-          let passage;
-          try {
-              passage = window.Story.passage(name);
-          } catch (e) {
-              // catch the error if one is thrown
-              console.warn(`Could not jump to passage: ${e.message}`);
-              return;
-          }
-          const html = passage.render();
-          this.show(html);
-      }
-      /**
-     * Displays the given html as the current passage. Does not handle history or state.
-     */ show(html) {
-          _class_private_field_loose_base$1(this, _passageEl)[_passageEl].innerHTML = html;
-          Markup.addListeners();
-          Markup.executeScriptElements();
-      }
-      constructor(){
-          Object.defineProperty(this, _passageEl, {
-              writable: true,
-              value: void 0
-          });
-          // init with the passage element
-          const passageEl = document.querySelector("tw-passage");
-          if (!passageEl) throw new Error("tw-passage element is missing!");
-          _class_private_field_loose_base$1(this, _passageEl)[_passageEl] = passageEl;
-      }
-  }
-
   class Passage {
       /**
      * Renders the passage contents and returns the rendered html.
      */ render() {
-          return Markup.parse(this.source);
+          return Markup$1.parse(this.source);
       }
       constructor(name, tags, source){
           this.name = name;
@@ -15554,10 +16052,10 @@
   }
 
   class Snippet extends Passage {
-      render() {
+      render(env) {
           let rendered = this.source;
           try {
-              rendered = Markup.snippet(rendered, {});
+              rendered = Markup$1.snippet(rendered, {}, env);
           } catch (e) {
               console.error(new Error(`Could not render snippet: ${e.message}`));
           }
@@ -15671,13 +16169,6 @@
       }
       return startPassage;
   }
-
-  // utility functions and whatnot
-  class Malachite {
-  }
-  Malachite.signal = (value)=>signal(value);
-  Malachite.effect = (fn)=>effect(fn);
-  Malachite.derived = (fn)=>derived(fn);
 
   // initialize globals
   window.Engine = new Engine();

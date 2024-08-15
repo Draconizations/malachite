@@ -56,7 +56,6 @@ export default class Markup {
    */
   static parse(source: string) {
     source = this.variables(source)
-    source = this.conditionals(source)
     source = this.links(source)
     source = this.snippets(source)
     source = this.markdown(source)
@@ -165,35 +164,35 @@ export default class Markup {
     return source
   }
 
-  static conditionals(source: string) {
-    const conditionRegex =
-      /(\\)?#(if|elseif|else|elif)(?:\(([\s\S]*)\))?\s?(?:{([\s\S]*)};|{([\s\S]*?)})/gi
+  // static conditionals(source: string) {
+  //   const conditionRegex =
+  //     /(\\)?#(if|elseif|else|elif)(?:\(([\s\S]*)\))?\s?(?:{([\s\S]*)};|{([\s\S]*?)})/gi
 
-    const matches = source.matchAll(conditionRegex)
+  //   const matches = source.matchAll(conditionRegex)
 
-    let conditional: Conditional | null = null
+  //   let conditional: Conditional | null = null
 
-    for (const match of matches) {
-      const [m, esc, statement, expression = "", greedyContent = "", lazyContent = ""] = match
-      const s = statement.toLowerCase()
+  //   for (const match of matches) {
+  //     const [m, esc, statement, expression = "", greedyContent = "", lazyContent = ""] = match
+  //     const s = statement.toLowerCase()
 
-      // end the conditional if one of the statements was escaped
-      if (esc) {
-        if (conditional) conditional.render()
-        continue
-      }
+  //     // end the conditional if one of the statements was escaped
+  //     if (esc) {
+  //       if (conditional) conditional.render()
+  //       continue
+  //     }
 
-      if (!expression && s !== "else") {
-        console.warn(`Expression required for ${s} statement:\n${m}`)
-        conditional = null
-        continue
-      }
+  //     if (!expression && s !== "else") {
+  //       console.warn(`Expression required for ${s} statement:\n${m}`)
+  //       conditional = null
+  //       continue
+  //     }
 
-      if (expression && s === "else") {
-        console.warn(`Expression not allowed for else statement:\m${m}`)
-      }
-    }
-  }
+  //     if (expression && s === "else") {
+  //       console.warn(`Expression not allowed for else statement:\m${m}`)
+  //     }
+  //   }
+  // }
 
   /**
    * Parses snippet blocks and renders them recursively. Returns the rendered source.

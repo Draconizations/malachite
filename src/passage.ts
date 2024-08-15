@@ -1,4 +1,4 @@
-import Markup from "./markup.ts"
+import Markup from "./markup/markup.ts"
 
 /**
  * A singular twee passage.
