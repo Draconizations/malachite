@@ -15125,7 +15125,7 @@
 
 	const linkRegex = [
 	    [
-	        /^\[\[(?:(.+?)(?:\|(.+?))?\])\s?(?:\[(.*?)\])?\]/,
+	        /^\[\[(.+?)\|(.+?)\]\s?(?:\[(.*?)\])?\]/,
 	        [
 	            "goto",
 	            "name",
@@ -15133,7 +15133,7 @@
 	        ]
 	    ],
 	    [
-	        /^\[\[(?:(.+?)(?:\<\-(.+?))?\])\s?(?:\[(.*?)\])?\]/,
+	        /^\[\[(.+?)\<\-(.+?)\]\s?(?:\[(.*?)\])?\]/,
 	        [
 	            "goto",
 	            "name",
@@ -15141,9 +15141,16 @@
 	        ]
 	    ],
 	    [
-	        /^\[\[(?:(.+?)(?:\-\>(.+?))?\])\s?(?:\[(.*?)\])?\]/,
+	        /^\[\[(.+?)\-\>(.+?)?\]\s?(?:\[(.*?)\])?\]/,
 	        [
 	            "name",
+	            "goto",
+	            "func"
+	        ]
+	    ],
+	    [
+	        /^\[\[(.+?)\]\s?(?:\[(.*?)\])?\]/,
+	        [
 	            "goto",
 	            "func"
 	        ]
@@ -15199,6 +15206,8 @@
 	    return `<button data-tw-link data-goto="${meta.goto}" ${onClick} >${display}</button>`;
 	};
 
+	const uid = ()=>(Math.random() + 1).toString(36).substring(7);
+
 	const attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g;
 	const blockRegex = /^<%\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?%>(?:([\s\S]*?)<(?:%\/|\/%)\s?\1\s?%>)/i;
 	const selfClosingRegex = /^<%\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?(?:\/\%|%\/)>/i;
@@ -15229,42 +15238,44 @@
 	    const snippet = window.Story.snippet(name);
 	    const token = state.push("snippet", "tw-snippet", 0);
 	    token.meta = {};
-	    token.meta.id = (Math.random() + 1).toString(36).substring(7);
-	    token.meta.name = name;
+	    const id = uid();
+	    let context = attrs;
+	    if (state.env.snippet?.context) context = {
+	        ...state.env.snippet?.context,
+	        ...context
+	    };
+	    context = {
+	        ...context,
+	        s: window.s
+	    };
 	    const envSnippet = {
-	        id: token.meta.id,
+	        id,
 	        name,
 	        content: {
 	            source: content
 	        },
-	        children: {
+	        source: {
 	            source: snippet.source
 	        },
-	        context: {}
+	        context,
+	        raw: snippet.raw,
+	        tags: snippet.tags
 	    };
-	    const tokens = [];
+	    const sourceTokens = [];
 	    snippetMd.inline.parse(snippet.source, state.md, {
 	        ...state.env,
 	        snippet: envSnippet
-	    }, tokens);
-	    token.children = tokens;
-	    token.meta.source = snippet.source;
-	    token.meta.content = {};
-	    token.meta.content.source = content;
-	    token.meta.content.tokens = [];
+	    }, sourceTokens);
+	    token.children = sourceTokens;
+	    const contentTokens = [];
 	    snippetMd.inline.parse(content, state.md, {
 	        ...state.env,
 	        snippet: envSnippet
-	    }, token.meta.content.tokens);
-	    token.meta.context = attrs;
-	    token.meta.context = {
-	        ...attrs,
-	        s: window.s
-	    };
-	    envSnippet.context = token.meta.context;
-	    envSnippet.children.tokens = token.children;
+	    }, contentTokens);
+	    envSnippet.source.tokens = token.children;
 	    envSnippet.content.tokens = token.meta.content.tokens;
 	    state.env.snippet = envSnippet;
+	    token.meta.snippet = envSnippet;
 	    return true;
 	};
 	const jsTags = [
@@ -15313,18 +15324,7 @@
 	};
 	const snippetRender = (tokens, idx, options, env)=>{
 	    const token = tokens[idx];
-	    const name = token.meta.name;
-	    if (!name) throw new Error("No snippet name found (this shouldn't happen!)");
-	    const envSnippet = {
-	        id: token.meta.id,
-	        name,
-	        content: token.meta.content,
-	        children: {
-	            source: token.meta.source,
-	            tokens: token.children || []
-	        },
-	        context: token.meta.context
-	    };
+	    const envSnippet = token.meta.snippet;
 	    const html = renderSnippet(envSnippet, options, env);
 	    const open = `<tw-snippet data-snippet-id="${token.meta.id}">`;
 	    const close = "</tw-snippet>";
@@ -15335,13 +15335,13 @@
 	        ...env,
 	        snippet
 	    };
-	    let result = snippetMd.renderer.render(snippet.children.tokens || [], options, snippetEnv);
+	    let result = snippetMd.renderer.render(snippet.source.tokens || [], options, snippetEnv);
 	    result = Markup.unescape(result);
 	    let nested = "";
 	    if (snippet.content.tokens) nested = snippetMd.renderer.render(snippet.content.tokens, options, snippetEnv);
 	    nested = md.render(nested);
 	    snippet.context.content = nested;
-	    result = nunjucks.renderString(result, snippet.context);
+	    if (!snippet.raw) result = nunjucks.renderString(result, snippet.context);
 	    return result;
 	}
 
@@ -15425,6 +15425,16 @@
 	    get store() {
 	        return _class_private_field_loose_base$2(this, _store)[_store];
 	    }
+	    static signal(value, path) {
+	        const s = signal(value);
+	        if (path) setPath(path, s);
+	        return s;
+	    }
+	    static derived(fn, path) {
+	        const d = derived(fn);
+	        if (path) setPath(path, d);
+	        return d;
+	    }
 	    constructor(){
 	        Object.defineProperty(this, _store, {
 	            writable: true,
@@ -15433,6 +15443,7 @@
 	        _class_private_field_loose_base$2(this, _store)[_store] = new Proxy({}, handler);
 	    }
 	}
+	State.effect = (fn)=>effect(fn);
 	/**
 	 * Gets the value at the given path
 	 */ function getPath(path) {
@@ -15523,29 +15534,32 @@
 	    } else state.pos = start + m.length;
 	    const token = state.push("variable", "", 0);
 	    token.meta = {};
-	    token.meta.expression = expr;
-	    token.meta.signal = signal;
-	    token.meta.path = path;
-	    token.meta.signifier = signifier;
 	    if (state.env.js) token.meta.isJs = true;
 	    if (state.env.snippet) token.meta.snippet = state.env.snippet;
+	    const variable = {
+	        signal,
+	        signifier,
+	        expression: expr,
+	        path
+	    };
+	    token.meta.variable = variable;
 	    return true;
 	};
 	const variableRender = (tokens, idx, options, env)=>{
 	    const token = tokens[idx];
-	    const path = token.meta.path;
+	    const path = token.meta.variable.path;
 	    if (!path) throw new Error("Could not render variable: no path provided (this shouldn't happen!)");
-	    const derivedSignal = token.meta.signifier?.includes("!");
-	    if (token.meta.expression) {
+	    const derivedSignal = token.meta.variable.signifier?.includes("!");
+	    if (token.meta.variable.expression) {
 	        let fn = null;
 	        try {
-	            fn = new Function(`const value = ${token.meta.expression}; if (typeof value === 'function') return value(); else return value;`);
+	            fn = new Function(`const value = ${token.meta.variable.expression}; if (typeof value === 'function') return value(); else return value;`);
 	        } catch (e) {
 	            console.error(e);
 	        }
 	        // we got valid expression! set the variable to it
 	        if (fn) {
-	            if (token.meta.signal) {
+	            if (token.meta.variable.signal) {
 	                if (getPath(path) !== undefined) setPath(path, fn());
 	                else {
 	                    // @ denotes a signal
@@ -15565,7 +15579,7 @@
 	        return "";
 	    }
 	    // no expression found, so we display the variable instead
-	    if (token.meta.signal) {
+	    if (token.meta.variable.signal) {
 	        // register a new effect that updates every element with that references this signal
 	        if (!token.meta.isJs) {
 	            effect(()=>{
@@ -15585,7 +15599,7 @@
 	    if (typeof print === "object") print = JSON.stringify(print);
 	    // each signal value is displayed in a <tw-var> element with [data-signal="key"]
 	    // this gets updates whenever the effect function above re-runs
-	    return `<tw-var data-var="${path}" ${token.meta.signal ? `data-signal="${path}"` : ""}>${print}</tw-var>`;
+	    return `<tw-var data-var="${path}" ${token.meta.variable.signal ? `data-signal="${path}"` : ""}>${print}</tw-var>`;
 	};
 	function snippetEffect(snip, options, env) {
 	    const snippet = window.Story.snippet(snip.name || "");
@@ -15803,13 +15817,6 @@
 	    }
 	}
 
-	// utility functions and whatnot
-	class Malachite {
-	}
-	Malachite.signal = (value)=>signal(value);
-	Malachite.effect = (fn)=>effect(fn);
-	Malachite.derived = (fn)=>derived(fn);
-
 	class Passage {
 	    /**
 	   * Renders the passage contents and returns the rendered html.
@@ -15824,14 +15831,35 @@
 	}
 
 	class Snippet extends Passage {
-	    render(env) {
-	        let rendered = this.source;
+	    render(content, context, env) {
+	        let html = this.source;
+	        context = {};
+	        const envSnippet = {
+	            name: this.name,
+	            source: {
+	                source: this.source
+	            },
+	            content: {
+	                source: content
+	            },
+	            id: uid(),
+	            raw: this.raw,
+	            tags: this.tags,
+	            context
+	        };
 	        try {
-	            rendered = Markup.snippet(rendered, {}, env);
+	            html = Markup.snippet(html, context, env);
 	        } catch (e) {
 	            console.error(new Error(`Could not render snippet: ${e.message}`));
 	        }
-	        return rendered;
+	        const open = `<tw-snippet data-snippet-id="${envSnippet.id}">`;
+	        const close = "</tw-snippet>";
+	        return `${open}${html}${close}`;
+	    }
+	    constructor(name, tags, source, raw){
+	        super(name, tags, source);
+	        this.raw = this.tags.includes("raw");
+	        if (raw) this.raw = raw;
 	    }
 	}
 
@@ -15947,8 +15975,6 @@
 	window.Story = new Story();
 	window.State = new State();
 	window.s = window.State.store;
-	window.Malachite = new Malachite();
-	window.m = window.Malachite;
 	// start the story
 	window.Engine.start();
 

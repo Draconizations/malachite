@@ -2,9 +2,10 @@ import type { RuleInline } from "markdown-it/lib/parser_inline.mjs"
 import type { RenderRule } from "markdown-it/lib/renderer.mjs"
 
 const linkRegex: Array<[RegExp, string[]]> = [
-  [/^\[\[(?:(.+?)(?:\|(.+?))?\])\s?(?:\[(.*?)\])?\]/, ["goto", "name", "func"]],
-  [/^\[\[(?:(.+?)(?:\<\-(.+?))?\])\s?(?:\[(.*?)\])?\]/, ["goto", "name", "func"]],
-  [/^\[\[(?:(.+?)(?:\-\>(.+?))?\])\s?(?:\[(.*?)\])?\]/, ["name", "goto", "func"]],
+  [/^\[\[(.+?)\|(.+?)\]\s?(?:\[(.*?)\])?\]/, ["goto", "name", "func"]],
+  [/^\[\[(.+?)\<\-(.+?)\]\s?(?:\[(.*?)\])?\]/, ["goto", "name", "func"]],
+  [/^\[\[(.+?)\-\>(.+?)?\]\s?(?:\[(.*?)\])?\]/, ["name", "goto", "func"]],
+  [/^\[\[(.+?)\]\s?(?:\[(.*?)\])?\]/, ["goto", "func"]],
 ]
 
 export const linkRule: RuleInline = (state) => {
