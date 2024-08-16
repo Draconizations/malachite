@@ -15215,24 +15215,56 @@
 	    const end = start + m.length;
 	    // this shouldn't happen, but just in case
 	    if (!name) return false;
-	    const attrArray = [];
+	    const attrs = {};
 	    if (attributes) {
 	        let regexArray;
 	        // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
 	        // so we iterate over the attributes this way instead.
 	        while((regexArray = attrRegex.exec(attributes)) !== null){
-	            attrArray.push([
-	                regexArray[1],
-	                regexArray[2]
-	            ]);
+	            attrs[regexArray[1]] = regexArray[2];
 	        }
 	    }
 	    state.pos = end;
+	    if (!name) throw new Error("No snippet name found (this shouldn't happen!)");
+	    const snippet = window.Story.snippet(name);
 	    const token = state.push("snippet", "tw-snippet", 0);
 	    token.meta = {};
-	    token.content = content;
-	    token.attrs = attrArray;
+	    token.meta.id = (Math.random() + 1).toString(36).substring(7);
 	    token.meta.name = name;
+	    const envSnippet = {
+	        id: token.meta.id,
+	        name,
+	        content: {
+	            source: content
+	        },
+	        children: {
+	            source: snippet.source
+	        },
+	        context: {}
+	    };
+	    const tokens = [];
+	    snippetMd.inline.parse(snippet.source, state.md, {
+	        ...state.env,
+	        snippet: envSnippet
+	    }, tokens);
+	    token.children = tokens;
+	    token.meta.source = snippet.source;
+	    token.meta.content = {};
+	    token.meta.content.source = content;
+	    token.meta.content.tokens = [];
+	    snippetMd.inline.parse(content, state.md, {
+	        ...state.env,
+	        snippet: envSnippet
+	    }, token.meta.content.tokens);
+	    token.meta.context = attrs;
+	    token.meta.context = {
+	        ...attrs,
+	        s: window.s
+	    };
+	    envSnippet.context = token.meta.context;
+	    envSnippet.children.tokens = token.children;
+	    envSnippet.content.tokens = token.meta.content.tokens;
+	    state.env.snippet = envSnippet;
 	    return true;
 	};
 	const jsTags = [
@@ -15279,39 +15311,39 @@
 	    token.meta.close = close;
 	    return true;
 	};
-	const snippetRender = (tokens, idx, _, env)=>{
+	const snippetRender = (tokens, idx, options, env)=>{
 	    const token = tokens[idx];
 	    const name = token.meta.name;
 	    if (!name) throw new Error("No snippet name found (this shouldn't happen!)");
-	    const snippet = window.Story.snippet(name);
-	    const parentContext = env.context || {};
-	    let context = Object.assign({}, parentContext);
-	    const id = (Math.random() + 1).toString(36).substring(7);
-	    context = {};
-	    for (const attr of token.attrs || []){
-	        context[attr[0]] = attr[1];
-	    }
-	    const content = token.content ? Markup$1.snippet(token.content, context) : "";
-	    window.State.snippets.set(id, {
-	        snippet,
-	        context: {
-	            ...context,
-	            content
-	        }
-	    });
-	    const rendered = Markup$1.snippet(snippet.source, {
-	        ...context,
-	        content
-	    }, {
-	        ...env,
-	        ...{
-	            snippet: id
-	        }
-	    });
-	    const open = `<tw-snippet data-snippet-id="${id}">`;
+	    const envSnippet = {
+	        id: token.meta.id,
+	        name,
+	        content: token.meta.content,
+	        children: {
+	            source: token.meta.source,
+	            tokens: token.children || []
+	        },
+	        context: token.meta.context
+	    };
+	    const html = renderSnippet(envSnippet, options, env);
+	    const open = `<tw-snippet data-snippet-id="${token.meta.id}">`;
 	    const close = "</tw-snippet>";
-	    return `${open}${rendered}${close}`;
+	    return `${open}${html}${close}`;
 	};
+	function renderSnippet(snippet, options, env) {
+	    const snippetEnv = {
+	        ...env,
+	        snippet
+	    };
+	    let result = snippetMd.renderer.render(snippet.children.tokens || [], options, snippetEnv);
+	    result = Markup.unescape(result);
+	    let nested = "";
+	    if (snippet.content.tokens) nested = snippetMd.renderer.render(snippet.content.tokens, options, snippetEnv);
+	    nested = md.render(nested);
+	    snippet.context.content = nested;
+	    result = nunjucks.renderString(result, snippet.context);
+	    return result;
+	}
 
 	let subscriber = null;
 	function signal(value) {
@@ -15399,7 +15431,6 @@
 	            value: void 0
 	        });
 	        _class_private_field_loose_base$2(this, _store)[_store] = new Proxy({}, handler);
-	        this.snippets = new Map();
 	    }
 	}
 	/**
@@ -15497,9 +15528,10 @@
 	    token.meta.path = path;
 	    token.meta.signifier = signifier;
 	    if (state.env.js) token.meta.isJs = true;
+	    if (state.env.snippet) token.meta.snippet = state.env.snippet;
 	    return true;
 	};
-	const variableRender = (tokens, idx, _, env)=>{
+	const variableRender = (tokens, idx, options, env)=>{
 	    const token = tokens[idx];
 	    const path = token.meta.path;
 	    if (!path) throw new Error("Could not render variable: no path provided (this shouldn't happen!)");
@@ -15512,16 +15544,19 @@
 	            console.error(e);
 	        }
 	        // we got valid expression! set the variable to it
-	        if (fn && env.effect !== true) {
-	            if (token.meta.signal && !env.effect) {
+	        if (fn) {
+	            if (token.meta.signal) {
 	                if (getPath(path) !== undefined) setPath(path, fn());
-	                else if (!derivedSignal) setPath(path, signal(fn()));
-	                else setPath(path, derived(fn));
-	                if (env.snippet !== undefined && token.meta.isJs) {
-	                    // re-render the snippet if the signal updates
-	                    snippetEffect(path, env);
+	                else {
+	                    // @ denotes a signal
+	                    if (!derivedSignal) setPath(path, signal(fn()));
+	                    else setPath(path, derived(fn));
+	                    if (token.meta.snippet && token.meta.isJs) {
+	                        // re-render the snippet if the signal updates
+	                        snippetEffect(token.meta.snippet, options, env);
+	                    }
 	                }
-	            } else if (!env.effect) {
+	            } else {
 	                // $ denotes a static variable
 	                setPath(path, fn());
 	            }
@@ -15539,41 +15574,35 @@
 	                });
 	            });
 	        }
-	        if (env.snippet !== undefined && token.meta.isJs && !env.effect) {
+	        if (token.meta.snippet && token.meta.isJs && !env.effect) {
 	            // re-render the snippet every time the signal updates
-	            snippetEffect(path, env);
+	            snippetEffect(token.meta.snippet, options, env);
 	        }
 	    }
+	    // return the raw value if we're in a js environment
+	    if (token.meta.isJs) return getPath(path);
 	    let print = getPath(path);
 	    if (typeof print === "object") print = JSON.stringify(print);
-	    // return the raw value if we're in a js environment
-	    if (token.meta.isJs) return `s.${path}`;
 	    // each signal value is displayed in a <tw-var> element with [data-signal="key"]
 	    // this gets updates whenever the effect function above re-runs
 	    return `<tw-var data-var="${path}" ${token.meta.signal ? `data-signal="${path}"` : ""}>${print}</tw-var>`;
 	};
-	function snippetEffect(path, env) {
-	    const snippet = window.State.snippets.get(env.snippet);
-	    if (!snippet) throw Error(`Snippet with id ${env.snippet} not found`);
-	    if (snippet) {
+	function snippetEffect(snip, options, env) {
+	    const snippet = window.Story.snippet(snip.name || "");
+	    env.effect = true;
+	    if (snip && snippet) {
 	        effect(()=>{
-	            getPath(path);
-	            if (!snippet.element) snippet.element = document.querySelector(`tw-snippet[data-snippet-id="${env.snippet}"]`) || undefined;
-	            if (snippet.element) {
-	                const html = Markup$1.snippet(snippet.snippet.source, Object.assign(snippet.context, {
-	                    s: window.s
-	                }), {
-	                    ...env,
-	                    effect: true
-	                });
-	                window.Engine.innerHTML(snippet.element, html);
+	            const element = document.querySelector(`tw-snippet[data-snippet-id="${snip.id}"]`) || undefined;
+	            const html = renderSnippet(snip, options, env);
+	            if (element) {
+	                window.Engine.innerHTML(element, html);
 	            }
 	        });
 	    }
 	}
 
 	// markdown-it environment
-	const md$1 = new MarkdownIt({
+	const md = new MarkdownIt({
 	    html: true,
 	    xhtmlOut: true
 	});
@@ -15598,13 +15627,12 @@
 	    md.core.ruler.enable("text_join");
 	    md.block.ruler.enable("fence");
 	    md.block.ruler.after("html_block", "no_paragraph", noParagraphRule);
-	    md.inline.ruler.after("text", "snippet", snippetRule);
-	    md.inline.ruler.after("snippet", "nunjucks_js", isJsRule);
+	    md.inline.ruler.after("text", "nunjucks_js", isJsRule);
 	    md.inline.ruler.after("nunjucks_js", "variable", variableRule);
 	    md.inline.ruler.after("variable", "tw_link", linkRule);
+	    md.inline.ruler.after("tw_link", "snippet", snippetRule);
 	    md.enable("nunjucks_js").enable("snippet").enable("variable").enable("no_paragraph");
 	    md.renderer.render = (tokens, options, env)=>customRender(tokens, options, env, md.renderer);
-	    md.renderer.rules.snippet = snippetRender;
 	    md.renderer.rules.variable = variableRender;
 	    md.renderer.rules.no_paragraph = noParagraphRender;
 	    md.renderer.rules.tw_link = linkRender;
@@ -15628,8 +15656,10 @@
 	        const token = tokens[i];
 	        const type = token.type;
 	        const rule = rules[type];
+	        result += `(${type}):`;
 	        if (token.children) {
-	            result += customRender(token.children, options, env, renderer);
+	            if (type === "snippet") result += snippetRender(tokens, i, options, env);
+	            else result += customRender(token.children, options, env, renderer);
 	        } else if (rule) result += rule(tokens, i, options, env, renderer);
 	    }
 	    return result;
@@ -15638,11 +15668,9 @@
 	const nunjucks = nj.configure({
 	    autoescape: false
 	});
-	let Markup$1 = class Markup {
+	class Markup {
 	    static snippet(source, context, env) {
-	        context = Object.assign(context || {}, {
-	            s: window.s
-	        });
+	        context.s = window.s;
 	        source = snippetMd.render(source, env);
 	        source = this.unescape(source);
 	        source = nunjucks.renderString(source, context);
@@ -15687,7 +15715,7 @@
 	   */ static parse(source) {
 	        source = passageMd.render(source);
 	        source = this.unescape(source);
-	        source = md$1.render(source);
+	        source = md.render(source);
 	        return source;
 	    }
 	    /**
@@ -15704,7 +15732,7 @@
 	            scriptElement.parentNode?.replaceChild(clonedElement, scriptElement);
 	        });
 	    }
-	};
+	}
 
 	function _class_private_field_loose_base$1(receiver, privateKey) {
 	    if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
@@ -15762,7 +15790,7 @@
 	   * Attaches the rendered HTML to the given HTML element and executes any included JS.
 	   */ innerHTML(el, html) {
 	        el.innerHTML = html;
-	        Markup$1.executeScriptElements(el);
+	        Markup.executeScriptElements(el);
 	    }
 	    constructor(){
 	        Object.defineProperty(this, _passageEl, {
@@ -15783,265 +15811,11 @@
 	Malachite.effect = (fn)=>effect(fn);
 	Malachite.derived = (fn)=>derived(fn);
 
-	// markdown-it environment
-	const md = MarkdownIt({
-	    html: true,
-	    xhtmlOut: true
-	});
-	class Markup {
-	    /**
-	   * Converts escaped HTML characters back into the original characters
-	   */ static unescape(text) {
-	        const unescapeRules = [
-	            [
-	                "&amp;",
-	                "&"
-	            ],
-	            [
-	                "&lt;",
-	                "<"
-	            ],
-	            [
-	                "&gt;",
-	                ">"
-	            ],
-	            [
-	                "&quot;",
-	                '"'
-	            ],
-	            [
-	                "&#x27;",
-	                "'"
-	            ],
-	            [
-	                "&#x60;",
-	                "`"
-	            ]
-	        ];
-	        unescapeRules.forEach(([rule, out])=>{
-	            text = text.replaceAll(rule, out);
-	        });
-	        return text;
-	    }
-	    /**
-	   * Parses raw passage content and returns the rendered passage. It does not handle unescaping.
-	   */ static parse(source) {
-	        source = this.variables(source);
-	        source = this.links(source);
-	        source = this.snippets(source);
-	        source = this.markdown(source);
-	        return source;
-	    }
-	    /**
-	   * Renders markdown and returns the rendered source.
-	   */ static markdown(source) {
-	        return md.render(source);
-	    }
-	    /**
-	   * Renders passage link markup and returns the rendered source.
-	   *
-	   * NOTE: This does not attach the event listeners to the links, as the links need to be attached to the DOM first.
-	   */ static links(source) {
-	        const linkRules = [
-	            {
-	                match: /(\*)?\[\[(?:(.+?)(?:\|(.+?))?\])\s*(?:\[(.*?)\])?\]/g,
-	                render: (m, esc = "", dest = "", text = "", func = "")=>{
-	                    if (esc) return m.replace(esc, "");
-	                    return `<button data-tw-link data-destination="${dest}" ${func ? `data-onclick="${func.replaceAll(`"`, `'`)}"` : ""}>${text ? text : dest}</button>`;
-	                }
-	            }
-	        ];
-	        linkRules.forEach((rule)=>{
-	            // match and replace each link
-	            source = source.replaceAll(rule.match, rule.render);
-	        });
-	        return source;
-	    }
-	    /**
-	   * Renders passage variable declarations and handles variable declaration and assignments.
-	   */ static variables(source) {
-	        const varRules = [
-	            {
-	                match: /(\\?)(\@|\$)(\!)?([\.\_\w\d]+)(?:\(([\s\S]*?)\);|\(([\s\S]*?)\))?/g,
-	                render: (m = "", esc = "", prefix = "", d = "", key = "", greedyExpr = "", lazyExpr = "")=>{
-	                    if (esc) return m.replace(esc, "");
-	                    // check if there's an expression included
-	                    // the greedy expression ends in a semicolon ();
-	                    // this allows one to use arrow functions inside variable assignments
-	                    if (greedyExpr || lazyExpr) {
-	                        let fn = null;
-	                        try {
-	                            fn = new Function(`const value = ${greedyExpr ? greedyExpr : lazyExpr}; if (typeof value === 'function') return value(); else return value;`);
-	                        } catch (e) {
-	                            console.error(e);
-	                        }
-	                        // we got valid expression! set the variable to it
-	                        if (fn) {
-	                            if (getPath(key) !== undefined) setPath(key, fn());
-	                            else if (prefix === "@") {
-	                                // @ denotes a signal
-	                                if (!d) setPath(key, signal(fn()));
-	                                else if (d === "!") setPath(key, derived(fn));
-	                            // not a signal
-	                            } else if (prefix === "$") {
-	                                // $ denotes a static variable
-	                                setPath(key, fn());
-	                            }
-	                        }
-	                        return "";
-	                    }
-	                    // no expression found, so we display the variable instead
-	                    if (prefix === "@") {
-	                        // register a new effect that updates every element with that references this signal
-	                        effect(()=>{
-	                            document.querySelectorAll(`tw-var[data-signal="${key}"]`).forEach((i)=>{
-	                                i.innerHTML = getPath(key);
-	                            });
-	                        });
-	                    }
-	                    let print = getPath(key);
-	                    if (typeof print === "object") print = JSON.stringify(print);
-	                    // each signal value is displayed in a <tw-var> element with [data-signal="key"]
-	                    // this gets updates whenever the effect function above re-runs
-	                    return `<tw-var data-var="${key}" ${prefix === "@" ? `data-signal="${key}"` : ""} style="display: contents; ">${print}</tw-var>`;
-	                }
-	            }
-	        ];
-	        varRules.forEach((rule)=>{
-	            source = source.replaceAll(rule.match, rule.render);
-	        });
-	        return source;
-	    }
-	    // static conditionals(source: string) {
-	    //   const conditionRegex =
-	    //     /(\\)?#(if|elseif|else|elif)(?:\(([\s\S]*)\))?\s?(?:{([\s\S]*)};|{([\s\S]*?)})/gi
-	    //   const matches = source.matchAll(conditionRegex)
-	    //   let conditional: Conditional | null = null
-	    //   for (const match of matches) {
-	    //     const [m, esc, statement, expression = "", greedyContent = "", lazyContent = ""] = match
-	    //     const s = statement.toLowerCase()
-	    //     // end the conditional if one of the statements was escaped
-	    //     if (esc) {
-	    //       if (conditional) conditional.render()
-	    //       continue
-	    //     }
-	    //     if (!expression && s !== "else") {
-	    //       console.warn(`Expression required for ${s} statement:\n${m}`)
-	    //       conditional = null
-	    //       continue
-	    //     }
-	    //     if (expression && s === "else") {
-	    //       console.warn(`Expression not allowed for else statement:\m${m}`)
-	    //     }
-	    //   }
-	    // }
-	    /**
-	   * Parses snippet blocks and renders them recursively. Returns the rendered source.
-	   */ static snippets(source) {
-	        const snippetRules = [
-	            {
-	                match: /<%(\\?)\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?%>(?:([\s\S]*?)<(?:%\/|\/%)\s?\2\s?%>)/g,
-	                render: (context, m, esc, name, attrs = "", content = "")=>{
-	                    if (esc) return m.replace(esc, "");
-	                    return renderSnippet(context, esc, name, attrs, content);
-	                }
-	            },
-	            {
-	                match: /<%(\\?)\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?(?:\/\%|%\/)>/g,
-	                render: (context, m, esc, name, attrs = "")=>{
-	                    if (esc) return m.replace(esc, "");
-	                    return renderSnippet(context, esc, name, attrs);
-	                }
-	            }
-	        ];
-	        // this gets called recursively as long as the latest snippet has content
-	        function snippet(source, context) {
-	            snippetRules.forEach((snippetRule)=>{
-	                // match and replace each snippet tag
-	                source = source.replaceAll(snippetRule.match, (m, esc, name, attrs, content)=>snippetRule.render(context, m, esc, name, attrs, content));
-	            });
-	            return source;
-	        }
-	        const renderSnippet = (parentContext = {}, _ = "", name = "", attrs = "", content = "")=>{
-	            // this shouldn't happen, but just in case.
-	            if (!name) return "";
-	            let snip = null;
-	            try {
-	                snip = window.Story.snippet(name);
-	            } catch (e) {
-	                // failing to find a snippet by name throws an error, so we catch it here
-	                console.warn(`Could not render snippet: ${e.message}`);
-	            }
-	            if (!snip) return "";
-	            const newContext = {};
-	            const attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g;
-	            let regexArray;
-	            // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
-	            // so we iterate over the attributes this way instead.
-	            while((regexArray = attrRegex.exec(attrs)) !== null){
-	                newContext[regexArray[1]] = regexArray[2];
-	            }
-	            const context = Object.assign(parentContext, newContext, {
-	                content: ""
-	            });
-	            // render snippet content as well, to allow for nesting
-	            if (content) context.content = snippet(content, context);
-	            return this.snippet(snip.source, context);
-	        };
-	        source = snippet(source, {});
-	        return source;
-	    }
-	    /**
-	   * Renders a snippet and returns the rendered html
-	   */ static snippet(source, context = {}) {
-	        source = this.nunjucks.renderString(source, context);
-	        source = this.links(source);
-	        source = this.variables(source);
-	        return source;
-	    }
-	    /**
-	   * Adds event listeners to to make elements like passage links functional.
-	   */ static addListeners() {
-	        // TODO: move each listener type to its own method
-	        document.querySelectorAll("[data-tw-link]").forEach((l)=>{
-	            // get each link's attribute
-	            const dest = l.attributes.getNamedItem("data-destination")?.value;
-	            const text = l.innerText;
-	            const funcStr = l.attributes.getNamedItem("data-onclick")?.value;
-	            if (!dest) {
-	                console.warn(`Could not find destination for link with text "${text}"`);
-	            }
-	            l.addEventListener("click", ()=>{
-	                if (funcStr) new Function(funcStr)();
-	                if (dest) window.Engine.jump(dest);
-	            });
-	        });
-	    }
-	    /**
-	   * Finds and executes any script element in the passage body
-	   */ static executeScriptElements(containerElement) {
-	        // taken from https://stackoverflow.com/a/69190644
-	        const scriptElements = containerElement.querySelectorAll("script");
-	        scriptElements?.forEach((scriptElement)=>{
-	            const clonedElement = document.createElement("script");
-	            Array.from(scriptElement.attributes).forEach((attribute)=>{
-	                clonedElement.setAttribute(attribute.name, attribute.value);
-	            });
-	            clonedElement.text = scriptElement.text;
-	            scriptElement.parentNode?.replaceChild(clonedElement, scriptElement);
-	        });
-	    }
-	}
-	// nunjucks environment
-	Markup.nunjucks = nj.configure({
-	    autoescape: false
-	});
-
 	class Passage {
 	    /**
 	   * Renders the passage contents and returns the rendered html.
 	   */ render() {
-	        return Markup$1.parse(this.source);
+	        return Markup.parse(this.source);
 	    }
 	    constructor(name, tags, source){
 	        this.name = name;
@@ -16054,7 +15828,7 @@
 	    render(env) {
 	        let rendered = this.source;
 	        try {
-	            rendered = Markup$1.snippet(rendered, {}, env);
+	            rendered = Markup.snippet(rendered, {}, env);
 	        } catch (e) {
 	            console.error(new Error(`Could not render snippet: ${e.message}`));
 	        }

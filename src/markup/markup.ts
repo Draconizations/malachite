@@ -1,13 +1,13 @@
 import nj from "nunjucks"
 import { md, passageMd, snippetMd } from "./markdown.ts"
 
-const nunjucks = nj.configure({
+export const nunjucks = nj.configure({
   autoescape: false, // render html into snippet content by default
 })
 
 export default class Markup {
-  static snippet(source: string, context?: Record<string, string>, env?: any) {
-    context = Object.assign(context || {}, { s: window.s })
+  static snippet(source: string, context: Record<string, any>, env?: any) {
+    context.s = window.s
 
     source = snippetMd.render(source, env)
     source = this.unescape(source)

@@ -36,16 +36,15 @@ const plugin: PluginSimple = (md) => {
   md.block.ruler.enable("fence")
 
   md.block.ruler.after("html_block", "no_paragraph", noParagraphRule)
-  md.inline.ruler.after("text", "snippet", snippetRule)
-  md.inline.ruler.after("snippet", "nunjucks_js", isJsRule)
+  md.inline.ruler.after("text", "nunjucks_js", isJsRule)
   md.inline.ruler.after("nunjucks_js", "variable", variableRule)
   md.inline.ruler.after("variable", "tw_link", linkRule)
+  md.inline.ruler.after("tw_link", "snippet", snippetRule)
 
   md.enable("nunjucks_js").enable("snippet").enable("variable").enable("no_paragraph")
 
   md.renderer.render = (tokens, options, env) => customRender(tokens, options, env, md.renderer)
 
-  md.renderer.rules.snippet = snippetRender
   md.renderer.rules.variable = variableRender
   md.renderer.rules.no_paragraph = noParagraphRender
   md.renderer.rules.tw_link = linkRender
@@ -70,7 +69,8 @@ function customRender(tokens: Token[], options: Options, env: any, renderer: Ren
     const rule = rules[type as keyof typeof rules]
 
     if (token.children) {
-      result += customRender(token.children, options, env, renderer)
+      if (type === "snippet") result += snippetRender(tokens, i, options, env, renderer)
+      else result += customRender(token.children, options, env, renderer)
     } else if (rule) result += rule(tokens, i, options, env, renderer)
   }
 

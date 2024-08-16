@@ -1,8 +1,9 @@
+import type { Options } from "markdown-it"
 import type { RuleInline } from "markdown-it/lib/parser_inline.mjs"
 import type { RenderRule } from "markdown-it/lib/renderer.mjs"
 import { derived, effect, signal } from "../signal.ts"
 import { getPath, setPath } from "../state.ts"
-import Markup from "./markup.ts"
+import { type EnvSnippet, renderSnippet } from "./snippets.ts"
 
 export const variableRule: RuleInline = (state) => {
   const start = state.pos
@@ -62,11 +63,12 @@ export const variableRule: RuleInline = (state) => {
   token.meta.path = path
   token.meta.signifier = signifier
   if (state.env.js) token.meta.isJs = true
+  if (state.env.snippet) token.meta.snippet = state.env.snippet
 
   return true
 }
 
-export const variableRender: RenderRule = (tokens, idx, _, env) => {
+export const variableRender: RenderRule = (tokens, idx, options, env) => {
   const token = tokens[idx]
   const path = token.meta.path
   if (!path) throw new Error("Could not render variable: no path provided (this shouldn't happen!)")
@@ -84,18 +86,20 @@ export const variableRender: RenderRule = (tokens, idx, _, env) => {
     }
 
     // we got valid expression! set the variable to it
-    if (fn && env.effect !== true) {
-      if (token.meta.signal && !env.effect) {
+    if (fn) {
+      if (token.meta.signal) {
         if (getPath(path) !== undefined) setPath(path, fn())
-        // @ denotes a signal
-        else if (!derivedSignal) setPath(path, signal(fn()))
-        else setPath(path, derived(fn))
+        else {
+          // @ denotes a signal
+          if (!derivedSignal) setPath(path, signal(fn()))
+          else setPath(path, derived(fn))
 
-        if (env.snippet !== undefined && token.meta.isJs) {
-          // re-render the snippet if the signal updates
-          snippetEffect(path, env)
+          if (token.meta.snippet && token.meta.isJs) {
+            // re-render the snippet if the signal updates
+            snippetEffect(token.meta.snippet, options, env)
+          }
         }
-      } else if (!env.effect) {
+      } else {
         // $ denotes a static variable
         setPath(path, fn())
       }
@@ -116,42 +120,37 @@ export const variableRender: RenderRule = (tokens, idx, _, env) => {
       })
     }
 
-    if (env.snippet !== undefined && token.meta.isJs && !env.effect) {
+    if (token.meta.snippet && token.meta.isJs && !env.effect) {
       // re-render the snippet every time the signal updates
-      snippetEffect(path, env)
+      snippetEffect(token.meta.snippet, options, env)
     }
   }
 
+  // return the raw value if we're in a js environment
+  if (token.meta.isJs) return getPath(path)
+
   let print = getPath(path)
   if (typeof print === "object") print = JSON.stringify(print)
-
-  // return the raw value if we're in a js environment
-  if (token.meta.isJs) return `s.${path}`
 
   // each signal value is displayed in a <tw-var> element with [data-signal="key"]
   // this gets updates whenever the effect function above re-runs
   return `<tw-var data-var="${path}" ${token.meta.signal ? `data-signal="${path}"` : ""}>${print}</tw-var>`
 }
 
-function snippetEffect(path: string, env: any) {
-  const snippet = window.State.snippets.get(env.snippet)
+function snippetEffect(snip: EnvSnippet, options: Options, env: any) {
+  const snippet = window.Story.snippet(snip.name || "")
 
-  if (!snippet) throw Error(`Snippet with id ${env.snippet} not found`)
+  env.effect = true
 
-  if (snippet) {
+  if (snip && snippet) {
     effect(() => {
-      const _ = getPath(path)
-      if (!snippet.element)
-        snippet.element =
-          (document.querySelector(`tw-snippet[data-snippet-id="${env.snippet}"]`) as HTMLElement) ||
-          undefined
-      if (snippet.element) {
-        const html = Markup.snippet(
-          snippet.snippet.source,
-          Object.assign(snippet.context, { s: window.s }),
-          { ...env, effect: true }
-        )
-        window.Engine.innerHTML(snippet.element, html)
+      const element =
+        (document.querySelector(`tw-snippet[data-snippet-id="${snip.id}"]`) as HTMLElement) ||
+        undefined
+
+      const html = renderSnippet(snip, options, env)
+      if (element) {
+        window.Engine.innerHTML(element, html)
       }
     })
   }
