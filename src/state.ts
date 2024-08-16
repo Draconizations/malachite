@@ -1,3 +1,5 @@
+import { derived, effect, signal } from "./signal.ts"
+
 const handler = {
   get: (target: Record<string, any>, key: string) => {
     if (key === "isProxy") return true
@@ -39,6 +41,18 @@ export default class State {
   #store = new Proxy<Record<string, any>>({}, handler)
   get store() {
     return this.#store
+  }
+
+  static signal(value?: any, path?: string) {
+    const s = signal(value)
+    if (path) setPath(path, s)
+    return s
+  }
+  static effect = (fn: Function) => effect(fn)
+  static derived(fn: Function, path?: string) {
+    const d = derived(fn)
+    if (path) setPath(path, d)
+    return d
   }
 }
 

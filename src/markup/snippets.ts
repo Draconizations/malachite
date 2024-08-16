@@ -20,11 +20,13 @@ const selfClosingRegex = /^<%\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?(?:\/\%|%\/)
 export type EnvSnippet = {
   name: string
   id: string
+  tags: string[]
+  raw: boolean
   content: {
     tokens?: Token[]
     source?: string
   }
-  children: {
+  source: {
     tokens?: Token[]
     source?: string
   }
@@ -50,7 +52,7 @@ export const snippetRule: RuleInline = (state) => {
   // this shouldn't happen, but just in case
   if (!name) return false
 
-  const attrs: Record<string, string> = {}
+  const attrs: Record<string, any> = {}
   if (attributes) {
     let regexArray: RegExpExecArray | null
     // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
@@ -67,44 +69,43 @@ export const snippetRule: RuleInline = (state) => {
 
   const token = state.push("snippet", "tw-snippet", 0)
   token.meta = {}
-  token.meta.id = uid()
-  token.meta.name = name
+  const id = uid()
+
+  let context = attrs
+  if (state.env.snippet?.context) context = { ...state.env.snippet?.context, ...context }
+  context = { ...context, s: window.s }
 
   const envSnippet: EnvSnippet = {
-    id: token.meta.id,
+    id,
     name,
     content: {
       source: content,
     },
-    children: {
+    source: {
       source: snippet.source,
     },
-    context: {},
+    context,
+    raw: snippet.raw,
+    tags: snippet.tags,
   }
 
-  const tokens: Token[] = []
-  snippetMd.inline.parse(snippet.source, state.md, { ...state.env, snippet: envSnippet }, tokens)
-  token.children = tokens
-  token.meta.source = snippet.source
-
-  token.meta.content = {}
-  token.meta.content.source = content
-  token.meta.content.tokens = []
+  const sourceTokens: Token[] = []
   snippetMd.inline.parse(
-    content,
+    snippet.source,
     state.md,
     { ...state.env, snippet: envSnippet },
-    token.meta.content.tokens
+    sourceTokens
   )
+  token.children = sourceTokens
 
-  token.meta.context = attrs
-  token.meta.context = { ...attrs, s: window.s }
+  const contentTokens: Token[] = []
+  snippetMd.inline.parse(content, state.md, { ...state.env, snippet: envSnippet }, contentTokens)
 
-  envSnippet.context = token.meta.context
-  envSnippet.children.tokens = token.children
+  envSnippet.source.tokens = token.children
   envSnippet.content.tokens = token.meta.content.tokens
 
   state.env.snippet = envSnippet
+  token.meta.snippet = envSnippet
 
   return true
 }
@@ -161,19 +162,7 @@ export const isJsRule: RuleInline = (state) => {
 export const snippetRender: RenderRule = (tokens, idx, options, env) => {
   const token = tokens[idx]
 
-  const name = token.meta.name
-  if (!name) throw new Error("No snippet name found (this shouldn't happen!)")
-
-  const envSnippet: EnvSnippet = {
-    id: token.meta.id,
-    name,
-    content: token.meta.content,
-    children: {
-      source: token.meta.source,
-      tokens: token.children || [],
-    },
-    context: token.meta.context,
-  }
+  const envSnippet: EnvSnippet = token.meta.snippet
 
   const html = renderSnippet(envSnippet, options, env)
 
@@ -186,7 +175,7 @@ export const snippetRender: RenderRule = (tokens, idx, options, env) => {
 export function renderSnippet(snippet: EnvSnippet, options: Options, env: any) {
   const snippetEnv = { ...env, snippet }
 
-  let result = snippetMd.renderer.render(snippet.children.tokens || [], options, snippetEnv)
+  let result = snippetMd.renderer.render(snippet.source.tokens || [], options, snippetEnv)
   result = Markup.unescape(result)
 
   let nested = ""

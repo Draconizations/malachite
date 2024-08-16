@@ -5,6 +5,13 @@ import { derived, effect, signal } from "../signal.ts"
 import { getPath, setPath } from "../state.ts"
 import { type EnvSnippet, renderSnippet } from "./snippets.ts"
 
+type Variable = {
+  expression: string
+  signal: boolean
+  signifier: string
+  path: string
+}
+
 export const variableRule: RuleInline = (state) => {
   const start = state.pos
   const max = state.posMax
@@ -58,28 +65,33 @@ export const variableRule: RuleInline = (state) => {
 
   const token = state.push("variable", "", 0)
   token.meta = {}
-  token.meta.expression = expr
-  token.meta.signal = signal
-  token.meta.path = path
-  token.meta.signifier = signifier
   if (state.env.js) token.meta.isJs = true
   if (state.env.snippet) token.meta.snippet = state.env.snippet
+
+  const variable: Variable = {
+    signal,
+    signifier,
+    expression: expr,
+    path,
+  }
+
+  token.meta.variable = variable
 
   return true
 }
 
 export const variableRender: RenderRule = (tokens, idx, options, env) => {
   const token = tokens[idx]
-  const path = token.meta.path
+  const path = token.meta.variable.path
   if (!path) throw new Error("Could not render variable: no path provided (this shouldn't happen!)")
 
-  const derivedSignal = token.meta.signifier?.includes("!")
+  const derivedSignal = token.meta.variable.signifier?.includes("!")
 
-  if (token.meta.expression) {
+  if (token.meta.variable.expression) {
     let fn: Function | null = null
     try {
       fn = new Function(
-        `const value = ${token.meta.expression}; if (typeof value === 'function') return value(); else return value;`
+        `const value = ${token.meta.variable.expression}; if (typeof value === 'function') return value(); else return value;`
       )
     } catch (e) {
       console.error(e)
@@ -87,7 +99,7 @@ export const variableRender: RenderRule = (tokens, idx, options, env) => {
 
     // we got valid expression! set the variable to it
     if (fn) {
-      if (token.meta.signal) {
+      if (token.meta.variable.signal) {
         if (getPath(path) !== undefined) setPath(path, fn())
         else {
           // @ denotes a signal
@@ -110,7 +122,7 @@ export const variableRender: RenderRule = (tokens, idx, options, env) => {
   }
 
   // no expression found, so we display the variable instead
-  if (token.meta.signal) {
+  if (token.meta.variable.signal) {
     // register a new effect that updates every element with that references this signal
     if (!token.meta.isJs) {
       effect(() => {
@@ -134,7 +146,7 @@ export const variableRender: RenderRule = (tokens, idx, options, env) => {
 
   // each signal value is displayed in a <tw-var> element with [data-signal="key"]
   // this gets updates whenever the effect function above re-runs
-  return `<tw-var data-var="${path}" ${token.meta.signal ? `data-signal="${path}"` : ""}>${print}</tw-var>`
+  return `<tw-var data-var="${path}" ${token.meta.variable.signal ? `data-signal="${path}"` : ""}>${print}</tw-var>`
 }
 
 function snippetEffect(snip: EnvSnippet, options: Options, env: any) {

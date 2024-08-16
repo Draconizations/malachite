@@ -4,19 +4,28 @@ import { uid } from "./markup/utils.ts"
 import Passage from "./passage.ts"
 
 export default class Snippet extends Passage {
+  raw = this.tags.includes("raw")
+
+  constructor(name: string, tags: string[], source: string, raw?: boolean) {
+    super(name, tags, source)
+    if (raw) this.raw = raw
+  }
+
   render(content?: string, context?: Record<string, any>, env?: any) {
     let html = this.source
     context = {}
 
     const envSnippet: EnvSnippet = {
       name: this.name,
-      children: {
+      source: {
         source: this.source,
       },
       content: {
         source: content,
       },
       id: uid(),
+      raw: this.raw,
+      tags: this.tags,
       context,
     }
 
