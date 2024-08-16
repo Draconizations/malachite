@@ -10,6 +10,7 @@ import type { RuleInline } from "markdown-it/lib/parser_inline.mjs"
 import type { RenderRule } from "markdown-it/lib/renderer.mjs"
 import { jsMd, md, snippetMd } from "./markdown.ts"
 import Markup, { nunjucks } from "./markup.ts"
+import { uid } from "./utils.ts"
 
 const attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g
 const blockRegex =
@@ -66,7 +67,7 @@ export const snippetRule: RuleInline = (state) => {
 
   const token = state.push("snippet", "tw-snippet", 0)
   token.meta = {}
-  token.meta.id = (Math.random() + 1).toString(36).substring(7)
+  token.meta.id = uid()
   token.meta.name = name
 
   const envSnippet: EnvSnippet = {
