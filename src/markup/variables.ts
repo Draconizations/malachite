@@ -34,7 +34,7 @@ export const variableRule: RuleInline = (state) => {
     for (; pos < max; pos++) {
       if (state.src.charCodeAt(pos) !== 0x29 /* ) */) continue
 
-      expr += state.src.slice(e, pos)
+      expr = state.src.slice(e, pos)
       // check if this is a valid expression
       try {
         new Function(

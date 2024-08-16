@@ -15504,7 +15504,7 @@
 	        let valid = false;
 	        for(; pos < max; pos++){
 	            if (state.src.charCodeAt(pos) !== 0x29 /* ) */ ) continue;
-	            expr += state.src.slice(e, pos);
+	            expr = state.src.slice(e, pos);
 	            // check if this is a valid expression
 	            try {
 	                new Function(`const value = ${expr}; if (typeof value === 'function') return value(); else return value;`);
@@ -15656,7 +15656,6 @@
 	        const token = tokens[i];
 	        const type = token.type;
 	        const rule = rules[type];
-	        result += `(${type}):`;
 	        if (token.children) {
 	            if (type === "snippet") result += snippetRender(tokens, i, options, env);
 	            else result += customRender(token.children, options, env, renderer);
