@@ -76,35 +76,17 @@ export const snippetRule: RuleInline = (state) => {
     tags: snippet.tags,
   }
 
-  const stringAttrs: Record<string, any> = {}
+  const attrs: Record<string, any> = {}
   if (attributes) {
-    let strArray: RegExpExecArray | null
+    let attrArray: RegExpExecArray | null
     // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
     // so we iterate over the attributes this way instead.
-    while ((strArray = stringAttrRegex.exec(attributes)) !== null) {
-      stringAttrs[strArray[1]] = strArray[2]
+    while ((attrArray = stringAttrRegex.exec(attributes)) !== null) {
+      attrs[attrArray[1]] = attrArray[2]
     }
   }
 
-  const jsAttrs: Record<string, any> = {}
-  if (attributes) {
-    let jsArray: RegExpExecArray | null
-    // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
-    // so we iterate over the attributes this way instead.
-    while ((jsArray = jsAttrRegex.exec(attributes)) !== null) {
-      const attr = Markup.unescape(jsMd.renderInline(jsArray[2], { snippet: envSnippet, js: true }))
-      try {
-        const value = new Function(
-          `const value = ${attr}; if (typeof value === 'function') return value(); else return value;`
-        )
-        jsArray[1] = value()
-      } catch (e) {
-        console.warn(`Could not set attribute ${jsArray[1]}: ${(e as Error).message}`)
-      }
-    }
-  }
-
-  let context = { ...stringAttrs, ...jsAttrs }
+  let context = attrs
   if (state.env.snippet?.context) context = { ...state.env.snippet?.context, ...context }
   context = { ...context, s: window.s }
 

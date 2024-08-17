@@ -15209,7 +15209,6 @@
 	const uid = ()=>(Math.random() + 1).toString(36).substring(7);
 
 	const stringAttrRegex = /([\w\-]+)\s*\="([\s\S]*?)"/g;
-	const jsAttrRegex = /([\w\-]+)\s*\={([\s\S]*?)}/g;
 	const blockRegex = /^<%\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?%>(?:([\s\S]*?)<(?:%\/|\/%)\s?\1\s?%>)/i;
 	const selfClosingRegex = /^<%\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?(?:\/\%|%\/)>/i;
 	const snippetRule = (state)=>{
@@ -15244,37 +15243,16 @@
 	        raw: snippet.raw,
 	        tags: snippet.tags
 	    };
-	    const stringAttrs = {};
+	    const attrs = {};
 	    if (attributes) {
-	        let strArray;
+	        let attrArray;
 	        // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
 	        // so we iterate over the attributes this way instead.
-	        while((strArray = stringAttrRegex.exec(attributes)) !== null){
-	            stringAttrs[strArray[1]] = strArray[2];
+	        while((attrArray = stringAttrRegex.exec(attributes)) !== null){
+	            attrs[attrArray[1]] = attrArray[2];
 	        }
 	    }
-	    const jsAttrs = {};
-	    if (attributes) {
-	        let jsArray;
-	        // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
-	        // so we iterate over the attributes this way instead.
-	        while((jsArray = jsAttrRegex.exec(attributes)) !== null){
-	            const attr = Markup.unescape(jsMd.renderInline(jsArray[2], {
-	                snippet: envSnippet,
-	                js: true
-	            }));
-	            try {
-	                const value = new Function(`const value = ${attr}; if (typeof value === 'function') return value(); else return value;`);
-	                jsArray[1] = value();
-	            } catch (e) {
-	                console.warn(`Could not set attribute ${jsArray[1]}: ${e.message}`);
-	            }
-	        }
-	    }
-	    let context = {
-	        ...stringAttrs,
-	        ...jsAttrs
-	    };
+	    let context = attrs;
 	    if (state.env.snippet?.context) context = {
 	        ...state.env.snippet?.context,
 	        ...context
