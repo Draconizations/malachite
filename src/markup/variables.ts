@@ -94,7 +94,7 @@ export const variableRender: RenderRule = (tokens, idx, options, env) => {
         `const value = ${token.meta.variable.expression}; if (typeof value === 'function') return value(); else return value;`
       )
     } catch (e) {
-      console.error(e)
+      console.warn(`Could not set variable ${token.meta.variable.name}: ${(e as Error).message}`)
     }
 
     // we got valid expression! set the variable to it

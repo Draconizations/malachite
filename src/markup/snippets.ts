@@ -12,7 +12,8 @@ import { jsMd, md, snippetMd } from "./markdown.ts"
 import Markup, { nunjucks } from "./markup.ts"
 import { uid } from "./utils.ts"
 
-const attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g
+const stringAttrRegex = /([\w\-]+)\s*\="([\s\S]*?)"/g
+const jsAttrRegex = /([\w\-]+)\s*\={([\s\S]*?)}/g
 const blockRegex =
   /^<%\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?%>(?:([\s\S]*?)<(?:%\/|\/%)\s?\1\s?%>)/i
 const selfClosingRegex = /^<%\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?(?:\/\%|%\/)>/i
@@ -52,16 +53,6 @@ export const snippetRule: RuleInline = (state) => {
   // this shouldn't happen, but just in case
   if (!name) return false
 
-  const attrs: Record<string, any> = {}
-  if (attributes) {
-    let regexArray: RegExpExecArray | null
-    // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
-    // so we iterate over the attributes this way instead.
-    while ((regexArray = attrRegex.exec(attributes)) !== null) {
-      attrs[regexArray[1]] = regexArray[2]
-    }
-  }
-
   state.pos = end
 
   if (!name) throw new Error("No snippet name found (this shouldn't happen!)")
@@ -70,10 +61,6 @@ export const snippetRule: RuleInline = (state) => {
   const token = state.push("snippet", "tw-snippet", 0)
   token.meta = {}
   const id = uid()
-
-  let context = attrs
-  if (state.env.snippet?.context) context = { ...state.env.snippet?.context, ...context }
-  context = { ...context, s: window.s }
 
   const envSnippet: EnvSnippet = {
     id,
@@ -84,10 +71,44 @@ export const snippetRule: RuleInline = (state) => {
     source: {
       source: snippet.source,
     },
-    context,
+    context: {},
     raw: snippet.raw,
     tags: snippet.tags,
   }
+
+  const stringAttrs: Record<string, any> = {}
+  if (attributes) {
+    let strArray: RegExpExecArray | null
+    // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
+    // so we iterate over the attributes this way instead.
+    while ((strArray = stringAttrRegex.exec(attributes)) !== null) {
+      stringAttrs[strArray[1]] = strArray[2]
+    }
+  }
+
+  const jsAttrs: Record<string, any> = {}
+  if (attributes) {
+    let jsArray: RegExpExecArray | null
+    // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
+    // so we iterate over the attributes this way instead.
+    while ((jsArray = jsAttrRegex.exec(attributes)) !== null) {
+      const attr = Markup.unescape(jsMd.renderInline(jsArray[2], { snippet: envSnippet, js: true }))
+      try {
+        const value = new Function(
+          `const value = ${attr}; if (typeof value === 'function') return value(); else return value;`
+        )
+        jsArray[1] = value()
+      } catch (e) {
+        console.warn(`Could not set attribute ${jsArray[1]}: ${(e as Error).message}`)
+      }
+    }
+  }
+
+  let context = { ...stringAttrs, ...jsAttrs }
+  if (state.env.snippet?.context) context = { ...state.env.snippet?.context, ...context }
+  context = { ...context, s: window.s }
+
+  envSnippet.context = context
 
   const sourceTokens: Token[] = []
   snippetMd.inline.parse(
@@ -102,7 +123,7 @@ export const snippetRule: RuleInline = (state) => {
   snippetMd.inline.parse(content, state.md, { ...state.env, snippet: envSnippet }, contentTokens)
 
   envSnippet.source.tokens = token.children
-  envSnippet.content.tokens = token.meta.content.tokens
+  envSnippet.content.tokens = contentTokens
 
   state.env.snippet = envSnippet
   token.meta.snippet = envSnippet
@@ -166,7 +187,7 @@ export const snippetRender: RenderRule = (tokens, idx, options, env) => {
 
   const html = renderSnippet(envSnippet, options, env)
 
-  const open = `<tw-snippet data-snippet-id="${token.meta.id}">`
+  const open = `<tw-snippet data-snippet-id="${token.meta.snippet.id}">`
   const close = "</tw-snippet>"
 
   return `${open}${html}${close}`

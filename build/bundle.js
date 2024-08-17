@@ -15208,7 +15208,8 @@
 
 	const uid = ()=>(Math.random() + 1).toString(36).substring(7);
 
-	const attrRegex = /([\w\-]+)\s*\=\s*"([\s\S]*?)"/g;
+	const stringAttrRegex = /([\w\-]+)\s*\="([\s\S]*?)"/g;
+	const jsAttrRegex = /([\w\-]+)\s*\={([\s\S]*?)}/g;
 	const blockRegex = /^<%\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?%>(?:([\s\S]*?)<(?:%\/|\/%)\s?\1\s?%>)/i;
 	const selfClosingRegex = /^<%\s?([a-z][a-z0-9\-]*)(?:\s+([\s\S]*?))?(?:\/\%|%\/)>/i;
 	const snippetRule = (state)=>{
@@ -15224,30 +15225,12 @@
 	    const end = start + m.length;
 	    // this shouldn't happen, but just in case
 	    if (!name) return false;
-	    const attrs = {};
-	    if (attributes) {
-	        let regexArray;
-	        // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
-	        // so we iterate over the attributes this way instead.
-	        while((regexArray = attrRegex.exec(attributes)) !== null){
-	            attrs[regexArray[1]] = regexArray[2];
-	        }
-	    }
 	    state.pos = end;
 	    if (!name) throw new Error("No snippet name found (this shouldn't happen!)");
 	    const snippet = window.Story.snippet(name);
 	    const token = state.push("snippet", "tw-snippet", 0);
 	    token.meta = {};
 	    const id = uid();
-	    let context = attrs;
-	    if (state.env.snippet?.context) context = {
-	        ...state.env.snippet?.context,
-	        ...context
-	    };
-	    context = {
-	        ...context,
-	        s: window.s
-	    };
 	    const envSnippet = {
 	        id,
 	        name,
@@ -15257,10 +15240,50 @@
 	        source: {
 	            source: snippet.source
 	        },
-	        context,
+	        context: {},
 	        raw: snippet.raw,
 	        tags: snippet.tags
 	    };
+	    const stringAttrs = {};
+	    if (attributes) {
+	        let strArray;
+	        // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
+	        // so we iterate over the attributes this way instead.
+	        while((strArray = stringAttrRegex.exec(attributes)) !== null){
+	            stringAttrs[strArray[1]] = strArray[2];
+	        }
+	    }
+	    const jsAttrs = {};
+	    if (attributes) {
+	        let jsArray;
+	        // [...attrs.matchAll(attrRegex)] does not return what we want. thanks typescript
+	        // so we iterate over the attributes this way instead.
+	        while((jsArray = jsAttrRegex.exec(attributes)) !== null){
+	            const attr = Markup.unescape(jsMd.renderInline(jsArray[2], {
+	                snippet: envSnippet,
+	                js: true
+	            }));
+	            try {
+	                const value = new Function(`const value = ${attr}; if (typeof value === 'function') return value(); else return value;`);
+	                jsArray[1] = value();
+	            } catch (e) {
+	                console.warn(`Could not set attribute ${jsArray[1]}: ${e.message}`);
+	            }
+	        }
+	    }
+	    let context = {
+	        ...stringAttrs,
+	        ...jsAttrs
+	    };
+	    if (state.env.snippet?.context) context = {
+	        ...state.env.snippet?.context,
+	        ...context
+	    };
+	    context = {
+	        ...context,
+	        s: window.s
+	    };
+	    envSnippet.context = context;
 	    const sourceTokens = [];
 	    snippetMd.inline.parse(snippet.source, state.md, {
 	        ...state.env,
@@ -15273,7 +15296,7 @@
 	        snippet: envSnippet
 	    }, contentTokens);
 	    envSnippet.source.tokens = token.children;
-	    envSnippet.content.tokens = token.meta.content.tokens;
+	    envSnippet.content.tokens = contentTokens;
 	    state.env.snippet = envSnippet;
 	    token.meta.snippet = envSnippet;
 	    return true;
@@ -15326,7 +15349,7 @@
 	    const token = tokens[idx];
 	    const envSnippet = token.meta.snippet;
 	    const html = renderSnippet(envSnippet, options, env);
-	    const open = `<tw-snippet data-snippet-id="${token.meta.id}">`;
+	    const open = `<tw-snippet data-snippet-id="${token.meta.snippet.id}">`;
 	    const close = "</tw-snippet>";
 	    return `${open}${html}${close}`;
 	};
@@ -15341,7 +15364,7 @@
 	    if (snippet.content.tokens) nested = snippetMd.renderer.render(snippet.content.tokens, options, snippetEnv);
 	    nested = md.render(nested);
 	    snippet.context.content = nested;
-	    if (!snippet.raw) result = nunjucks.renderString(result, snippet.context);
+	    result = nunjucks.renderString(result, snippet.context);
 	    return result;
 	}
 
@@ -15555,7 +15578,7 @@
 	        try {
 	            fn = new Function(`const value = ${token.meta.variable.expression}; if (typeof value === 'function') return value(); else return value;`);
 	        } catch (e) {
-	            console.error(e);
+	            console.warn(`Could not set variable ${token.meta.variable.name}: ${e.message}`);
 	        }
 	        // we got valid expression! set the variable to it
 	        if (fn) {
