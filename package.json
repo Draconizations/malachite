@@ -1,0 +1,26 @@
+{
+	"name": "malachite",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"format": "bunx biome check --write --no-errors-on-unmatched ."
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@rollup/plugin-commonjs": "^28.0.2",
+		"@rollup/plugin-node-resolve": "^16.0.0",
+		"@rollup/plugin-swc": "^0.4.0",
+		"@rollup/plugin-terser": "^0.4.4",
+		"@types/alpinejs": "^3.13.11",
+		"@types/bun": "latest",
+		"alpinejs": "^3.14.8",
+		"lefthook": "^1.11.2",
+		"rollup": "^4.34.9",
+		"rollup-plugin-polyfill-node": "^0.13.0"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {}
+}
