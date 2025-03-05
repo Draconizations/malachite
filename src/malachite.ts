@@ -4,27 +4,29 @@ import State from "./state.ts"
 import Story from "./story.ts"
 
 // initialize globals
-window.Story = new Story()
-
-// AlpineJS shenanigans
+window.Engine = Engine()
+window.Story = Story()
+window.State = State()
 window.Alpine = Alpine
+
+window.Engine.init()
+window.Story.init()
+
+// TODO: load userscripts here
+
+window.State.init()
 window.Alpine.start()
 
-window.State = new State()
-window.s = Alpine.store("story")
+// TODO: load any potential startup passages here?
 
-window.Engine = new Engine()
-
-Alpine.effect(() => {
-	window.State.saveState(JSON.stringify(window.Alpine.store("story")))
-})
+window.Engine.start()
 
 declare global {
 	interface Window {
-		Story: Story
+		Engine: ReturnType<typeof Engine>
+		Story: ReturnType<typeof Story>
+		State: ReturnType<typeof State>
 		Alpine: Alpine.Alpine
-		Engine: Engine
-		State: State
-		s: any
+		s: any // the persistent data store
 	}
 }

@@ -56,8 +56,6 @@ async function build(input: string, output: string) {
   </head>
   <body>
     {{STORY_DATA}}
-    <div id="mala-viewport">
-    </div>
     <script title="malachite">
       ${bundle}
     </script>

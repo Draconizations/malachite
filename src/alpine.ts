@@ -1,27 +1,54 @@
 import Alpine from "alpinejs"
 
+// directly renders a passage inside another
 Alpine.directive("passage", (el, { expression }, { evaluate }) => {
-	window.Story.show(el, evaluate(expression))
+	const passage = evaluate(expression)
+
+	if (typeof passage !== "string") {
+		throw new TypeError("Passage directive did not evaluate to a string.")
+	}
+
+	window.Engine.show(el, passage)
 })
 
-Alpine.directive("frame", (el, { expression, value }, { evaluate, effect }) => {
-	const name = value ?? "_default"
+/* 
+	turns the element into a frame.
+	optionally allows specifying a name, defaults to the unnamed frame.
+*/
+Alpine.directive("frame", (el, { expression, value, modifiers }, { evaluate, effect }) => {
+	const name = value ?? "_"
 
-	if (!(Alpine.store("story") as any).frames[name])
-		(Alpine.store("story") as any).frames[name] = evaluate(expression)
+	if (!(Alpine.store("story") as any)._frames[name] || modifiers.includes("overwrite"))
+		(Alpine.store("story") as any)._frames[name] = evaluate(expression)
 
 	effect(() => {
-		window.Story.show(el, (Alpine.store("story") as any).frames[name])
+			window.Engine.show(el, (Alpine.store("story") as any)._frames[name])
 	})
 })
 
-Alpine.directive("link", (el, { expression, value }, { evaluate, cleanup }) => {
-	const name = value ?? "_default"
+/*
+	swaps a given frame to the specified passage.
+	defaults to to the unnamed frame.
+	optionally allows "skipping" updating the history.
+*/
+Alpine.directive("link", (el, { expression, value, modifiers }, { evaluate, cleanup }) => {
+	const name = value ?? "_"
 	const passage = evaluate(expression)
+
+	if (typeof passage !== "string") {
+		throw new TypeError("Passage link did not evaluate to a string.")
+	}
+
+	window.Engine.frameQueue.set(name, passage)
 
 	const callback = () => {
 		Alpine.nextTick(() => {
-			;(Alpine.store("story") as any).frames[name] = passage
+			;(Alpine.store("story") as any)._frames[name] = passage
+			window.Engine.frameQueue.delete(name)
+
+			if (!modifiers.includes("skip") && window.Engine.frameQueue.values.length === 0) {
+				window.Engine.play()
+			}
 		})
 	}
 
@@ -32,6 +59,9 @@ Alpine.directive("link", (el, { expression, value }, { evaluate, cleanup }) => {
 	})
 })
 
+/*
+	Allows easily accessing the story store with $s
+*/
 Alpine.magic("s", () => {
 	return Alpine.store("story")
 })
