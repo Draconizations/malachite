@@ -24,6 +24,8 @@ export default function Engine(version?: number) {
 		 * This function is called after user scripts are ran and will respect the relevant config settings
 		 */
 		start() {
+			window.s = window.Alpine.store("story")
+
 			// TODO: config setting to overwrite the default layout.
 			this.render(_viewport, defaultLayout(window.Story.start?.name || "start"))
 		},

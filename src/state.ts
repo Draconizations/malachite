@@ -22,8 +22,12 @@ export default function State() {
 	let max = 50;
 
 	return {
-		get current() {
-			if (_index === -1) return emptyData
+		get current(): Snapshot {
+			if (_index === -1) return {
+				title: "",
+				timestamp: "",
+				data: emptyData
+			}
 			return _history[_index]
 		},
 		max,
@@ -38,7 +42,6 @@ export default function State() {
 			// TODO: configurable autoloading, etc.
 
 			this.load(this.getLocalSave())
-			window.s = window.Alpine.store("story")
 		},
 
 		/**
@@ -55,7 +58,7 @@ export default function State() {
 			_index = data.index
 			max = 50
 
-			window.Alpine.store("story", this.current)
+			window.Alpine.store("story", this.current.data)
 		},
 
 		/**

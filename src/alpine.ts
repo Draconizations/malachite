@@ -39,15 +39,20 @@ Alpine.directive("link", (el, { expression, value, modifiers }, { evaluate, clea
 		throw new TypeError("Passage link did not evaluate to a string.")
 	}
 
-	window.Engine.frameQueue.set(name, passage)
-
 	const callback = () => {
-		Alpine.nextTick(() => {
-			;(Alpine.store("story") as any)._frames[name] = passage
-			window.Engine.frameQueue.delete(name)
+		window.Engine.frameQueue.set(name, passage)
 
-			if (!modifiers.includes("skip") && window.Engine.frameQueue.values.length === 0) {
-				window.Engine.play()
+		Alpine.nextTick(() => {
+			if (window.Engine.frameQueue.size > 0) {
+				window.Engine.frameQueue.forEach((v, k) => {
+					console.log(k, v)
+					;(Alpine.store("story") as any)._frames[k] = v
+				})
+				window.Engine.frameQueue.clear()
+
+				if (!modifiers.includes("skip")) {
+					window.Engine.play()
+				}
 			}
 		})
 	}

@@ -4,11 +4,16 @@ export default function Frame() {
 			window.Engine.frameQueue.set(frame, passage)
 
 			window.Alpine.nextTick(() => {
-				;(window.Alpine.store("story") as any).frames[frame] = passage
-				window.Engine.frameQueue.delete(frame)
+				if (window.Engine.frameQueue.size > 0) {
+					window.Engine.frameQueue.forEach((v, k) => {
+						console.log(k, v)
+						;(window.Alpine.store("story") as any)._frames[k] = v
+					})
+					window.Engine.frameQueue.clear()
 
-				if (!skip && window.Engine.frameQueue.values.length === 0) {
-					window.Engine.play()
+					if (!skip) {
+						window.Engine.play()
+					}
 				}
 			})
 		},
