@@ -4,6 +4,7 @@ import _swc from "@rollup/plugin-swc"
 import _terser from "@rollup/plugin-terser"
 import { type OutputOptions, type RollupBuild, type RollupOptions, rollup } from "rollup"
 import _polyfill from "rollup-plugin-polyfill-node"
+import _json from "@rollup/plugin-json"
 
 // typescript shenanigans...
 const swc = _swc as unknown as typeof _swc.default
@@ -11,6 +12,7 @@ const commonjs = _commonjs as unknown as typeof _commonjs.default
 const resolve = _resolve as unknown as typeof _resolve.default
 const terser = _terser as unknown as typeof _terser.default
 const polyfill = _polyfill as unknown as typeof _polyfill.default
+const json = _json as unknown as typeof _json.default
 
 async function bundle() {
 	// we want to bundle each config separately
@@ -76,7 +78,7 @@ async function build(input: string, output: string) {
 }
 
 const input = "./src/malachite.ts"
-const sharedPlugins = [resolve(), commonjs(), polyfill(), swc()]
+const sharedPlugins = [ json(), resolve(), commonjs(), polyfill(), swc()]
 
 const options: (RollupOptions & { output: OutputOptions })[] = [
 	{

@@ -1,28 +1,52 @@
 import Alpine from "alpinejs"
+import { frameQueue, play } from "./engine.ts"
+import markup from "./markup/index.ts"
+import { get } from "./story.ts"
+
+function dPrint(data: Alpine.DirectiveData) {
+	const { value, modifiers, expression, type } = data
+	let str = `x-${type}`
+	if (value) str += `:${value}`
+	if (modifiers.length > 0) str += `.${modifiers.join()}`
+	if (expression) str += `="${expression}"`
+	return str
+}
 
 // directly renders a passage inside another
-Alpine.directive("passage", (el, { expression }, { evaluate }) => {
-	const passage = evaluate(expression)
+Alpine.directive("passage", (el, data, { evaluate }) => {
+	const name = evaluate(data.expression)
 
-	if (typeof passage !== "string") {
-		throw new TypeError("Passage directive did not evaluate to a string.")
+	if (typeof name !== "string") {
+		throw new TypeError(`${dPrint(data)}: expression did not evaluate to a string.`)
 	}
+	const passage = get(name)
+	if (!passage) throw Error(`${dPrint(data)}: passage with name "${name}" not found.`)
 
-	window.Engine.show(el, passage)
+	el.innerHTML = markup(passage.source, { passage: passage.name, directive: dPrint(data) })
 })
 
 /* 
 	turns the element into a frame.
 	optionally allows specifying a name, defaults to the unnamed frame.
 */
-Alpine.directive("frame", (el, { expression, value, modifiers }, { evaluate, effect }) => {
-	const name = value ?? "_"
+Alpine.directive("frame", (el, data, { evaluate, effect }) => {
+	const frame = data.value ?? "_"
+	const name = evaluate(data.expression)
 
-	if (!(Alpine.store("story") as any)._frames[name] || modifiers.includes("overwrite"))
-		(Alpine.store("story") as any)._frames[name] = evaluate(expression)
+	if (typeof name !== "string") {
+		throw new TypeError(`${dPrint(data)}: expression did not evaluate to a string.`)
+	}
+	const passage = get(name)
+	if (!passage) throw Error(`${dPrint(data)}: passage with name "${name}" not found.`)
+
+	if (!(Alpine.store("story") as any)._frames[frame] || data.modifiers.includes("overwrite"))
+		(Alpine.store("story") as any)._frames[frame] = passage.name
 
 	effect(() => {
-			window.Engine.show(el, (Alpine.store("story") as any)._frames[name])
+		const goto = get((Alpine.store("story") as any)._frames[frame])
+		if (!goto) throw Error(`${dPrint(data)}: passage with name "${name}" not found.`)
+
+		el.innerHTML = markup(goto.source, { passage: passage.name, directive: dPrint(data) })
 	})
 })
 
@@ -31,26 +55,29 @@ Alpine.directive("frame", (el, { expression, value, modifiers }, { evaluate, eff
 	defaults to to the unnamed frame.
 	optionally allows "skipping" updating the history.
 */
-Alpine.directive("link", (el, { expression, value, modifiers }, { evaluate, cleanup }) => {
-	const name = value ?? "_"
-	const passage = evaluate(expression)
+Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
+	const frame = data.value ?? "_"
+	const name = evaluate(data.expression)
 
-	if (typeof passage !== "string") {
-		throw new TypeError("Passage link did not evaluate to a string.")
+	if (typeof name !== "string") {
+		throw new TypeError(`${dPrint(data)}: expression did not evaluate to a string.`)
 	}
 
 	const callback = () => {
-		window.Engine.frameQueue.set(name, passage)
+		const passage = get(name)
+		if (!passage) throw Error(`${dPrint(data)}: passage with name "${name}" not found.`)
+
+		frameQueue.set(frame, passage.name)
 
 		Alpine.nextTick(() => {
-			if (window.Engine.frameQueue.size > 0) {
-				window.Engine.frameQueue.forEach((v, k) => {
+			if (frameQueue.size > 0) {
+				frameQueue.forEach((v, k) => {
 					;(Alpine.store("story") as any)._frames[k] = v
 				})
-				window.Engine.frameQueue.clear()
+				frameQueue.clear()
 
-				if (!modifiers.includes("skip")) {
-					window.Engine.play()
+				if (!data.modifiers.includes("skip")) {
+					play()
 				}
 			}
 		})

@@ -1,20 +1,19 @@
-export default function Frame() {
-	return {
-		goto(frame: string, passage: string, skip = false) {
-			window.Engine.frameQueue.set(frame, passage)
+import Alpine from "./alpine.ts"
+import { frameQueue, play } from "./engine.ts"
 
-			window.Alpine.nextTick(() => {
-				if (window.Engine.frameQueue.size > 0) {
-					window.Engine.frameQueue.forEach((v, k) => {
-						;(window.Alpine.store("story") as any)._frames[k] = v
-					})
-					window.Engine.frameQueue.clear()
+export function goto(frame: string, passage: string, skip: boolean) {
+	frameQueue.set(frame, passage)
 
-					if (!skip) {
-						window.Engine.play()
-					}
-				}
+	Alpine.nextTick(() => {
+		if (frameQueue.size > 0) {
+			frameQueue.forEach((v, k) => {
+				;(Alpine.store("story") as any)._frames[k] = v
 			})
-		},
-	}
+			frameQueue.clear()
+
+			if (!skip) {
+				play()
+			}
+		}
+	})
 }

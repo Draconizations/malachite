@@ -1,0 +1,93 @@
+/* This is the part of Malachite that is exposed to the end user
+  All public APIs are declared here.
+
+  Since this will interface with plain javascript, we should thoroughly check types!
+*/
+
+import Alpine from "./alpine.ts"
+import { play, version } from "./engine.ts"
+import { goto } from "./frame.ts"
+import markup from "./markup/index.ts"
+import Passage from "./passage.ts"
+import type { emptyData } from "./state.ts"
+import { filter, find, get, has, ifID, storyTitle } from "./story.ts"
+
+export default function() {
+  window.Engine = engineAPI
+  window.Story = storyAPI
+  window.State = stateAPI
+  window.Frame = frameAPI
+
+  window.Alpine = alpineAPI
+  window.$s = Alpine.store("story") as any
+}
+
+declare global {
+	interface Window {
+		Engine: typeof engineAPI
+    Story: typeof storyAPI
+    Alpine: typeof alpineAPI
+    State: typeof stateAPI
+    Frame: typeof frameAPI
+		$s: typeof emptyData & Record<string, any>
+	}
+}
+
+const alpineAPI = Alpine
+
+const engineAPI = {
+	version,
+	play: () => {
+		play()
+	},
+	render: (source: string | Passage) => {
+		if (source instanceof Passage) {
+			return markup(source.source)
+		}
+		if (typeof source !== "string")
+			throw new TypeError("Engine.render: parameter 'source' must be a string or an instance of Passage.")
+		return
+	},
+}
+
+const storyAPI = {
+  get id() {
+    return ifID
+  },
+  title: storyTitle,
+
+  get: (name: string) => {
+    if (typeof name !== "string") throw new TypeError("Story.get: parameter 'name' must be a string")
+    return get(name)
+  },
+  has: (name: string) => {
+    if (typeof name !== "string") throw new TypeError("Story.has: parameter 'name' must be a string")
+    return has(name)
+  },
+  filter: (predicate: (passage: Passage) => boolean) => {
+    if (typeof predicate !== "function") throw new TypeError("Story.filter: parameter 'predicate' must be a function")
+    return filter(predicate)
+  },
+  find: (predicate: (passage: Passage) => boolean) => {
+    if (typeof predicate !== "function") throw new TypeError("Story.find: parameter 'predicate' must be a function")
+    return find(predicate)
+  }
+}
+
+// TODO: everything lol
+const stateAPI = {
+
+}
+
+const frameAPI = {
+  // TODO: type checking
+  goto: (passage: string|Passage, frame = "_", skip = false) => {
+    let name: string
+    if (passage instanceof Passage) name = passage.name
+    else name = passage
+
+    const target = frame ?? "_"
+
+    goto(target, name, skip)
+  }
+}
