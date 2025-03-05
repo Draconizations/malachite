@@ -11,7 +11,7 @@ export const variableRule: RuleInline = (state) => {
   }
 
   // okay, neat. let's regex it
-  const regexp = /^{{ ?(\S+) ?}}/
+  const regexp = /^{{ *([\s\S]+?) *}}/
   const text = state.src.slice(pos, max)
 
   const match = text.match(regexp)
