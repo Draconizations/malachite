@@ -39,7 +39,7 @@ export const linkRule: RuleInline = (state) => {
   token.meta = {}
   token.meta.name = meta.name
   token.meta.goto = meta.goto
-  token.meta.frame = meta.frame
+  token.meta.frame = meta.frame || "_"
 
   return true
 }
