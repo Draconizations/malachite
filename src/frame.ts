@@ -6,7 +6,6 @@ export default function Frame() {
 			window.Alpine.nextTick(() => {
 				if (window.Engine.frameQueue.size > 0) {
 					window.Engine.frameQueue.forEach((v, k) => {
-						console.log(k, v)
 						;(window.Alpine.store("story") as any)._frames[k] = v
 					})
 					window.Engine.frameQueue.clear()
