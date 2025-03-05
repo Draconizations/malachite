@@ -23,6 +23,7 @@ export default function State() {
 
 	return {
 		get current() {
+			if (_index === -1) return emptyData
 			return _history[_index]
 		},
 		max,
@@ -46,13 +47,15 @@ export default function State() {
 		load(encodedData?: string) {
 			// TODO: data validation?
 			const data = encodedData ? JSON.parse(encodedData) : {
-				data: emptyData
+				history: [],
+				index: -1
 			}
 
 			_history = data.history ?? []
+			_index = data.index
 			max = 50
 
-			window.Alpine.store("story", data.data)
+			window.Alpine.store("story", this.current)
 		},
 
 		/**
@@ -77,7 +80,7 @@ export default function State() {
 			}
 
 			// TODO: check if autosaving is enabled
-			this.setLocalSave(this.current)
+			this.setLocalSave(_history, _index)
 		},
 
 		/**
@@ -115,10 +118,13 @@ export default function State() {
 			if (data) return data			
 		},
 
-		setLocalSave(data: any, index = -1) {
+		setLocalSave(history: any, current: number, index = -1) {
 			const location = this.location(index)
 
-			localStorage.setItem(location, JSON.stringify(data))
+			localStorage.setItem(location, JSON.stringify({
+				history,
+				index: current
+			}))
 		},
 
 		location(index = -1) {
