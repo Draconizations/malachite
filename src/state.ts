@@ -20,7 +20,6 @@ export default function State() {
 	let _index = -1
 
 	let max = 50;
-	const _expired: string[] = []
 
 	return {
 		get current() {
@@ -29,17 +28,31 @@ export default function State() {
 		max,
 
 		/**
-		 * Initializes the state from a specified source.
+		 * Initializes the state
 		 * 
-		 * Called once on page load, also called when loading past saves.
+		 * Called once on page load.
 		 * Should be called after userscripts are loaded.
 		 */
 		init() {
-			_history = []
+			// TODO: configurable autoloading, etc.
+
+			this.load(this.getLocalSave())
+			window.s = window.Alpine.store("story")
+		},
+
+		/**
+		 * Loads in the state from a specified source.
+		 */
+		load(encodedData?: string) {
+			// TODO: data validation?
+			const data = encodedData ? JSON.parse(encodedData) : {
+				data: emptyData
+			}
+
+			_history = data.history ?? []
 			max = 50
 
-			window.Alpine.store("story", emptyData)
-			window.s = window.Alpine.store("story")
+			window.Alpine.store("story", data.data)
 		},
 
 		/**
@@ -62,15 +75,9 @@ export default function State() {
 				_history.splice(0, extra)
 				_index -= extra
 			}
-		},
 
-		/**
-		 * Updates the alpine store object to reflect the specified snapshot.
-		 */
-		update(i: number = _index) {
-			const snapshot = _history[i]
-
-			window.Alpine.store("story", snapshot.data)
+			// TODO: check if autosaving is enabled
+			this.setLocalSave(this.current)
 		},
 
 		/**
@@ -99,6 +106,29 @@ export default function State() {
 				data: d as Data,
 				timestamp: new Date().toISOString()
 			}
+		},
+
+		getLocalSave(index = -1) {
+			const location = this.location(index)
+
+			const data = localStorage.getItem(location)
+			if (data) return data			
+		},
+
+		setLocalSave(data: any, index = -1) {
+			const location = this.location(index)
+
+			localStorage.setItem(location, JSON.stringify(data))
+		},
+
+		location(index = -1) {
+			// TODO: configurable save location names
+			const prefix = "mala"
+			const name = "save"
+			const separator = "."
+			const i = index === -1 ? "auto" : index.toString()
+
+			return [prefix, name, i].join(separator)
 		}
 	}
 }
