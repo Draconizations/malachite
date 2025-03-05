@@ -1,3 +1,5 @@
+import { unescape as unesc } from "html-escaper"
+
 export default class Passage {
 	name: string
 	tags: string[]
@@ -6,6 +8,6 @@ export default class Passage {
 	constructor(name: string, tags: string[], source: string) {
 		this.name = name
 		this.tags = tags
-		this.source = source
+		this.source = unesc(source)
 	}
 }

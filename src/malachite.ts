@@ -1,5 +1,6 @@
 import Alpine from "./alpine.ts"
 import Engine from "./engine.ts"
+import Markup from "./markup/index.ts"
 import State from "./state.ts"
 import Story from "./story.ts"
 
@@ -7,6 +8,7 @@ import Story from "./story.ts"
 window.Engine = Engine()
 window.Story = Story()
 window.State = State()
+window.Markup = Markup
 window.Alpine = Alpine
 
 window.Engine.init()
@@ -26,6 +28,7 @@ declare global {
 		Engine: ReturnType<typeof Engine>
 		Story: ReturnType<typeof Story>
 		State: ReturnType<typeof State>
+		Markup: typeof Markup
 		Alpine: Alpine.Alpine
 		s: any // the persistent data store
 	}

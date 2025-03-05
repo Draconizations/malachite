@@ -14,8 +14,12 @@
 		"@rollup/plugin-terser": "^0.4.4",
 		"@types/alpinejs": "^3.13.11",
 		"@types/bun": "latest",
+		"@types/html-escaper": "^3.0.4",
+		"@types/markdown-it": "^14.1.2",
 		"alpinejs": "^3.14.8",
+		"html-escaper": "^3.0.3",
 		"lefthook": "^1.11.2",
+		"markdown-it": "^14.1.0",
 		"rollup": "^4.34.9",
 		"rollup-plugin-polyfill-node": "^0.13.0"
 	},

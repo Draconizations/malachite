@@ -1,5 +1,5 @@
+import { unescape as unesc } from "html-escaper"
 import { defaultLayout } from "./html.ts"
-import type { Story } from "./story.ts"
 
 export default function Engine(version?: number) {
 	const _version = version ?? 0
@@ -47,10 +47,7 @@ export default function Engine(version?: number) {
 		},
 	
 		render(el: Element, source: string) {
-			const txt = document.createElement("textarea")
-			txt.innerHTML = source
-			el.innerHTML = txt.value
-			txt.remove()
+			el.innerHTML = unesc(window.Markup.renderInline(source))
 		}
 	}
 }
