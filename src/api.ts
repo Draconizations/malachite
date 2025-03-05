@@ -80,11 +80,12 @@ const stateAPI = {
 }
 
 const frameAPI = {
-  // TODO: type checking
   goto: (passage: string|Passage, frame = "_", skip = false) => {
     let name: string
     if (passage instanceof Passage) name = passage.name
     else name = passage
+
+    if (typeof name !== "string") throw TypeError("Frame.goto: parameter 'passage' must be a string or an instance of Passage.")
 
     const target = frame ?? "_"
 
