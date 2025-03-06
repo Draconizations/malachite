@@ -10,7 +10,7 @@ import setupGlobals from "./api.ts"
 	Engine.init()
 	Story.init()
 
-	// TODO: load userscripts here
+	Engine.runUserScripts()
 
 	State.init()
 	Alpine.start()

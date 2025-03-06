@@ -1,10 +1,10 @@
 import { defaultLayout } from "./html.ts"
 import pkg from "../package.json" with { type: "json" }
 import { push } from "./state.ts"
-import { start as storyStart } from "./story.ts"
+import { getScripts, getStyles, start as storyStart } from "./story.ts"
 
 export const version = pkg.version
-const _viewport = document.body
+const _viewport = document.querySelector("#mala-viewport") || document.createElement("div")
 
 export const frameQueue = new Map<string, string>()
 /**
@@ -14,6 +14,27 @@ export const frameQueue = new Map<string, string>()
  */
 export function init() {
 	// initialize stuff here.
+}
+
+export function runUserScripts() {
+	// load the user styles
+	const storyStyle = document.createElement("style")
+	storyStyle.innerText = getStyles().map(p => p.source).join("\n")
+
+	storyStyle.id = "story-style"
+	storyStyle.setAttribute("type", "text/css")
+	
+	document.head.appendChild(storyStyle)
+
+	// run the user scripts
+	getScripts().forEach(p => {
+		try {
+			new Function(p.source)()
+		} catch(e) {
+			console.error(e)
+			// TODO: integrate this with the future error handling system
+		}
+	})
 }
 
 /**
@@ -38,5 +59,6 @@ export function play() {
 
 export default {
 	init,
-	start
+	start,
+	runUserScripts
 }

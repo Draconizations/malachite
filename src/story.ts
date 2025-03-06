@@ -8,6 +8,8 @@ export let storyTitle = "A Malachite Story"
 export let start: Passage | null = null
 
 const _passages: Passage[] = []
+const _styles: Passage[] = []
+const _scripts: Passage[] = []
 
 /**
  * Initializes the Story.
@@ -22,13 +24,11 @@ export function init() {
 
 	for (const p of Array.from(_storyData?.querySelectorAll("tw-passagedata") || [])) {
 		const name = getAttribute(p, "name") || "Passage"
-		const tags = getAttribute(p, "tags")?.split(" ")
+		const tags = getAttribute(p, "tags")?.split(" ") || []
 		const content = p.innerHTML
 
-		// TODO: handle script and style passages
-
 		// everything else is a regular passage
-		const passage = new Passage(name, tags || [], content)
+		const passage = new Passage(name, tags, content)
 		if (
 			passage.name.toLowerCase() === (getAttribute(_storyData, "start")?.toLowerCase() ?? "start")
 		) {
@@ -36,6 +36,18 @@ export function init() {
 		}
 		_passages.push(passage)
 	}
+
+	// get the user styles
+	const scripts = _storyData?.querySelectorAll(`script[type="text/twine-javascript"]`) as unknown as HTMLScriptElement[] || []
+	scripts.forEach((s, i) => {
+		_scripts.push(new Passage(`tw-user-script-${i}`, [], s.innerText))
+	})
+
+	// same for the user styles
+	const styles = _storyData?.querySelectorAll(`script[type="text/twine-css"]`) as unknown as HTMLStyleElement[] || []
+	styles.forEach((s, i) => {
+		_styles.push(new Passage(`tw-user-script-${i}`, [], s.innerText))
+	})
 }
 
 /*
@@ -56,6 +68,17 @@ export function filter(predicate: (passage: Passage) => boolean) {
 
 export function find(predicate: (passage: Passage) => boolean) {
 	return _passages.find(predicate)
+}
+
+/* 
+	Return mutable internal objects as immutable copies 
+*/
+export function getStyles() {
+	return Object.freeze(_styles)
+}
+
+export function getScripts() {
+	return Object.freeze(_scripts)
 }
 
 export default {
