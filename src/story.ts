@@ -39,10 +39,9 @@ export function init() {
 }
 
 /*
-			Story->Passage API
-			(mostly) the same as SugarCube's API here.
-		*/
-
+	Story->Passage API
+	(mostly) the same as SugarCube's API here.
+*/
 export function get(name: string) {
 	return _passages.find((p) => p.name.toLowerCase() === name.toLowerCase())
 }
