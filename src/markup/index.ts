@@ -21,26 +21,9 @@ const plugin: PluginSimple = (md) => {
 
 const markdown = new Markdown().use(plugin)
 
-let recursionCount = 0
-const recursionMax = 1000
-let rendering = false
-
 export default (
 	source: string,
-	context?: { passage: string; directive: string },
 ) => {
-	if (recursionCount >= recursionMax) {
-    rendering = false
-		throw Error(
-			`${context ? `${context.directive}:` : ""} Infinite recursion detected while trying to render passage ${context ? `"${context.passage}"` : ""}.`,
-		)
-	}
-
-	rendering = true
 	const result = unesc(markdown.renderInline(source))
-  rendering = false
-	window.Alpine.nextTick(() => {
-		if (rendering === true) recursionCount++
-	})
 	return result
 }

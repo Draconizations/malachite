@@ -3,6 +3,9 @@ import { frameQueue, play } from "./engine.ts"
 import markup from "./markup/index.ts"
 import { get } from "./story.ts"
 
+let recursionCount = 0
+let recursionMax = 1000
+
 function dPrint(data: Alpine.DirectiveData) {
 	const { value, modifiers, expression, type } = data
 	let str = `x-${type}`
@@ -12,8 +15,20 @@ function dPrint(data: Alpine.DirectiveData) {
 	return str
 }
 
+function checkRecursion(location: string) {
+	if (recursionCount >= recursionMax) {
+		throw Error(
+			`${location}: Infinite recursion detected while trying to render passage.`,
+		)
+	} else {
+		recursionCount ++
+	}
+}
+
 // directly renders a passage inside another
 Alpine.directive("passage", (el, data, { evaluate }) => {
+	checkRecursion(dPrint(data))
+
 	const name = evaluate(data.expression)
 
 	if (typeof name !== "string") {
@@ -22,7 +37,10 @@ Alpine.directive("passage", (el, data, { evaluate }) => {
 	const passage = get(name)
 	if (!passage) throw Error(`${dPrint(data)}: passage with name "${name}" not found.`)
 
-	el.innerHTML = markup(passage.source, { passage: passage.name, directive: dPrint(data) })
+	el.innerHTML = markup(passage.source)
+	Alpine.nextTick(() => {
+		recursionCount = 0
+	})
 })
 
 /* 
@@ -30,6 +48,8 @@ Alpine.directive("passage", (el, data, { evaluate }) => {
 	optionally allows specifying a name, defaults to the unnamed frame.
 */
 Alpine.directive("frame", (el, data, { evaluate, effect }) => {
+	checkRecursion(dPrint(data))
+
 	const frame = data.value ?? "_"
 	const name = evaluate(data.expression)
 
@@ -46,7 +66,11 @@ Alpine.directive("frame", (el, data, { evaluate, effect }) => {
 		const goto = get((Alpine.store("story") as any)._frames[frame])
 		if (!goto) throw Error(`${dPrint(data)}: passage with name "${name}" not found.`)
 
-		el.innerHTML = markup(goto.source, { passage: passage.name, directive: dPrint(data) })
+		el.innerHTML = markup(goto.source)
+
+		Alpine.nextTick(() => {
+			recursionCount = 0
+		})
 	})
 })
 
