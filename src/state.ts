@@ -30,6 +30,12 @@ export function current() {
 	return _history[_index]
 }
 
+export const SaveType = {
+	AUTO: 0,
+	LOCAL: 1,
+	FILE: 2,
+}
+
 /**
  * Initializes the state
  *

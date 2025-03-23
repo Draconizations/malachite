@@ -1,7 +1,8 @@
 import { defaultLayout } from "./html.ts"
 import pkg from "../package.json" with { type: "json" }
-import { push } from "./state.ts"
+import { push, SaveType } from "./state.ts"
 import { getScripts, getStyles, start as storyStart } from "./story.ts"
+import Config from "./config.ts"
 
 export const version = pkg.version
 const _viewport = document.querySelector("#mala-viewport") || document.createElement("div")
@@ -50,11 +51,14 @@ export function start() {
 /**
  * Updates the State and History, and updates Alpine.store("story") accordingly.
  *
- * **Note:** this function is automatically triggered on passage navigation, i.e. by `x-link` or
+ * **Note:** this function is (by default) automatically triggered on passage navigation, i.e. by `x-link` or
  * `Frame.goto()`. It can be called manually as well.
  */
 export function play() {
-	push(JSON.parse(JSON.stringify(window.Alpine.store("story"))))
+	// check if autosaving is allowed
+	if (Config.allowSave(0 /* AUTO */) === true) {
+		push(JSON.parse(JSON.stringify(window.Alpine.store("story"))))
+	}
 }
 
 export default {

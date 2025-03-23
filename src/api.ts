@@ -5,11 +5,12 @@
 */
 
 import Alpine from "./alpine.ts"
+import Config from "./config.ts"
 import { play, version } from "./engine.ts"
 import { goto } from "./frame.ts"
 import markup from "./markup/index.ts"
 import Passage from "./passage.ts"
-import type { emptyData } from "./state.ts"
+import { SaveType, type emptyData } from "./state.ts"
 import { filter, find, get, has, ifID, storyTitle } from "./story.ts"
 
 export default function() {
@@ -29,6 +30,7 @@ declare global {
     Alpine: typeof alpineAPI
     State: typeof stateAPI
     Frame: typeof frameAPI
+    Config: typeof configAPI
 		$s: typeof emptyData & Record<string, any>
 	}
 }
@@ -56,18 +58,22 @@ const storyAPI = {
   },
   title: storyTitle,
 
+  // gets a single passage by name
   get: (name: string) => {
     if (typeof name !== "string") throw new TypeError("Story.get: parameter 'name' must be a string")
     return get(name)
   },
+  // checks if the story has a passage with this name
   has: (name: string) => {
     if (typeof name !== "string") throw new TypeError("Story.has: parameter 'name' must be a string")
     return has(name)
   },
+  // finds all passages that match a predicate
   filter: (predicate: (passage: Passage) => boolean) => {
     if (typeof predicate !== "function") throw new TypeError("Story.filter: parameter 'predicate' must be a function")
     return filter(predicate)
   },
+  // gets the first passage that matches a predicate
   find: (predicate: (passage: Passage) => boolean) => {
     if (typeof predicate !== "function") throw new TypeError("Story.find: parameter 'predicate' must be a function")
     return find(predicate)
@@ -76,7 +82,7 @@ const storyAPI = {
 
 // TODO: everything lol
 const stateAPI = {
-
+  SaveType: Object.freeze(SaveType)
 }
 
 const frameAPI = {
@@ -90,5 +96,13 @@ const frameAPI = {
     const target = frame ?? "_"
 
     goto(target, name, skip)
+  }
+}
+
+const configAPI = {
+  State: {
+    allowSave: (callback: (saveType: number) => boolean) => {
+      Config.allowSave = callback
+    }
   }
 }
