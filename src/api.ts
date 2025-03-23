@@ -7,7 +7,7 @@
 import Alpine from "./alpine.ts"
 import Config from "./config.ts"
 import { play, version } from "./engine.ts"
-import { goto } from "./frame.ts"
+import { current, active, goto } from "./frame.ts"
 import markup from "./markup/index.ts"
 import Passage from "./passage.ts"
 import { SaveType, type emptyData } from "./state.ts"
@@ -86,6 +86,12 @@ const stateAPI = {
 }
 
 const frameAPI = {
+  /**
+   * Jumps to the specified passage. Uses the unnamed frame by default.
+   * @param passage  The passage to jump to
+   * @param frame (optional) the frame to use
+   * @param skip (optional) whether to skip saving state to history or not
+   */
   goto: (passage: string|Passage, frame = "_", skip = false) => {
     let name: string
     if (passage instanceof Passage) name = passage.name
@@ -96,6 +102,21 @@ const frameAPI = {
     const target = frame ?? "_"
 
     goto(target, name, skip)
+  },
+  /**
+   * Gets the currently active Passage in the specified frame
+   * @param frame 
+   * @returns 
+   */
+  current: (frame?: string) => {
+    return current(frame)
+  },
+  /**
+   * Gets an array of all currently active passages (regardless of whether they're visible or not)
+   * @returns 
+   */
+  active: () => {
+    return active()
   }
 }
 

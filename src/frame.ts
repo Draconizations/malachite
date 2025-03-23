@@ -20,3 +20,14 @@ export function goto(frame: string, name: string, skip: boolean) {
 		}
 	})
 }
+
+export function current(frame: string = "_") {
+	const name = (window.Alpine.store("story") as any)._frames[frame]
+	if (!name) return
+	return get(name)
+}
+
+export function active() {
+	const names = Object.values((window.Alpine.store("story") as any)._frames) as string[]
+	return names.map(n => get(n))
+}
