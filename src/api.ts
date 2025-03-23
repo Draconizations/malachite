@@ -122,8 +122,9 @@ const frameAPI = {
 
 const configAPI = {
   State: {
-    allowSave: (callback: (saveType: number) => boolean) => {
-      Config.allowSave = callback
-    }
+    allowSave: Config.allowSave
+  },
+  Story: {
+    interface: Config.storyInterface
   }
 }

@@ -45,7 +45,7 @@ export function runUserScripts() {
  */
 export function start() {
 	// TODO: config setting to overwrite the default layout.
-	_viewport.innerHTML = defaultLayout(storyStart?.name || "start")
+	_viewport.innerHTML = Config.storyInterface(storyStart?.name || "start") ?? defaultLayout(storyStart?.name || "start")
 }
 
 /**
