@@ -45,7 +45,6 @@ export function runUserScripts() {
  */
 export function start() {
 	// TODO: config setting to overwrite the default layout.
-	console.log(Config.storyInterface)
 	const startPassage = storyStart?.name.toLowerCase() || "start"
 
 	if (typeof Config.storyInterface === "function") {
