@@ -127,9 +127,19 @@ const frameAPI = {
 
 const configAPI = {
   State: {
-    allowSave: Config.allowSave
+    get allowSave() {
+      return Config.allowSave
+    },
+    set allowSave(value) {
+      Config.allowSave = value
+    }
   },
   Story: {
-    interface: Config.storyInterface
+    get interface() {
+      return Config.storyInterface
+    },
+    set interface(value) {
+      Config.storyInterface = value
+    }
   }
 }
