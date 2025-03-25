@@ -5,7 +5,7 @@ let _storyData: HTMLElement | null = null
 export let ifID = "00000000-0000-4000-A000-000000000000"
 export let storyTitle = "A Malachite Story"
 
-export let start: Passage | null = null
+export let start: Passage | undefined = undefined
 
 const _passages: Passage[] = []
 const _styles: Passage[] = []

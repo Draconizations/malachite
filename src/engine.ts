@@ -4,7 +4,7 @@ import { push, SaveType } from "./state.ts"
 import { getScripts, getStyles, start as storyStart } from "./story.ts"
 import Config from "./config.ts"
 
-export const version = pkg.version
+export const version: string = pkg.version
 const _viewport = document.querySelector("#mala-viewport") || document.createElement("div")
 
 export const frameQueue = new Map<string, string>()

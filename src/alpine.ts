@@ -123,4 +123,6 @@ Alpine.magic("s", () => {
 	return Alpine.store("story")
 })
 
+export type MAlpine = typeof Alpine
+
 export default Alpine

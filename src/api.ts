@@ -4,7 +4,8 @@
   Since this will interface with plain javascript, we should thoroughly check types!
 */
 
-import Alpine from "./alpine.ts"
+import { start } from "story"
+import Alpine, { type MAlpine } from "./alpine.ts"
 import Config from "./config.ts"
 import { play, version } from "./engine.ts"
 import { current, active, goto } from "./frame.ts"
@@ -35,7 +36,7 @@ declare global {
 	}
 }
 
-const alpineAPI = Alpine
+const alpineAPI: MAlpine = Alpine
 
 const engineAPI = {
 	version,
@@ -48,7 +49,7 @@ const engineAPI = {
 		}
 		if (typeof source !== "string")
 			throw new TypeError("Engine.render: parameter 'source' must be a string or an instance of Passage.")
-		return
+		return ""
 	},
 }
 
@@ -58,23 +59,27 @@ const storyAPI = {
   },
   title: storyTitle,
 
+  get start() { 
+    return Object.freeze(start) as Passage|undefined
+  },
+
   // gets a single passage by name
-  get: (name: string) => {
-    if (typeof name !== "string") throw new TypeError("Story.get: parameter 'name' must be a string")
+  get: (name: string): Passage|undefined => {
+    if (typeof name !== "string") throw new TypeError("Story.getz: parameter 'name' must be a string")
     return get(name)
   },
   // checks if the story has a passage with this name
-  has: (name: string) => {
+  has: (name: string): boolean => {
     if (typeof name !== "string") throw new TypeError("Story.has: parameter 'name' must be a string")
     return has(name)
   },
   // finds all passages that match a predicate
-  filter: (predicate: (passage: Passage) => boolean) => {
+  filter: (predicate: (passage: Passage) => boolean): Passage[] => {
     if (typeof predicate !== "function") throw new TypeError("Story.filter: parameter 'predicate' must be a function")
     return filter(predicate)
   },
   // gets the first passage that matches a predicate
-  find: (predicate: (passage: Passage) => boolean) => {
+  find: (predicate: (passage: Passage) => boolean): Passage | undefined => {
     if (typeof predicate !== "function") throw new TypeError("Story.find: parameter 'predicate' must be a function")
     return find(predicate)
   }
@@ -108,14 +113,14 @@ const frameAPI = {
    * @param frame 
    * @returns 
    */
-  current: (frame?: string) => {
+  current: (frame?: string): Passage|undefined => {
     return current(frame)
   },
   /**
    * Gets an array of all currently active passages (regardless of whether they're visible or not)
    * @returns 
    */
-  active: () => {
+  active: (): (Passage|undefined)[] => {
     return active()
   }
 }

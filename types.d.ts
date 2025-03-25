@@ -57,7 +57,7 @@ declare module "story" {
     import Passage from "passage";
     export let ifID: string;
     export let storyTitle: string;
-    export let start: Passage | null;
+    export let start: Passage | undefined;
     /**
      * Initializes the Story.
      *
@@ -82,7 +82,7 @@ declare module "config" {
     }
 }
 declare module "engine" {
-    export const version: any;
+    export const version: string;
     export const frameQueue: Map<string, string>;
     /**
      * Initializes the Engine
@@ -129,6 +129,7 @@ declare module "markup/index" {
 }
 declare module "alpine" {
     import Alpine from "alpinejs";
+    export type MAlpine = typeof Alpine;
     export default Alpine;
 }
 declare module "frame" {
@@ -137,6 +138,7 @@ declare module "frame" {
     export function active(): import("passage").default[];
 }
 declare module "api" {
+    import { type MAlpine } from "alpine";
     import Passage from "passage";
     import { type emptyData } from "state";
     export default function (): void;
@@ -151,19 +153,20 @@ declare module "api" {
             $s: typeof emptyData & Record<string, any>;
         }
     }
-    const alpineAPI: any;
+    const alpineAPI: MAlpine;
     const engineAPI: {
-        version: any;
+        version: string;
         play: () => void;
         render: (source: string | Passage) => string;
     };
     const storyAPI: {
         readonly id: string;
         title: string;
-        get: (name: string) => Passage;
+        readonly start: Passage | undefined;
+        get: (name: string) => Passage | undefined;
         has: (name: string) => boolean;
         filter: (predicate: (passage: Passage) => boolean) => Passage[];
-        find: (predicate: (passage: Passage) => boolean) => Passage;
+        find: (predicate: (passage: Passage) => boolean) => Passage | undefined;
     };
     const stateAPI: {
         SaveType: Readonly<{
@@ -185,12 +188,12 @@ declare module "api" {
          * @param frame
          * @returns
          */
-        current: (frame?: string) => Passage;
+        current: (frame?: string) => Passage | undefined;
         /**
          * Gets an array of all currently active passages (regardless of whether they're visible or not)
          * @returns
          */
-        active: () => Passage[];
+        active: () => (Passage | undefined)[];
     };
     const configAPI: {
         State: {
