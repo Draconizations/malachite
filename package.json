@@ -5,8 +5,10 @@
 	"private": true,
 	"version": "0.0.0",
 	"scripts": {
-		"format": "bunx biome check --write --no-errors-on-unmatched ."
+		"format": "bunx biome check --write --no-errors-on-unmatched .",
+		"types": "bunx tsc src/api.ts --declaration --allowJs --emitDeclarationOnly --outfile types.d.ts"
 	},
+	"types": "./types.d.ts",
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@rollup/plugin-commonjs": "^28.0.2",
