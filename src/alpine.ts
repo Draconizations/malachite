@@ -80,6 +80,8 @@ Alpine.directive("frame", (el, data, { evaluate, effect }) => {
 	optionally allows "skipping" updating the history.
 */
 Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
+	el.classList.add("tw-link")
+
 	const frame = data.value ?? "_"
 	const name = evaluate(data.expression)
 
