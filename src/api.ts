@@ -21,7 +21,6 @@ export default function() {
   window.Config = configAPI
 
   window.Alpine = alpineAPI
-  window.$s = Alpine.store("story") as any
 }
 
 declare global {

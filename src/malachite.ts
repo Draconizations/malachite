@@ -14,6 +14,7 @@ import setupGlobals from "./api.ts"
 
 	State.init()
 	Alpine.start()
+	window.$s = Alpine.store("story") as any
 
 	// TODO: load any potential startup passages here?
 
