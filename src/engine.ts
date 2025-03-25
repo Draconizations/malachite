@@ -45,7 +45,14 @@ export function runUserScripts() {
  */
 export function start() {
 	// TODO: config setting to overwrite the default layout.
-	_viewport.innerHTML = Config.storyInterface(storyStart?.name.toLowerCase() || "start") ?? defaultLayout(storyStart?.name.toLowerCase() || "start")
+	console.log(Config.storyInterface)
+	const startPassage = storyStart?.name.toLowerCase() || "start"
+
+	if (typeof Config.storyInterface === "function") {
+		_viewport.innerHTML = Config.storyInterface(startPassage)
+	} else {
+		_viewport.innerHTML = defaultLayout(startPassage)
+	}
 }
 
 /**

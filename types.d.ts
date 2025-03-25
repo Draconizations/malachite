@@ -78,7 +78,7 @@ declare module "story" {
 declare module "config" {
     export default class Config {
         static allowSave: (saveType: number) => boolean;
-        static storyInterface: (start: string) => string | undefined;
+        static storyInterface: ((start: string) => string) | undefined;
     }
 }
 declare module "engine" {
@@ -200,7 +200,7 @@ declare module "api" {
             allowSave: (saveType: number) => boolean;
         };
         Story: {
-            interface: (start: string) => string | undefined;
+            interface: ((start: string) => string)|undefined;
         };
     };
 }

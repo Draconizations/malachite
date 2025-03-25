@@ -4,7 +4,6 @@
   Since this will interface with plain javascript, we should thoroughly check types!
 */
 
-import { start } from "story"
 import Alpine, { type MAlpine } from "./alpine.ts"
 import Config from "./config.ts"
 import { play, version } from "./engine.ts"
@@ -12,13 +11,14 @@ import { current, active, goto } from "./frame.ts"
 import markup from "./markup/index.ts"
 import Passage from "./passage.ts"
 import { SaveType, type emptyData } from "./state.ts"
-import { filter, find, get, has, ifID, storyTitle } from "./story.ts"
+import { filter, find, get, has, ifID, storyTitle, start } from "./story.ts"
 
 export default function() {
   window.Engine = engineAPI
   window.Story = storyAPI
   window.State = stateAPI
   window.Frame = frameAPI
+  window.Config = configAPI
 
   window.Alpine = alpineAPI
   window.$s = Alpine.store("story") as any

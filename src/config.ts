@@ -3,5 +3,5 @@ export default class Config {
   static allowSave: (saveType: number) => boolean = () => { return true }
   
   // USER INTERFACE
-  static storyInterface: (start: string) => string | undefined
+  static storyInterface: ((start: string) => string)|undefined
 }
