@@ -64,11 +64,11 @@ Alpine.directive("frame", (el, data, { evaluate, effect }) => {
 	const passage = get(passageName)
 	if (!passage) throw Error(`${dPrint(data)}: passage with name "${passageName}" not found.`)
 
-	frame.passage = passage.name
-	_frames[frame.name] = passage.name
-
 	if (frame.history && (!(Alpine.store("story") as any)._frames[frameName] || data.modifiers.includes("overwrite")))
 		(Alpine.store("story") as any)._frames[frameName] = passage.name
+
+	frame.passage = (Alpine.store("story") as any)._frames[frameName] ?? passage.name
+	_frames[frame.name] = (Alpine.store("story") as any)._frames[frameName] ?? passage.name
 
 	effect(() => {
 		const goto = _frames[frame.name] ? get(_frames[frame.name]) : undefined

@@ -129,11 +129,6 @@ declare module "markup/index" {
     const _default_3: (source: string) => string;
     export default _default_3;
 }
-declare module "alpine" {
-    import Alpine from "alpinejs";
-    export type MAlpine = typeof Alpine;
-    export default Alpine;
-}
 declare module "frame" {
     export interface FrameConfig {
         history?: boolean;
@@ -154,6 +149,12 @@ declare module "frame" {
     export function goto(passageName: string, frameName?: string, skip?: boolean): void;
     export function current(frame?: string): import("passage").default;
     export function active(): import("passage").default[];
+}
+declare module "alpine" {
+    import Alpine from "alpinejs";
+    export const _frames: Record<string, string>;
+    export type MAlpine = typeof Alpine;
+    export default Alpine;
 }
 declare module "api" {
     import { type MAlpine } from "alpine";
@@ -218,7 +219,7 @@ declare module "api" {
          * @returns
          */
         get: (name?: string) => Readonly<Frame>;
-        all: () => readonly Frame[];
+        all: () => Frame[];
         /**
          * Jumps to the specified passage. Uses the unnamed frame by default.
          * @param passage  The passage to jump to

@@ -129,7 +129,7 @@ const frameAPI = {
 	 */
 	new: (name?: string, config?: FrameConfig): Readonly<Frame> => {
 		if (typeof name !== "string") throw TypeError("Frame.new: parameter 'name' must be a string.")
-		return Object.freeze(newFrame(name, config))
+		return newFrame(name, config)
 	},
 
 	/**
@@ -139,11 +139,11 @@ const frameAPI = {
 	 */
 	get: (name?: string): Readonly<Frame> => {
 		if (name && typeof name !== "string") throw TypeError("Frame.get: parameter 'name' must be a string.")
-		return Object.freeze(getFrame(name))
+		return getFrame(name)
 	},
 
 	all: () => {
-		return Object.freeze(allFrames())
+		return allFrames()
 	},
 
 	/**
