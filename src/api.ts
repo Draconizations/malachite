@@ -126,7 +126,7 @@ const frameAPI = {
 
 const configAPI = {
   State: {
-    get allowSave() {
+    get allowSave(): (type: number, frame?: string, passage?: Passage) => boolean {
       return Config.allowSave
     },
     set allowSave(value) {
@@ -134,7 +134,7 @@ const configAPI = {
     }
   },
   Story: {
-    get interface() {
+    get interface(): ((start: string) => string) | undefined {
       return Config.storyInterface
     },
     set interface(value) {

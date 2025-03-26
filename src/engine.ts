@@ -3,6 +3,7 @@ import pkg from "../package.json" with { type: "json" }
 import { push, SaveType } from "./state.ts"
 import { getScripts, getStyles, start as storyStart } from "./story.ts"
 import Config from "./config.ts"
+import type Passage from "passage"
 
 export const version: string = pkg.version
 const _viewport = document.querySelector("#mala-viewport") || document.createElement("div")
@@ -60,9 +61,9 @@ export function start() {
  * **Note:** this function is (by default) automatically triggered on passage navigation, i.e. by `x-link` or
  * `Frame.goto()`. It can be called manually as well.
  */
-export function play() {
+export function play(frame?: string, passage?: Passage) {
 	// check if autosaving is allowed
-	if (Config.allowSave(0 /* AUTO */) === true) {
+	if (Config.allowSave(0 /* AUTO */, frame, passage) === true) {
 		push(JSON.parse(JSON.stringify(window.Alpine.store("story"))))
 	}
 }

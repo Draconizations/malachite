@@ -76,12 +76,14 @@ declare module "story" {
     export default _default_1;
 }
 declare module "config" {
+    import type Passage from "passage";
     export default class Config {
-        static allowSave: (saveType: number) => boolean;
+        static allowSave: (saveType: number, frame?: string, passage?: Passage) => boolean;
         static storyInterface: ((start: string) => string) | undefined;
     }
 }
 declare module "engine" {
+    import type Passage from "passage";
     export const version: string;
     export const frameQueue: Map<string, string>;
     /**
@@ -103,7 +105,7 @@ declare module "engine" {
      * **Note:** this function is (by default) automatically triggered on passage navigation, i.e. by `x-link` or
      * `Frame.goto()`. It can be called manually as well.
      */
-    export function play(): void;
+    export function play(frame?: string, passage?: Passage): void;
     const _default_2: {
         init: typeof init;
         start: typeof start;
@@ -197,10 +199,10 @@ declare module "api" {
     };
     const configAPI: {
         State: {
-            allowSave: (saveType: number) => boolean;
+            allowSave: (type: number, frame?: string, passage?: Passage) => boolean;
         };
         Story: {
-            interface: ((start: string) => string)|undefined;
+            interface: ((start: string) => string) | undefined;
         };
     };
 }

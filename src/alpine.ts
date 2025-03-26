@@ -103,7 +103,7 @@ Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
 				frameQueue.clear()
 
 				if (!data.modifiers.includes("skip")) {
-					play()
+					play(frame, passage)
 				}
 			}
 		})

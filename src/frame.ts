@@ -15,7 +15,7 @@ export function goto(frame: string, name: string, skip: boolean) {
 			frameQueue.clear()
 
 			if (!skip) {
-				play()
+				play(frame, passage)
 			}
 		}
 	})
