@@ -2,7 +2,7 @@ import Alpine from "alpinejs"
 import { frameQueue, play } from "./engine.ts"
 import markup from "./markup/index.ts"
 import { get } from "./story.ts"
-import { getFrame } from "frame"
+import { getFrame } from "./frame.ts"
 
 let recursionCount = 0
 const recursionMax = 1000
