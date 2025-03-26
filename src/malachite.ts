@@ -13,7 +13,7 @@ import { emptyData } from "./state.ts";
 
 	Alpine.start()
 	window.Alpine.store("story", emptyData)
-	window.$s = Alpine.store("story") as any
+	window.$s = { ...Alpine.store("story") as any } // create a shallow copy
 	
 	Engine.runUserScripts()
 	State.init()
