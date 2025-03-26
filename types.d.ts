@@ -52,6 +52,7 @@ declare module "passage" {
 }
 declare module "utils" {
     export function getAttribute(el: Element | null, attr: string): string;
+    export function getTransitionDuration(el: Element): number;
 }
 declare module "story" {
     import Passage from "passage";
@@ -80,7 +81,24 @@ declare module "config" {
     export default class Config {
         static allowSave: (saveType: number, frame?: string, passage?: Passage) => boolean;
         static storyInterface: ((start: string) => string) | undefined;
+        static frameClass: string;
     }
+}
+declare module "markup/variable" {
+    import type { RuleInline } from "markdown-it/lib/parser_inline.mjs";
+    import type { RenderRule } from "markdown-it/lib/renderer.mjs";
+    export const variableRule: RuleInline;
+    export const variableRender: RenderRule;
+}
+declare module "markup/link" {
+    import type { RuleInline } from "markdown-it/lib/parser_inline.mjs";
+    import type { RenderRule } from "markdown-it/lib/renderer.mjs";
+    export const linkRule: RuleInline;
+    export const linkRender: RenderRule;
+}
+declare module "markup/index" {
+    export const markup: (source: string) => string;
+    export const render: (el: Element, source: string) => Promise<void>;
 }
 declare module "engine" {
     import type Passage from "passage";
@@ -112,22 +130,6 @@ declare module "engine" {
         runUserScripts: typeof runUserScripts;
     };
     export default _default_2;
-}
-declare module "markup/variable" {
-    import type { RuleInline } from "markdown-it/lib/parser_inline.mjs";
-    import type { RenderRule } from "markdown-it/lib/renderer.mjs";
-    export const variableRule: RuleInline;
-    export const variableRender: RenderRule;
-}
-declare module "markup/link" {
-    import type { RuleInline } from "markdown-it/lib/parser_inline.mjs";
-    import type { RenderRule } from "markdown-it/lib/renderer.mjs";
-    export const linkRule: RuleInline;
-    export const linkRender: RenderRule;
-}
-declare module "markup/index" {
-    const _default_3: (source: string) => string;
-    export default _default_3;
 }
 declare module "frame" {
     export interface FrameConfig {
@@ -185,7 +187,8 @@ declare module "api" {
     const engineAPI: {
         version: string;
         play: () => void;
-        render: (source: string | Passage) => string;
+        markup: (source: string | Passage) => string;
+        render: (el: Element, source: string | Passage) => void;
     };
     const storyAPI: {
         readonly id: string;

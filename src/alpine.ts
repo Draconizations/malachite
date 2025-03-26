@@ -1,8 +1,9 @@
 import Alpine from "alpinejs"
 import { frameQueue, play } from "./engine.ts"
-import markup from "./markup/index.ts"
+import { render } from "./markup/index.ts"
 import { get } from "./story.ts"
 import { getFrame } from "./frame.ts"
+import Config from "./config.ts"
 
 let recursionCount = 0
 const recursionMax = 1000
@@ -39,7 +40,7 @@ Alpine.directive("passage", (el, data, { evaluate }) => {
 	const passage = get(name)
 	if (!passage) throw Error(`${dPrint(data)}: passage with name "${name}" not found.`)
 
-	el.innerHTML = markup(passage.source)
+	render(el, passage.source)
 	Alpine.nextTick(() => {
 		recursionCount = 0
 	})
@@ -51,6 +52,7 @@ Alpine.directive("passage", (el, data, { evaluate }) => {
 */
 Alpine.directive("frame", (el, data, { evaluate, effect }) => {
 	checkRecursion(dPrint(data))
+	el.classList.add(Config.frameClass)
 
 	const frameName = data.value ?? "_"
 	const passageName = evaluate(data.expression)
@@ -74,11 +76,11 @@ Alpine.directive("frame", (el, data, { evaluate, effect }) => {
 		const goto = _frames[frame.name] ? get(_frames[frame.name]) : undefined
 		if (!goto) throw Error(`${dPrint(data)}: passage with name "${_frames[frame.name]}" not found.`)
 
-		el.innerHTML = markup(goto.source)
-
 		Alpine.nextTick(() => {
 			recursionCount = 0
 		})
+
+		render(el, goto.source)
 	})
 })
 

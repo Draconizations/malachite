@@ -2,6 +2,7 @@ import { unescape as unesc } from "html-escaper"
 import Markdown, { type PluginSimple } from "markdown-it"
 import { variableRender, variableRule } from "./variable.ts"
 import { linkRender, linkRule } from "./link.ts"
+import { getTransitionDuration } from "../utils.ts"
 
 const plugin: PluginSimple = (md) => {
 	md.configure("zero")
@@ -21,9 +22,24 @@ const plugin: PluginSimple = (md) => {
 
 const markdown = new Markdown().use(plugin)
 
-export default (
+export const markup = (
 	source: string,
 ) => {
-	const result = unesc(markdown.renderInline(source))
-	return result
+	return unesc(markdown.renderInline(source))
+}
+
+export const render = async (
+	el: Element,
+	source: string,
+) => {
+	const result = markup(source)
+	const duration = getTransitionDuration(el)
+	if (duration > 0) {
+		el.classList.add("changing")
+		await new Promise((res) => setTimeout(res, duration))
+	}
+	el.innerHTML = result
+	if (duration > 0) {
+		el.classList.remove("changing")
+	}
 }

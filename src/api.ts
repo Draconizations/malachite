@@ -17,7 +17,7 @@ import {
 	getFrame,
 	allFrames,
 } from "./frame.ts"
-import markup from "./markup/index.ts"
+import { markup, render } from "./markup/index.ts"
 import Passage from "./passage.ts"
 import { SaveType, type emptyData } from "./state.ts"
 import { filter, find, get, has, ifID, storyTitle, start } from "./story.ts"
@@ -65,7 +65,7 @@ const engineAPI = {
 	play: () => {
 		play()
 	},
-	render: (source: string | Passage) => {
+	markup: (source: string | Passage) => {
 		if (source instanceof Passage) {
 			return markup(source.source)
 		}
@@ -73,8 +73,18 @@ const engineAPI = {
 			throw new TypeError(
 				"Engine.render: parameter 'source' must be a string or an instance of Passage.",
 			)
-		return ""
+		return markup(source)
 	},
+	render: (el: Element, source: string | Passage) => {
+		if (source instanceof Passage) {
+			render(el, source.source)
+		}
+		if (typeof source !== "string")
+			throw new TypeError(
+				"Engine.render: parameter 'source' must be a string or an instance of Passage.",
+			)
+		render(el, source)
+	}
 }
 
 const storyAPI = {

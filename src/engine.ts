@@ -4,6 +4,7 @@ import { push, SaveType } from "./state.ts"
 import { getScripts, getStyles, start as storyStart } from "./story.ts"
 import Config from "./config.ts"
 import type Passage from "passage"
+import { render } from "./markup/index.ts"
 
 export const version: string = pkg.version
 const _viewport = document.querySelector("#mala-viewport") || document.createElement("div")
@@ -44,14 +45,14 @@ export function runUserScripts() {
  *
  * This function is called after user scripts are ran and will respect the relevant config settings
  */
-export function start() {
+export async function start() {
 	// TODO: config setting to overwrite the default layout.
 	const startPassage = storyStart?.name.toLowerCase() || "start"
 
 	if (typeof Config.storyInterface === "function") {
-		_viewport.innerHTML = Config.storyInterface(startPassage)
+		render(_viewport, Config.storyInterface(startPassage))
 	} else {
-		_viewport.innerHTML = defaultLayout(startPassage)
+	  render(_viewport, defaultLayout(startPassage))
 	}
 }
 
