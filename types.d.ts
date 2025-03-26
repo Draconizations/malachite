@@ -147,11 +147,11 @@ declare module "frame" {
         constructor(name: string, config?: FrameConfig);
         visible(): boolean;
     }
-    export function newFrame(name: string, config?: FrameConfig): Frame;
-    export function getFrame(name: string): Frame;
+    export function newFrame(name?: string, config?: FrameConfig): Frame;
+    export function getFrame(name?: string): Frame;
     export function filterFrames(predicate: (f: Frame) => boolean): Frame[];
     export function allFrames(): Frame[];
-    export function goto(frame: string, name: string, skip: boolean): void;
+    export function goto(passageName: string, frameName?: string, skip?: boolean): void;
     export function current(frame?: string): import("passage").default;
     export function active(): import("passage").default[];
 }
@@ -211,13 +211,13 @@ declare module "api" {
          * @param config
          * @returns
          */
-        new: (name: string, config: FrameConfig) => Frame;
+        new: (name?: string, config?: FrameConfig) => Readonly<Frame>;
         /**
          * Gets the instance of a Frame with the given name
          * @param name
          * @returns
          */
-        get: (name: string) => Frame;
+        get: (name?: string) => Readonly<Frame>;
         all: () => readonly Frame[];
         /**
          * Jumps to the specified passage. Uses the unnamed frame by default.
@@ -225,13 +225,13 @@ declare module "api" {
          * @param frame (optional) the frame to use
          * @param skip (optional) whether to skip saving state to history or not
          */
-        goto: (passage: string | Passage, frame?: string, skip?: boolean) => void;
+        goto: (passage: string | Passage, frame?: string | undefined, skip?: boolean | undefined) => void;
         /**
          * Gets the currently active Passage in the specified frame
          * @param frame
          * @returns
          */
-        current: (frame?: string) => Passage | undefined;
+        current: (frame?: string | undefined) => Passage | undefined;
         /**
          * Gets an array of all currently active passages (regardless of whether they're visible or not)
          * @returns

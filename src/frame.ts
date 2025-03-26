@@ -35,14 +35,16 @@ export default class Frame {
 	}
 }
 
-export function newFrame(name: string, config?: FrameConfig): Frame {
-	const f = new Frame(name.toLowerCase(), config)
+export function newFrame(name?: string, config?: FrameConfig): Frame {
+	const n = name ?? "_"
+	const f = new Frame(n.toLowerCase(), config)
 	_frames.push(f)
 	return f
 }
 
-export function getFrame(name: string): Frame {
-	const frame = _frames.find(f => f.name === name.toLowerCase())
+export function getFrame(name?: string): Frame {
+	const n = name ?? "_"
+	const frame = _frames.find(f => f.name === n.toLowerCase())
 	if (!frame) return newFrame(name)
 	return frame
 }
@@ -55,7 +57,7 @@ export function allFrames() {
 	return _frames
 }
 
-export function goto(frameName: string, passageName: string, skip: boolean) {
+export function goto(passageName: string, frameName = "_", skip = false) {
 	const passage = get(passageName)
 	if (!passage) throw Error(`Frame.goto: Passage with name "${passageName}" not found.`)
 

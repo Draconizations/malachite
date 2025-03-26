@@ -127,7 +127,7 @@ const frameAPI = {
 	 * @param config
 	 * @returns
 	 */
-	new: (name: string, config: FrameConfig): Frame => {
+	new: (name?: string, config?: FrameConfig): Readonly<Frame> => {
 		if (typeof name !== "string") throw TypeError("Frame.new: parameter 'name' must be a string.")
 		return Object.freeze(newFrame(name, config))
 	},
@@ -137,8 +137,8 @@ const frameAPI = {
 	 * @param name
 	 * @returns
 	 */
-	get: (name: string): Frame => {
-		if (typeof name !== "string") throw TypeError("Frame.get: parameter 'name' must be a string.")
+	get: (name?: string): Readonly<Frame> => {
+		if (name && typeof name !== "string") throw TypeError("Frame.get: parameter 'name' must be a string.")
 		return Object.freeze(getFrame(name))
 	},
 
@@ -152,7 +152,7 @@ const frameAPI = {
 	 * @param frame (optional) the frame to use
 	 * @param skip (optional) whether to skip saving state to history or not
 	 */
-	goto: (passage: string | Passage, frame = "_", skip = false) => {
+	goto: (passage: string | Passage, frame: string|undefined = "_", skip: boolean|undefined = false) => {
 		let name: string
 		if (passage instanceof Passage) name = passage.name
 		else name = passage
@@ -160,16 +160,14 @@ const frameAPI = {
 		if (typeof name !== "string")
 			throw TypeError("Frame.goto: parameter 'passage' must be a string or an instance of Passage.")
 
-		const target = frame ?? "_"
-
-		goto(target, name, skip)
+		goto(frame, name, skip)
 	},
 	/**
 	 * Gets the currently active Passage in the specified frame
 	 * @param frame
 	 * @returns
 	 */
-	current: (frame?: string): Passage | undefined => {
+	current: (frame: string|undefined = "_"): Passage | undefined => {
 		return current(frame)
 	},
 	/**
