@@ -4,6 +4,7 @@ import { render } from "./markup/index.ts"
 import { get } from "./story.ts"
 import { getFrame } from "./frame.ts"
 import Config from "./config.ts"
+import { updateFrame } from "./utils.ts"
 
 let recursionCount = 0
 const recursionMax = 1000
@@ -113,12 +114,7 @@ Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
 		Alpine.nextTick(() => {
 			if (frameQueue.size > 0) {
 				frameQueue.forEach((v, k) => {
-					frame.passage = v
-					_frames[frame.name] = {
-						passage: v,
-						transition: !(data.modifiers.includes("!change")  || data.modifiers.includes("!fade"))
-					}
-					if (frame.history) (Alpine.store("story") as any)._frames[k] = frame.passage
+					updateFrame(v, k, !(data.modifiers.includes("!change")  || data.modifiers.includes("!fade")))
 				})
 				frameQueue.clear()
 
