@@ -145,6 +145,13 @@ declare module "api" {
     import { type emptyData } from "state";
     export default function (): void;
     global {
+        const Engine: typeof engineAPI;
+        const Story: typeof storyAPI;
+        const Alpine: typeof alpineAPI;
+        const State: typeof stateAPI;
+        const Frame: typeof frameAPI;
+        const Config: typeof configAPI;
+        const $s: typeof emptyData & Record<string, any>;
         interface Window {
             Engine: typeof engineAPI;
             Story: typeof storyAPI;
