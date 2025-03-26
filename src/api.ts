@@ -160,7 +160,7 @@ const frameAPI = {
 		if (typeof name !== "string")
 			throw TypeError("Frame.goto: parameter 'passage' must be a string or an instance of Passage.")
 
-		goto(frame, name, skip)
+		goto(name, frame, skip)
 	},
 	/**
 	 * Gets the currently active Passage in the specified frame
