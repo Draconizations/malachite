@@ -12,7 +12,6 @@ import { emptyData } from "./state.ts";
 	Story.init()
 
 	Alpine.start()
-	window.Alpine.store("frames", {})
 	window.Alpine.store("story", emptyData)
 	window.$s = Alpine.store("story") as any // so that it is available during user scripts
 	
