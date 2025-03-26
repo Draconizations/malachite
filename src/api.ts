@@ -19,7 +19,7 @@ import {
 } from "./frame.ts"
 import { markup, render } from "./markup/index.ts"
 import Passage from "./passage.ts"
-import { SaveType, type emptyData } from "./state.ts"
+import { jump, load, SaveType, type emptyData } from "./state.ts"
 import { filter, find, get, has, ifID, storyTitle, start } from "./story.ts"
 
 export default function () {
@@ -123,9 +123,20 @@ const storyAPI = {
 	},
 }
 
-// TODO: everything lol
 const stateAPI = {
 	SaveType: Object.freeze(SaveType),
+	back: () => {
+		jump(-1)
+	},
+	forward: () => {
+		jump(1)
+	},
+	jump: (target: number) => {
+		jump(target)
+	},
+	restart: () => {
+		load()
+	}
 }
 
 const frameAPI = {

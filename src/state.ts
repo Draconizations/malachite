@@ -21,6 +21,15 @@ const _version = pkg.version
 
 export let max = 50
 
+export const SaveType = {
+	AUTO: 0,
+	LOCAL: 1,
+	FILE: 2,
+}
+
+/**
+ * Gets the current state in the history
+ */
 export function current() {
 	if (_index === -1)
 		return {
@@ -31,10 +40,21 @@ export function current() {
 	return _history[_index]
 }
 
-export const SaveType = {
-	AUTO: 0,
-	LOCAL: 1,
-	FILE: 2,
+
+export function jump(target: number, checkBounds = true) {
+	if (target === 0) return
+	
+	const min = _index * -1
+	const max = _history.length - (_index + 1)
+
+	let t = target
+	// don't jump too far if we're checking the boundaries
+	if (checkBounds && min) t = min
+	if (checkBounds && target > max) t = max
+
+	_index = t
+	window.Alpine.store("story", current().data)
+	window.$s = window.Alpine.store("story") as any
 }
 
 /**
@@ -67,6 +87,7 @@ export function load(encodedData?: string) {
 	max = 50
 
 	window.Alpine.store("story", current().data)
+	window.$s = window.Alpine.store("story") as any
 }
 
 /**

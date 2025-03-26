@@ -21,12 +21,16 @@ declare module "state" {
     };
     export const emptyData: Data;
     export let max: number;
-    export function current(): Snapshot;
     export const SaveType: {
         AUTO: number;
         LOCAL: number;
         FILE: number;
     };
+    /**
+     * Gets the current state in the history
+     */
+    export function current(): Snapshot;
+    export function jump(target: number, checkBounds?: boolean): void;
     /**
      * Initializes the state
      *
@@ -210,6 +214,10 @@ declare module "api" {
             LOCAL: number;
             FILE: number;
         }>;
+        back: () => void;
+        forward: () => void;
+        jump: (target: number) => void;
+        restart: () => void;
     };
     const frameAPI: {
         /**
