@@ -31,15 +31,16 @@ export const markup = (
 export const render = async (
 	el: Element,
 	source: string,
+	skip?: boolean
 ) => {
 	const result = markup(source)
 	const duration = getTransitionDuration(el)
-	if (duration > 0) {
+	if (duration > 0 && skip !== true) {
 		el.classList.add("changing")
 		await new Promise((res) => setTimeout(res, duration))
 	}
 	el.innerHTML = result
-	if (duration > 0) {
+	if (duration > 0 && skip !== true) {
 		el.classList.remove("changing")
 	}
 }

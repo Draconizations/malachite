@@ -50,9 +50,9 @@ export async function start() {
 	const startPassage = storyStart?.name.toLowerCase() || "start"
 
 	if (typeof Config.storyInterface === "function") {
-		render(_viewport, Config.storyInterface(startPassage))
+		render(_viewport, Config.storyInterface(startPassage), true)
 	} else {
-	  render(_viewport, defaultLayout(startPassage))
+	  render(_viewport, defaultLayout(startPassage), true)
 	}
 }
 

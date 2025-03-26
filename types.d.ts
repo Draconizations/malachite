@@ -98,7 +98,7 @@ declare module "markup/link" {
 }
 declare module "markup/index" {
     export const markup: (source: string) => string;
-    export const render: (el: Element, source: string) => Promise<void>;
+    export const render: (el: Element, source: string, skip?: boolean) => Promise<void>;
 }
 declare module "engine" {
     import type Passage from "passage";
@@ -116,7 +116,7 @@ declare module "engine" {
      *
      * This function is called after user scripts are ran and will respect the relevant config settings
      */
-    export function start(): void;
+    export function start(): Promise<void>;
     /**
      * Updates the State and History, and updates Alpine.store("story") accordingly.
      *
@@ -148,13 +148,16 @@ declare module "frame" {
     export function getFrame(name?: string): Frame;
     export function filterFrames(predicate: (f: Frame) => boolean): Frame[];
     export function allFrames(): Frame[];
-    export function goto(passageName: string, frameName?: string, skip?: boolean): void;
+    export function goto(passageName: string, frameName?: string, transition?: boolean, skip?: boolean): void;
     export function current(frame?: string): import("passage").default;
     export function active(): import("passage").default[];
 }
 declare module "alpine" {
     import Alpine from "alpinejs";
-    export const _frames: Record<string, string>;
+    export const _frames: Record<string, {
+        passage: string;
+        transition: boolean;
+    }>;
     export type MAlpine = typeof Alpine;
     export default Alpine;
 }
@@ -188,7 +191,7 @@ declare module "api" {
         version: string;
         play: () => void;
         markup: (source: string | Passage) => string;
-        render: (el: Element, source: string | Passage) => void;
+        render: (el: Element, source: string | Passage, skip?: boolean) => void;
     };
     const storyAPI: {
         readonly id: string;
@@ -227,9 +230,10 @@ declare module "api" {
          * Jumps to the specified passage. Uses the unnamed frame by default.
          * @param passage  The passage to jump to
          * @param frame (optional) the frame to use
+         * @param fade (optional) whether to skip passage transition or not
          * @param skip (optional) whether to skip saving state to history or not
          */
-        goto: (passage: string | Passage, frame?: string | undefined, skip?: boolean | undefined) => void;
+        goto: (passage: string | Passage, frame?: string, fade?: boolean, skip?: boolean) => void;
         /**
          * Gets the currently active Passage in the specified frame
          * @param frame

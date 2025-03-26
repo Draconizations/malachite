@@ -75,7 +75,7 @@ const engineAPI = {
 			)
 		return markup(source)
 	},
-	render: (el: Element, source: string | Passage) => {
+	render: (el: Element, source: string | Passage, skip = false) => {
 		if (source instanceof Passage) {
 			render(el, source.source)
 		}
@@ -83,7 +83,7 @@ const engineAPI = {
 			throw new TypeError(
 				"Engine.render: parameter 'source' must be a string or an instance of Passage.",
 			)
-		render(el, source)
+		render(el, source, skip)
 	}
 }
 
@@ -160,9 +160,10 @@ const frameAPI = {
 	 * Jumps to the specified passage. Uses the unnamed frame by default.
 	 * @param passage  The passage to jump to
 	 * @param frame (optional) the frame to use
+	 * @param fade (optional) whether to skip passage transition or not
 	 * @param skip (optional) whether to skip saving state to history or not
 	 */
-	goto: (passage: string | Passage, frame: string|undefined = "_", skip: boolean|undefined = false) => {
+	goto: (passage: string | Passage, frame = "_", fade = true, skip = false) => {
 		let name: string
 		if (passage instanceof Passage) name = passage.name
 		else name = passage
@@ -170,7 +171,7 @@ const frameAPI = {
 		if (typeof name !== "string")
 			throw TypeError("Frame.goto: parameter 'passage' must be a string or an instance of Passage.")
 
-		goto(name, frame, skip)
+		goto(name, frame, fade, skip)
 	},
 	/**
 	 * Gets the currently active Passage in the specified frame

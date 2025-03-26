@@ -58,7 +58,7 @@ export function allFrames() {
 	return _frames
 }
 
-export function goto(passageName: string, frameName = "_", skip = false) {
+export function goto(passageName: string, frameName = "_", transition = true, skip = false) {
 	const passage = get(passageName)
 	if (!passage) throw Error(`Frame.goto: Passage with name "${passageName}" not found.`)
 
@@ -69,7 +69,10 @@ export function goto(passageName: string, frameName = "_", skip = false) {
 	window.Alpine.nextTick(() => {
 		if (frameQueue.size > 0) {
 				frameQueue.forEach((v, k) => {
-					_aFrames[frame.name] = v
+					_aFrames[frame.name] = {
+						passage: v,
+						transition
+					}
 					frame.passage = v
 					if (frame.history) (Alpine.store("story") as any)._frames[k] = frame.passage
 				})

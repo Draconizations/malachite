@@ -8,7 +8,7 @@ import Config from "./config.ts"
 let recursionCount = 0
 const recursionMax = 1000
 
-export const _frames: Record<string, string> = Alpine.reactive({})
+export const _frames: Record<string, { passage: string, transition: boolean }> = Alpine.reactive({})
 
 function dPrint(data: Alpine.DirectiveData) {
 	const { value, modifiers, expression, type } = data
@@ -40,7 +40,7 @@ Alpine.directive("passage", (el, data, { evaluate }) => {
 	const passage = get(name)
 	if (!passage) throw Error(`${dPrint(data)}: passage with name "${name}" not found.`)
 
-	render(el, passage.source)
+	render(el, passage.source, true)
 	Alpine.nextTick(() => {
 		recursionCount = 0
 	})
@@ -70,17 +70,20 @@ Alpine.directive("frame", (el, data, { evaluate, effect }) => {
 		(Alpine.store("story") as any)._frames[frameName] = passage.name
 
 	frame.passage = (Alpine.store("story") as any)._frames[frameName] ?? passage.name
-	_frames[frame.name] = (Alpine.store("story") as any)._frames[frameName] ?? passage.name
+	_frames[frame.name] = {
+		passage: (Alpine.store("story") as any)._frames[frameName] ?? passage.name,
+		transition: false,
+	}
 
 	effect(() => {
-		const goto = _frames[frame.name] ? get(_frames[frame.name]) : undefined
-		if (!goto) throw Error(`${dPrint(data)}: passage with name "${_frames[frame.name]}" not found.`)
+		const goto = _frames[frame.name] ? get(_frames[frame.name].passage) : undefined
+		if (!goto) throw Error(`${dPrint(data)}: passage with name "${_frames[frame.name].passage}" not found.`)
 
 		Alpine.nextTick(() => {
 			recursionCount = 0
 		})
 
-		render(el, goto.source)
+		render(el, goto.source, !_frames[frame.name].transition)
 	})
 })
 
@@ -111,7 +114,10 @@ Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
 			if (frameQueue.size > 0) {
 				frameQueue.forEach((v, k) => {
 					frame.passage = v
-					_frames[frame.name] = v
+					_frames[frame.name] = {
+						passage: v,
+						transition: !data.modifiers.includes("skip")
+					}
 					if (frame.history) (Alpine.store("story") as any)._frames[k] = frame.passage
 				})
 				frameQueue.clear()
