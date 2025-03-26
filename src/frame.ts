@@ -1,5 +1,6 @@
 import { frameQueue, play } from "./engine.ts"
 import { get } from "./story.ts"
+import { _frames as _aFrames } from "./alpine.ts"
 
 export interface FrameConfig {
 	history?: boolean
@@ -68,6 +69,7 @@ export function goto(passageName: string, frameName = "_", skip = false) {
 	window.Alpine.nextTick(() => {
 		if (frameQueue.size > 0) {
 				frameQueue.forEach((v, k) => {
+					_aFrames[frame.name] = v
 					frame.passage = v
 					if (frame.history) (Alpine.store("story") as any)._frames[k] = frame.passage
 				})
