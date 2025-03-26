@@ -116,7 +116,7 @@ Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
 					frame.passage = v
 					_frames[frame.name] = {
 						passage: v,
-						transition: !data.modifiers.includes("!fade")
+						transition: !(data.modifiers.includes("!change")  || data.modifiers.includes("!fade"))
 					}
 					if (frame.history) (Alpine.store("story") as any)._frames[k] = frame.passage
 				})
