@@ -10,11 +10,12 @@ import setupGlobals from "./api.ts"
 	Engine.init()
 	Story.init()
 
+	Alpine.start()
+	window.$s = Alpine.store("story") as any
+	
 	Engine.runUserScripts()
 
 	State.init()
-	Alpine.start()
-	window.$s = Alpine.store("story") as any
 
 	// TODO: load any potential startup passages here?
 
