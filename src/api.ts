@@ -198,6 +198,12 @@ const configAPI = {
 		set allowSave(value) {
 			_Config.allowSave = value
 		},
+		get localSaveName() {
+			return _Config.localSaveName
+		},
+		set localSaveName(value: string) {
+			_Config.localSaveName = value
+		}
 	},
 	Story: {
 		get interface(): ((start: string) => string) | undefined {
@@ -207,4 +213,12 @@ const configAPI = {
 			_Config.storyInterface = value
 		},
 	},
+	Frame: {
+		get class() {
+			return _Config.frameClass
+		},
+		set class(value: string) {
+			_Config.frameClass = value
+		}
+	}
 }

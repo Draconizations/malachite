@@ -1,4 +1,5 @@
 import pkg from "../package.json" with { type: "json" }
+import Config from "./config.ts"
 
 type Data = {
 	_frames: Record<string, string>
@@ -143,7 +144,7 @@ function setLocalSave(history: any, current: number, index = -1) {
 
 function location(index = -1) {
 	// TODO: configurable save location names
-	const prefix = "mala"
+	const prefix = Config.localSaveName
 	const name = "save"
 	const separator = "."
 	const i = index === -1 ? "auto" : index.toString()

@@ -1,6 +1,15 @@
 declare module "html" {
     export const defaultLayout: (start: string) => string;
 }
+declare module "config" {
+    import type Passage from "passage";
+    export default class Config {
+        static allowSave: (saveType: number, frame?: string, passage?: Passage) => boolean;
+        static storyInterface: ((start: string) => string) | undefined;
+        static frameClass: string;
+        static localSaveName: string;
+    }
+}
 declare module "state" {
     type Data = {
         _frames: Record<string, string>;
@@ -50,9 +59,31 @@ declare module "passage" {
         constructor(name: string, tags: string[], source: string);
     }
 }
+declare module "frame" {
+    export interface FrameConfig {
+        history?: boolean;
+    }
+    export default class Frame {
+        #private;
+        name: string;
+        history: boolean;
+        get passage(): string | undefined;
+        set passage(value: string | undefined);
+        constructor(name: string, config?: FrameConfig);
+        visible(): boolean;
+    }
+    export function newFrame(name?: string, config?: FrameConfig): Frame;
+    export function getFrame(name?: string): Frame;
+    export function filterFrames(predicate: (f: Frame) => boolean): Frame[];
+    export function allFrames(): Frame[];
+    export function goto(passageName: string, frameName?: string, transition?: boolean, skip?: boolean): void;
+    export function current(frame?: string): import("passage").default;
+    export function active(): import("passage").default[];
+}
 declare module "utils" {
     export function getAttribute(el: Element | null, attr: string): string;
     export function getTransitionDuration(el: Element): number;
+    export function updateFrame(v: string, k: string, transition: boolean): void;
 }
 declare module "story" {
     import Passage from "passage";
@@ -75,14 +106,6 @@ declare module "story" {
         init: typeof init;
     };
     export default _default_1;
-}
-declare module "config" {
-    import type Passage from "passage";
-    export default class Config {
-        static allowSave: (saveType: number, frame?: string, passage?: Passage) => boolean;
-        static storyInterface: ((start: string) => string) | undefined;
-        static frameClass: string;
-    }
 }
 declare module "markup/variable" {
     import type { RuleInline } from "markdown-it/lib/parser_inline.mjs";
@@ -130,27 +153,6 @@ declare module "engine" {
         runUserScripts: typeof runUserScripts;
     };
     export default _default_2;
-}
-declare module "frame" {
-    export interface FrameConfig {
-        history?: boolean;
-    }
-    export default class Frame {
-        #private;
-        name: string;
-        history: boolean;
-        get passage(): string | undefined;
-        set passage(value: string | undefined);
-        constructor(name: string, config?: FrameConfig);
-        visible(): boolean;
-    }
-    export function newFrame(name?: string, config?: FrameConfig): Frame;
-    export function getFrame(name?: string): Frame;
-    export function filterFrames(predicate: (f: Frame) => boolean): Frame[];
-    export function allFrames(): Frame[];
-    export function goto(passageName: string, frameName?: string, transition?: boolean, skip?: boolean): void;
-    export function current(frame?: string): import("passage").default;
-    export function active(): import("passage").default[];
 }
 declare module "alpine" {
     import Alpine from "alpinejs";
@@ -249,9 +251,13 @@ declare module "api" {
     const configAPI: {
         State: {
             allowSave: (type: number, frame?: string, passage?: Passage) => boolean;
+            localSaveName: string;
         };
         Story: {
             interface: ((start: string) => string) | undefined;
+        };
+        Frame: {
+            class: string;
         };
     };
 }
