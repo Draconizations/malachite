@@ -1,27 +1,84 @@
 import { frameQueue, play } from "./engine.ts"
 import { get } from "./story.ts"
 
-export function goto(frame: string, name: string, skip: boolean) {
-	const passage = get(name)
-	if (!passage) throw Error(`Frame.goto: Passage with name "${name}" not found.`)
+export interface FrameConfig {
+	history?: boolean
+}
 
-	frameQueue.set(frame, passage.name)
+const _frames: Frame[] = []
+
+export default class Frame {
+	name: string
+	history: boolean
+	#passage: string|undefined
+
+	get passage() {
+		return this.#passage
+	}
+	set passage(value: string|undefined) {
+		this.#passage = value
+	}
+
+	constructor(name: string, config?: FrameConfig) {
+		this.name = name
+		this.history = config?.history ?? true
+	}
+
+	visible() {
+		const els = Array.from(document.getElementsByTagName("*"))
+		for (const e of els) {
+			for (const a of Array.from(e.attributes)) {
+				if (a.name.startsWith(`x-frame:${this.name}`)) return true
+			}
+		}
+		return false
+	}
+}
+
+export function newFrame(name: string, config?: FrameConfig): Frame {
+	const f = new Frame(name.toLowerCase(), config)
+	_frames.push(f)
+	return f
+}
+
+export function getFrame(name: string): Frame {
+	const frame = _frames.find(f => f.name === name.toLowerCase())
+	if (!frame) return newFrame(name)
+	return frame
+}
+
+export function filterFrames(predicate: (f: Frame) => boolean): Frame[] {
+	return _frames.filter(predicate)
+}
+
+export function allFrames() {
+	return _frames
+}
+
+export function goto(frameName: string, passageName: string, skip: boolean) {
+	const passage = get(passageName)
+	if (!passage) throw Error(`Frame.goto: Passage with name "${passageName}" not found.`)
+
+	const frame = getFrame(frameName)
+
+	frameQueue.set(frameName, passage.name)
 
 	window.Alpine.nextTick(() => {
 		if (frameQueue.size > 0) {
-			frameQueue.forEach((v, k) => {
-				;(window.Alpine.store("story") as any)._frames[k] = v
-			})
+				frameQueue.forEach((v, k) => {
+					frame.passage = v
+					if (frame.history) (Alpine.store("story") as any)._frames[k] = frame.passage
+				})
 			frameQueue.clear()
 
 			if (!skip) {
-				play(frame, passage)
+				play(frameName, passage)
 			}
 		}
 	})
 }
 
-export function current(frame: string = "_") {
+export function current(frame = "_") {
 	const name = (window.Alpine.store("story") as any)._frames[frame]
 	if (!name) return
 	return get(name)

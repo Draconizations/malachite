@@ -135,12 +135,30 @@ declare module "alpine" {
     export default Alpine;
 }
 declare module "frame" {
+    export interface FrameConfig {
+        history?: boolean;
+    }
+    export default class Frame {
+        #private;
+        name: string;
+        history: boolean;
+        get passage(): string | undefined;
+        set passage(value: string | undefined);
+        constructor(name: string, config?: FrameConfig);
+        visible(): boolean;
+    }
+    export function newFrame(name: string, config?: FrameConfig): Frame;
+    export function getFrame(name: string): Frame;
+    export function filterFrames(predicate: (f: Frame) => boolean): Frame[];
+    export function allFrames(): Frame[];
     export function goto(frame: string, name: string, skip: boolean): void;
     export function current(frame?: string): import("passage").default;
     export function active(): import("passage").default[];
 }
 declare module "api" {
     import { type MAlpine } from "alpine";
+    import type Frame from "frame";
+    import { type FrameConfig } from "frame";
     import Passage from "passage";
     import { type emptyData } from "state";
     export default function (): void;
@@ -149,7 +167,7 @@ declare module "api" {
         const Story: typeof storyAPI;
         const Alpine: typeof alpineAPI;
         const State: typeof stateAPI;
-        const Frame: typeof frameAPI;
+        const Frames: typeof frameAPI;
         const Config: typeof configAPI;
         const $s: typeof emptyData & Record<string, any>;
         interface Window {
@@ -157,7 +175,7 @@ declare module "api" {
             Story: typeof storyAPI;
             Alpine: typeof alpineAPI;
             State: typeof stateAPI;
-            Frame: typeof frameAPI;
+            Frames: typeof frameAPI;
             Config: typeof configAPI;
             $s: typeof emptyData & Record<string, any>;
         }
@@ -185,6 +203,22 @@ declare module "api" {
         }>;
     };
     const frameAPI: {
+        /**
+         * Creates a new Frame object and initializes it with the given configuration
+         *
+         * Useful for changing Frame behavior
+         * @param name
+         * @param config
+         * @returns
+         */
+        new: (name: string, config: FrameConfig) => Frame;
+        /**
+         * Gets the instance of a Frame with the given name
+         * @param name
+         * @returns
+         */
+        get: (name: string) => Frame;
+        all: () => readonly Frame[];
         /**
          * Jumps to the specified passage. Uses the unnamed frame by default.
          * @param passage  The passage to jump to
