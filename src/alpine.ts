@@ -11,12 +11,13 @@ const recursionMax = 1000
 
 export const _frames: Record<string, { passage: string; transition: boolean; play: boolean }> =
 	Alpine.reactive({})
+
 export const _allowNavigation: {
 	back: boolean
 	forward: boolean
 } = Alpine.reactive({
-	back: true,
-	forward: true,
+	back: false,
+	forward: false,
 })
 
 function dPrint(data: Alpine.DirectiveData) {
