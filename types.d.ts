@@ -41,13 +41,13 @@ declare module "story" {
 }
 declare module "frame" {
     export interface FrameConfig {
-        history?: boolean;
+        state?: boolean;
     }
     export const _frames: Frame[];
     export default class Frame {
         #private;
         name: string;
-        history: boolean;
+        state: boolean;
         get passage(): string | undefined;
         set passage(value: string | undefined);
         constructor(name: string, config?: FrameConfig);
@@ -114,13 +114,13 @@ declare module "state" {
 }
 declare module "utils" {
     export interface FrameQueueEntry {
-        play: boolean;
         passage: string;
-        transition: boolean;
+        doTransition: boolean;
+        pushToState: boolean;
     }
     export function getAttribute(el: Element | null, attr: string): string;
     export function getTransitionDuration(el: Element): number;
-    export function runFrameQueue(clear: boolean, frameQueue: Map<string, FrameQueueEntry>): void;
+    export function runFrameQueue(pushToHistory: boolean, clearQueue: boolean, frameQueue: Map<string, FrameQueueEntry>): void;
 }
 declare module "markup/link" {
     import type { RuleInline } from "markdown-it/lib/parser_inline.mjs";
@@ -174,7 +174,6 @@ declare module "alpine" {
     export const _frames: Record<string, {
         passage: string;
         transition: boolean;
-        play: boolean;
     }>;
     export const _allowNavigation: {
         back: boolean;

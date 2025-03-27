@@ -4,14 +4,14 @@ import { get } from "./story.ts"
 import { runFrameQueue } from "./utils.ts"
 
 export interface FrameConfig {
-	history?: boolean
+	state?: boolean
 }
 
 export const _frames: Frame[] = []
 
 export default class Frame {
 	name: string
-	history: boolean
+	state: boolean
 	#passage: string | undefined
 
 	get passage() {
@@ -23,7 +23,7 @@ export default class Frame {
 
 	constructor(name: string, config?: FrameConfig) {
 		this.name = name
-		this.history = config?.history ?? true
+		this.state = config?.state ?? true
 	}
 
 	visible() {
@@ -67,12 +67,12 @@ export function goto(passageName: string, frameName = "_", transition = true, sk
 
 	frameQueue.set(frame.name, {
 		passage: passage.name,
-		pushToState: !skip,
+		pushToState: true,
 		doTransition: transition,
 	})
 
 	window.Alpine.nextTick(() => {
-		runFrameQueue(true, true, frameQueue)
+		runFrameQueue(!skip, true, frameQueue)
 	})
 }
 

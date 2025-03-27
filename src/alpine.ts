@@ -128,12 +128,12 @@ Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
 
 		frameQueue.set(frame.name, {
 			passage: passage.name,
-			pushToState: !data.modifiers.includes("!play"),
+			pushToState: true,
 			doTransition: !data.modifiers.includes("!change"),
 		})
 
 		Alpine.nextTick(() => {
-			runFrameQueue(true, true, frameQueue)
+			runFrameQueue(!data.modifiers.includes("!play"), true, frameQueue)
 		})
 	}
 

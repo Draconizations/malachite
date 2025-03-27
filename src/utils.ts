@@ -34,7 +34,7 @@ export function runFrameQueue(pushToHistory: boolean, clearQueue: boolean, frame
 		if (pushToHistory) play(frameQueue)
 
 		allFrames().forEach((f) => {
-			if (f.history && f.passage && frameQueue.get(f.name)?.pushToState !== false) $s._frames[f.name] = f.passage
+			if (f.state && f.passage) $s._frames[f.name] = f.passage
 		})
 
 		overwrite(frameQueue)
