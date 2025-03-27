@@ -1,5 +1,8 @@
 import pkg from "../package.json" with { type: "json" }
+import { _allowNavigation, _frames } from "./alpine.ts"
 import Config from "./config.ts"
+import { frameQueue, play } from "./engine.ts"
+import { runFrameQueue, type FrameQueueEntry } from "./utils.ts"
 
 type Data = {
 	_frames: Record<string, string>
@@ -15,8 +18,8 @@ export const emptyData: Data = {
 	_frames: {},
 }
 
-let _history: Snapshot[] = []
-let _index = -1
+export let _history: Snapshot[] = []
+export let _index = -1
 const _version = pkg.version
 
 export let max = 50
@@ -30,31 +33,55 @@ export const SaveType = {
 /**
  * Gets the current state in the history
  */
-export function current() {
-	if (_index === -1)
+export function current(index?: number) {
+	const i = index ?? _index
+	if (i === -1)
 		return {
 			title: "",
 			timestamp: "",
 			data: emptyData,
 		}
-	return _history[_index]
+	return _history[i]
 }
 
 
-export function jump(target: number, checkBounds = true) {
-	if (target === 0) return
+export function jump(target: number) {
+	const t = target
+	if (_index === _history.length - 1 && t < 0) {
+		snapshot(JSON.parse(JSON.stringify(window.Alpine.store("story"))))
+	}
 	
-	const min = _index * -1
-	const max = _history.length - (_index + 1)
+	let tt = _index + t
 
-	let t = target
 	// don't jump too far if we're checking the boundaries
-	if (checkBounds && min) t = min
-	if (checkBounds && target > max) t = max
+	if (tt < 0) tt = 0
+	if (tt > _history.length - 1) tt = _history.length - 1
 
-	_index = t
+	if (tt === _index) return
+
+	Object.entries(current(tt).data._frames).forEach(([k, v]) => {
+		frameQueue.set(k, {
+			passage: v,
+			transition: true,
+			play: false
+		})
+	})
+
+	_index = tt
+
 	window.Alpine.store("story", current().data)
 	window.$s = window.Alpine.store("story") as any
+	
+	runFrameQueue(false, frameQueue)
+
+	const frameMap = new Map<string,string>(Array.from(frameQueue.entries()).map(([k, v]) => [k, v.passage]))
+
+	// TODO: check if autosaving is enabled
+	if (Config.allowSave(0 /* AUTO */, frameMap) === true) {
+		setLocalSave(_history, _index)
+	}
+
+	updateNavigation()
 }
 
 /**
@@ -78,30 +105,40 @@ export function load(encodedData?: string) {
 		? JSON.parse(encodedData)
 		: {
 				version: _version,
-				history: [],
-				index: -1,
+				history: [emptyData],
+				index: 0,
 			}
 
-	_history = data.history ?? []
+	_history = data.history
 	_index = data.index
 	max = 50
 
 	window.Alpine.store("story", current().data)
 	window.$s = window.Alpine.store("story") as any
+
+	if (Config.allowSave(0 /* AUTO */) === true) {
+		setLocalSave(_history, _index)
+	}
+
+	updateNavigation()
+}
+
+export function snapshot(data: Data, title?: string) {
+	const snap = createSnapshot(data, title)
+	_history[_index] = snap
 }
 
 /**
  * Creates a new moment in the history, replacing the current moment with the new moment.
  */
-export function push(data?: Data, title?: string) {
-	const snap = snapshot(data, title)
-
+export function push(data: Data, frames?: Map<string,FrameQueueEntry>, title?: string) {
+	snapshot(data, title)
+	
 	// check if we need to slice off future history
-	if (_index >= _history.length) {
+	if (_index < _history.length - 1) {
 		_history.length = _index + 1
 	}
 
-	_history.push(snap)
 	_index++
 
 	// check how many snapshots we're over the maximum
@@ -111,14 +148,29 @@ export function push(data?: Data, title?: string) {
 		_index -= extra
 	}
 
-	// TODO: check if autosaving is enabled
-	setLocalSave(_history, _index)
+	const frameMap = new Map<string,string>(Array.from(frames?.entries() ?? []).map(([k, v]) => [k, v.passage]))
+
+	if (Config.allowSave(0 /* AUTO */, frameMap) === true) {
+		setLocalSave(_history, _index)
+	}
+
+	updateNavigation()
+}
+
+export function overwrite(frames: Map<string, FrameQueueEntry> = new Map()) {
+		const frameMap = new Map<string,string>(Array.from(frames?.entries() ?? []).map(([k, v]) => [k, v.passage]))
+
+		// create a new snapshot for the current state
+		snapshot($s)
+		if (Config.allowSave(0 /* AUTO */, frameMap) === true) {
+			setLocalSave(_history, _index)
+		}
 }
 
 /**
  * Creates a snapshot with a given title and data set.
  */
-export function snapshot(data?: Data, title?: string): Snapshot {
+export function createSnapshot(data?: Data, title?: string): Snapshot {
 	const d = (data as Record<string, any>) ?? emptyData
 
 	// TODO: perform any data manipulation defined in user scripts here.
@@ -171,6 +223,11 @@ function location(index = -1) {
 	const i = index === -1 ? "auto" : index.toString()
 
 	return [prefix, name, i].join(separator)
+}
+
+export function updateNavigation() {
+	_allowNavigation.back = _history.length > 1
+	_allowNavigation.forward = _index < _history.length - 1
 }
 
 export default {

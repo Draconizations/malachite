@@ -2,9 +2,8 @@ declare module "html" {
     export const defaultLayout: (start: string) => string;
 }
 declare module "config" {
-    import type Passage from "passage";
     export default class Config {
-        static allowSave: (saveType: number, frame?: string, passage?: Passage) => boolean;
+        static allowSave: (saveType: number, frames?: Map<string, string>) => boolean;
         static storyInterface: ((start: string) => string) | undefined;
         static frameClass: string;
         static localSaveName: string;
@@ -20,6 +19,8 @@ declare module "state" {
         data: Data;
     };
     export const emptyData: Data;
+    export let _history: Snapshot[];
+    export let _index: number;
     export let max: number;
     export const SaveType: {
         AUTO: number;
@@ -29,7 +30,7 @@ declare module "state" {
     /**
      * Gets the current state in the history
      */
-    export function current(): Snapshot;
+    export function current(index?: number): Snapshot;
     export function jump(target: number, checkBounds?: boolean): void;
     /**
      * Initializes the state
@@ -87,7 +88,7 @@ declare module "frame" {
 declare module "utils" {
     export function getAttribute(el: Element | null, attr: string): string;
     export function getTransitionDuration(el: Element): number;
-    export function updateFrame(v: string, k: string, transition: boolean): void;
+    export function runFrameQueue(frameQueue: Map<string, string>, allowPlay: boolean, transition: boolean): void;
 }
 declare module "story" {
     import Passage from "passage";
@@ -128,7 +129,6 @@ declare module "markup/index" {
     export const render: (el: Element, source: string, skip?: boolean) => Promise<void>;
 }
 declare module "engine" {
-    import type Passage from "passage";
     export const version: string;
     export const frameQueue: Map<string, string>;
     /**
@@ -150,7 +150,7 @@ declare module "engine" {
      * **Note:** this function is (by default) automatically triggered on passage navigation, i.e. by `x-link` or
      * `Frame.goto()`. It can be called manually as well.
      */
-    export function play(frame?: string, passage?: Passage): void;
+    export function play(frames?: Map<string, string>): void;
     const _default_2: {
         init: typeof init;
         start: typeof start;
@@ -164,6 +164,10 @@ declare module "alpine" {
         passage: string;
         transition: boolean;
     }>;
+    export const _allowNavigation: {
+        back: boolean;
+        forward: boolean;
+    };
     export type MAlpine = typeof Alpine;
     export default Alpine;
 }
@@ -218,6 +222,8 @@ declare module "api" {
         forward: () => void;
         jump: (target: number) => void;
         restart: () => void;
+        allowBack: boolean;
+        allowForward: boolean;
     };
     const frameAPI: {
         /**
@@ -258,7 +264,7 @@ declare module "api" {
     };
     const configAPI: {
         State: {
-            allowSave: (type: number, frame?: string, passage?: Passage) => boolean;
+            allowSave: (type: number, frames?: Map<string, string>) => boolean;
             localSaveName: string;
         };
         Story: {

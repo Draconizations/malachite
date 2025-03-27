@@ -1,13 +1,13 @@
 import { frameQueue, play } from "./engine.ts"
 import { get } from "./story.ts"
 import { _frames as _aFrames } from "./alpine.ts"
-import { updateFrame } from "./utils.ts"
+import { runFrameQueue } from "./utils.ts"
 
 export interface FrameConfig {
 	history?: boolean
 }
 
-const _frames: Frame[] = []
+export const _frames: Frame[] = []
 
 export default class Frame {
 	name: string
@@ -65,19 +65,14 @@ export function goto(passageName: string, frameName = "_", transition = true, sk
 
 	const frame = getFrame(frameName)
 
-	frameQueue.set(frame.name, passage.name)
+	frameQueue.set(frame.name, {
+		passage: passage.name,
+		play: !skip,
+		transition
+	})
 
 	window.Alpine.nextTick(() => {
-		if (frameQueue.size > 0) {
-				frameQueue.forEach((v, k) => {
-					updateFrame(v, k, transition)
-				})
-			frameQueue.clear()
-
-			if (!skip) {
-				play(frameName, passage)
-			}
-		}
+		runFrameQueue(false, frameQueue)
 	})
 }
 

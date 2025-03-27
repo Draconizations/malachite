@@ -17,7 +17,6 @@ import { emptyData } from "./state.ts";
 	
 	Engine.runUserScripts()
 	State.init()
-	window.$s = Alpine.store("story") as any // clone the object again because we reassigned it in State.init()
 
 	// TODO: load any potential startup passages here?
 

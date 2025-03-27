@@ -4,7 +4,7 @@
   Since this will interface with plain javascript, we should thoroughly check types!
 */
 
-import _Alpine, { type MAlpine } from "./alpine.ts"
+import _Alpine, { _allowNavigation, type MAlpine } from "./alpine.ts"
 import _Config from "./config.ts"
 import { play, version } from "./engine.ts"
 import type Frame from "./frame.ts"
@@ -19,7 +19,7 @@ import {
 } from "./frame.ts"
 import { markup, render } from "./markup/index.ts"
 import Passage from "./passage.ts"
-import { jump, load, SaveType, type emptyData } from "./state.ts"
+import { _history, _index, jump, load, SaveType, type emptyData } from "./state.ts"
 import { filter, find, get, has, ifID, storyTitle, start } from "./story.ts"
 
 export default function () {
@@ -136,7 +136,9 @@ const stateAPI = {
 	},
 	restart: () => {
 		load()
-	}
+	},
+	allowBack: _allowNavigation.back,
+	allowForward: _allowNavigation.forward, 
 }
 
 const frameAPI = {
@@ -203,7 +205,7 @@ const frameAPI = {
 
 const configAPI = {
 	State: {
-		get allowSave(): (type: number, frame?: string, passage?: Passage) => boolean {
+		get allowSave(): (type: number, frames?: Map<string,string>) => boolean {
 			return _Config.allowSave
 		},
 		set allowSave(value) {

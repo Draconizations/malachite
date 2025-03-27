@@ -1,15 +1,16 @@
 import { defaultLayout } from "./html.ts"
 import pkg from "../package.json" with { type: "json" }
-import { push, SaveType } from "./state.ts"
+import { _history, push } from "./state.ts"
 import { getScripts, getStyles, start as storyStart } from "./story.ts"
 import Config from "./config.ts"
-import type Passage from "passage"
 import { render } from "./markup/index.ts"
+import { _allowNavigation } from "./alpine.ts"
+import type { FrameQueueEntry } from "./utils.ts"
 
 export const version: string = pkg.version
 const _viewport = document.querySelector("#mala-viewport") || document.createElement("div")
 
-export const frameQueue = new Map<string, string>()
+export const frameQueue = new Map<string, FrameQueueEntry>()
 /**
  * Initializes the Engine
  *
@@ -22,18 +23,20 @@ export function init() {
 export function runUserScripts() {
 	// load the user styles
 	const storyStyle = document.createElement("style")
-	storyStyle.innerText = getStyles().map(p => p.source).join("\n")
+	storyStyle.innerText = getStyles()
+		.map((p) => p.source)
+		.join("\n")
 
 	storyStyle.id = "story-style"
 	storyStyle.setAttribute("type", "text/css")
-	
+
 	document.head.appendChild(storyStyle)
 
 	// run the user scripts
-	getScripts().forEach(p => {
+	getScripts().forEach((p) => {
 		try {
 			new Function(p.source)()
-		} catch(e) {
+		} catch (e) {
 			console.error(e)
 			// TODO: integrate this with the future error handling system
 		}
@@ -52,7 +55,7 @@ export async function start() {
 	if (typeof Config.storyInterface === "function") {
 		render(_viewport, Config.storyInterface(startPassage), true)
 	} else {
-	  render(_viewport, defaultLayout(startPassage), true)
+		render(_viewport, defaultLayout(startPassage), true)
 	}
 }
 
@@ -62,15 +65,13 @@ export async function start() {
  * **Note:** this function is (by default) automatically triggered on passage navigation, i.e. by `x-link` or
  * `Frame.goto()`. It can be called manually as well.
  */
-export function play(frame?: string, passage?: Passage) {
+export function play(frames: Map<string, FrameQueueEntry> = new Map<string, FrameQueueEntry>) {
 	// check if autosaving is allowed
-	if (Config.allowSave(0 /* AUTO */, frame, passage) === true) {
-		push(JSON.parse(JSON.stringify(window.Alpine.store("story"))))
-	}
+	push(JSON.parse(JSON.stringify($s)), frames)
 }
 
 export default {
 	init,
 	start,
-	runUserScripts
+	runUserScripts,
 }
