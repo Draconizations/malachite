@@ -9,7 +9,7 @@ export default class Config {
 	// USER INTERFACE
 	static storyInterface: ((start: string) => string) | undefined
 
-	static frameClass = "frame"
+	static frameClass = "mala-frame"
 
 	static localSaveName = "mala"
 }

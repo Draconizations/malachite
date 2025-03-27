@@ -4,7 +4,7 @@ import { frameQueue } from "./engine.ts"
 import { getFrame } from "./frame.ts"
 import { render } from "./markup/index.ts"
 import { get } from "./story.ts"
-import { runFrameQueue } from "./utils.ts"
+import { getTransitionDuration, runFrameQueue } from "./utils.ts"
 
 let recursionCount = 0
 const recursionMax = 1000
@@ -141,6 +141,24 @@ Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
 
 	cleanup(() => {
 		el.removeEventListener("click", callback)
+	})
+})
+
+Alpine.directive("fade", (el, { expression }, { evaluateLater, effect }) => {
+	// TODO: make this configurable
+	el.classList.add("mala-fade")
+
+	const crossfade = evaluateLater(expression)
+
+	effect(() => {
+		crossfade(async () => {
+			const duration = getTransitionDuration(el)
+				if (duration) {
+					el.classList.add("fading")
+					await new Promise((res) => setTimeout(res, duration))
+					el.classList.remove("fading")
+				}
+		})
 	})
 })
 
