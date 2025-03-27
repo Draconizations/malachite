@@ -231,7 +231,7 @@ function location(index = -1) {
 }
 
 export function updateNavigation() {
-	_allowNavigation.back = _history.length > 1
+	_allowNavigation.back = _history.length > 0
 	_allowNavigation.forward = _index < _history.length - 1
 }
 
