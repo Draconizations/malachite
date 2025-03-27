@@ -1,21 +1,22 @@
 import Alpine from "alpinejs"
+import Config from "./config.ts"
 import { frameQueue } from "./engine.ts"
+import { getFrame } from "./frame.ts"
 import { render } from "./markup/index.ts"
 import { get } from "./story.ts"
-import { getFrame } from "./frame.ts"
-import Config from "./config.ts"
 import { runFrameQueue } from "./utils.ts"
 
 let recursionCount = 0
 const recursionMax = 1000
 
-export const _frames: Record<string, { passage: string, transition: boolean, play: boolean }> = Alpine.reactive({})
+export const _frames: Record<string, { passage: string; transition: boolean; play: boolean }> =
+	Alpine.reactive({})
 export const _allowNavigation: {
-	back: boolean,
+	back: boolean
 	forward: boolean
 } = Alpine.reactive({
 	back: true,
-	forward: true
+	forward: true,
 })
 
 function dPrint(data: Alpine.DirectiveData) {
@@ -29,11 +30,9 @@ function dPrint(data: Alpine.DirectiveData) {
 
 function checkRecursion(location: string) {
 	if (recursionCount >= recursionMax) {
-		throw Error(
-			`${location}: Infinite recursion detected while trying to render passage.`,
-		)
+		throw Error(`${location}: Infinite recursion detected while trying to render passage.`)
 	}
-	recursionCount ++
+	recursionCount++
 }
 
 // directly renders a passage inside another
@@ -74,23 +73,28 @@ Alpine.directive("frame", (el, data, { evaluate, effect }) => {
 	const passage = get(passageName)
 	if (!passage) throw Error(`${dPrint(data)}: passage with name "${passageName}" not found.`)
 
-	const p = (Alpine.store("story") as any)._frames[frameName] === undefined || data.modifiers.includes("overwrite")
-		? passage.name
-		: (Alpine.store("story") as any)._frames[frameName]
-	
+	const p =
+		(Alpine.store("story") as any)._frames[frameName] === undefined ||
+		data.modifiers.includes("overwrite")
+			? passage.name
+			: (Alpine.store("story") as any)._frames[frameName]
+
 	frameQueue.set(frame.name, {
 		passage: p,
 		play: false,
-		transition: false
+		transition: false,
 	})
 
 	runFrameQueue(false, frameQueue)
 
 	effect(() => {
 		if (_frames[frame.name]) {
-			const goto =  get(_frames[frame.name].passage)
-			if (!goto) throw Error(`${dPrint(data)}: passage with name "${_frames[frame.name].passage}" not found.`)
-				
+			const goto = get(_frames[frame.name].passage)
+			if (!goto)
+				throw Error(
+					`${dPrint(data)}: passage with name "${_frames[frame.name].passage}" not found.`,
+				)
+
 			render(el, goto.source, !_frames[frame.name].transition)
 
 			Alpine.nextTick(() => {
@@ -124,7 +128,7 @@ Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
 		frameQueue.set(frame.name, {
 			passage: passage.name,
 			play: !data.modifiers.includes("!play"),
-			transition: !data.modifiers.includes("!change")
+			transition: !data.modifiers.includes("!change"),
 		})
 
 		Alpine.nextTick(() => {

@@ -2,7 +2,7 @@ import pkg from "../package.json" with { type: "json" }
 import { _allowNavigation, _frames } from "./alpine.ts"
 import Config from "./config.ts"
 import { frameQueue, play } from "./engine.ts"
-import { runFrameQueue, type FrameQueueEntry } from "./utils.ts"
+import { type FrameQueueEntry, runFrameQueue } from "./utils.ts"
 
 type Data = {
 	_frames: Record<string, string>
@@ -44,13 +44,12 @@ export function current(index?: number) {
 	return _history[i]
 }
 
-
 export function jump(target: number) {
 	const t = target
 	if (_index === _history.length - 1 && t < 0) {
 		snapshot(JSON.parse(JSON.stringify(window.Alpine.store("story"))))
 	}
-	
+
 	let tt = _index + t
 
 	// don't jump too far if we're checking the boundaries
@@ -63,7 +62,7 @@ export function jump(target: number) {
 		frameQueue.set(k, {
 			passage: v,
 			transition: true,
-			play: false
+			play: false,
 		})
 	})
 
@@ -71,10 +70,12 @@ export function jump(target: number) {
 
 	window.Alpine.store("story", current().data)
 	window.$s = window.Alpine.store("story") as any
-	
+
 	runFrameQueue(false, frameQueue)
 
-	const frameMap = new Map<string,string>(Array.from(frameQueue.entries()).map(([k, v]) => [k, v.passage]))
+	const frameMap = new Map<string, string>(
+		Array.from(frameQueue.entries()).map(([k, v]) => [k, v.passage]),
+	)
 
 	// TODO: check if autosaving is enabled
 	if (Config.allowSave(0 /* AUTO */, frameMap) === true) {
@@ -131,9 +132,9 @@ export function snapshot(data: Data, title?: string) {
 /**
  * Creates a new moment in the history, replacing the current moment with the new moment.
  */
-export function push(data: Data, frames?: Map<string,FrameQueueEntry>, title?: string) {
+export function push(data: Data, frames?: Map<string, FrameQueueEntry>, title?: string) {
 	snapshot(data, title)
-	
+
 	// check if we need to slice off future history
 	if (_index < _history.length - 1) {
 		_history.length = _index + 1
@@ -148,7 +149,9 @@ export function push(data: Data, frames?: Map<string,FrameQueueEntry>, title?: s
 		_index -= extra
 	}
 
-	const frameMap = new Map<string,string>(Array.from(frames?.entries() ?? []).map(([k, v]) => [k, v.passage]))
+	const frameMap = new Map<string, string>(
+		Array.from(frames?.entries() ?? []).map(([k, v]) => [k, v.passage]),
+	)
 
 	if (Config.allowSave(0 /* AUTO */, frameMap) === true) {
 		setLocalSave(_history, _index)
@@ -158,13 +161,15 @@ export function push(data: Data, frames?: Map<string,FrameQueueEntry>, title?: s
 }
 
 export function overwrite(frames: Map<string, FrameQueueEntry> = new Map()) {
-		const frameMap = new Map<string,string>(Array.from(frames?.entries() ?? []).map(([k, v]) => [k, v.passage]))
+	const frameMap = new Map<string, string>(
+		Array.from(frames?.entries() ?? []).map(([k, v]) => [k, v.passage]),
+	)
 
-		// create a new snapshot for the current state
-		snapshot($s)
-		if (Config.allowSave(0 /* AUTO */, frameMap) === true) {
-			setLocalSave(_history, _index)
-		}
+	// create a new snapshot for the current state
+	snapshot($s)
+	if (Config.allowSave(0 /* AUTO */, frameMap) === true) {
+		setLocalSave(_history, _index)
+	}
 }
 
 /**
@@ -231,5 +236,5 @@ export function updateNavigation() {
 }
 
 export default {
-	init
+	init,
 }

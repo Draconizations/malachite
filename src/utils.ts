@@ -4,9 +4,9 @@ import { allFrames, getFrame } from "./frame.ts"
 import { overwrite } from "./state.ts"
 
 export interface FrameQueueEntry {
-	play: boolean,
-	passage: string,
-	transition: boolean,
+	play: boolean
+	passage: string
+	transition: boolean
 }
 
 export function getAttribute(el: Element | null, attr: string) {
@@ -14,9 +14,8 @@ export function getAttribute(el: Element | null, attr: string) {
 }
 
 export function getTransitionDuration(el: Element) {
-	return (Number.parseFloat(window.getComputedStyle(el).transitionDuration) * 1000)
+	return Number.parseFloat(window.getComputedStyle(el).transitionDuration) * 1000
 }
-
 
 export function runFrameQueue(clear: boolean, frameQueue: Map<string, FrameQueueEntry>) {
 	let shouldPlay = false
@@ -32,7 +31,7 @@ export function runFrameQueue(clear: boolean, frameQueue: Map<string, FrameQueue
 			_frames[k] = {
 				passage: v.passage,
 				transition: v.transition,
-				play: v.play
+				play: v.play,
 			}
 		})
 

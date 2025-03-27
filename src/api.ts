@@ -8,19 +8,11 @@ import _Alpine, { _allowNavigation, type MAlpine } from "./alpine.ts"
 import _Config from "./config.ts"
 import { play, version } from "./engine.ts"
 import type Frame from "./frame.ts"
-import {
-	current,
-	active,
-	goto,
-	type FrameConfig,
-	newFrame,
-	getFrame,
-	allFrames,
-} from "./frame.ts"
+import { type FrameConfig, active, allFrames, current, getFrame, goto, newFrame } from "./frame.ts"
 import { markup, render } from "./markup/index.ts"
 import Passage from "./passage.ts"
-import { _history, _index, jump, load, SaveType, type emptyData } from "./state.ts"
-import { filter, find, get, has, ifID, storyTitle, start } from "./story.ts"
+import { SaveType, _history, _index, type emptyData, jump, load } from "./state.ts"
+import { filter, find, get, has, ifID, start, storyTitle } from "./story.ts"
 
 export default function () {
 	window.Engine = engineAPI
@@ -84,7 +76,7 @@ const engineAPI = {
 				"Engine.render: parameter 'source' must be a string or an instance of Passage.",
 			)
 		render(el, source, skip)
-	}
+	},
 }
 
 const storyAPI = {
@@ -138,7 +130,7 @@ const stateAPI = {
 		load()
 	},
 	allowBack: _allowNavigation.back,
-	allowForward: _allowNavigation.forward, 
+	allowForward: _allowNavigation.forward,
 }
 
 const frameAPI = {
@@ -161,7 +153,8 @@ const frameAPI = {
 	 * @returns
 	 */
 	get: (name?: string): Readonly<Frame> => {
-		if (name && typeof name !== "string") throw TypeError("Frame.get: parameter 'name' must be a string.")
+		if (name && typeof name !== "string")
+			throw TypeError("Frame.get: parameter 'name' must be a string.")
 		return getFrame(name)
 	},
 
@@ -191,7 +184,7 @@ const frameAPI = {
 	 * @param frame
 	 * @returns
 	 */
-	current: (frame: string|undefined = "_"): Passage | undefined => {
+	current: (frame: string | undefined = "_"): Passage | undefined => {
 		return current(frame)
 	},
 	/**
@@ -205,7 +198,7 @@ const frameAPI = {
 
 const configAPI = {
 	State: {
-		get allowSave(): (type: number, frames?: Map<string,string>) => boolean {
+		get allowSave(): (type: number, frames?: Map<string, string>) => boolean {
 			return _Config.allowSave
 		},
 		set allowSave(value) {
@@ -216,7 +209,7 @@ const configAPI = {
 		},
 		set localSaveName(value: string) {
 			_Config.localSaveName = value
-		}
+		},
 	},
 	Story: {
 		get interface(): ((start: string) => string) | undefined {
@@ -232,6 +225,6 @@ const configAPI = {
 		},
 		set class(value: string) {
 			_Config.frameClass = value
-		}
-	}
+		},
+	},
 }

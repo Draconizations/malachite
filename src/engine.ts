@@ -1,10 +1,10 @@
-import { defaultLayout } from "./html.ts"
 import pkg from "../package.json" with { type: "json" }
+import { _allowNavigation } from "./alpine.ts"
+import Config from "./config.ts"
+import { defaultLayout } from "./html.ts"
+import { render } from "./markup/index.ts"
 import { _history, push } from "./state.ts"
 import { getScripts, getStyles, start as storyStart } from "./story.ts"
-import Config from "./config.ts"
-import { render } from "./markup/index.ts"
-import { _allowNavigation } from "./alpine.ts"
 import type { FrameQueueEntry } from "./utils.ts"
 
 export const version: string = pkg.version
@@ -65,7 +65,7 @@ export async function start() {
  * **Note:** this function is (by default) automatically triggered on passage navigation, i.e. by `x-link` or
  * `Frame.goto()`. It can be called manually as well.
  */
-export function play(frames: Map<string, FrameQueueEntry> = new Map<string, FrameQueueEntry>) {
+export function play(frames: Map<string, FrameQueueEntry> = new Map<string, FrameQueueEntry>()) {
 	// check if autosaving is allowed
 	push(JSON.parse(JSON.stringify($s)), frames)
 }

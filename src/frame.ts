@@ -1,6 +1,6 @@
+import { _frames as _aFrames } from "./alpine.ts"
 import { frameQueue, play } from "./engine.ts"
 import { get } from "./story.ts"
-import { _frames as _aFrames } from "./alpine.ts"
 import { runFrameQueue } from "./utils.ts"
 
 export interface FrameConfig {
@@ -12,12 +12,12 @@ export const _frames: Frame[] = []
 export default class Frame {
 	name: string
 	history: boolean
-	#passage: string|undefined
+	#passage: string | undefined
 
 	get passage() {
 		return this.#passage
 	}
-	set passage(value: string|undefined) {
+	set passage(value: string | undefined) {
 		this.#passage = value
 	}
 
@@ -46,7 +46,7 @@ export function newFrame(name?: string, config?: FrameConfig): Frame {
 
 export function getFrame(name?: string): Frame {
 	const n = name ?? "_"
-	const frame = _frames.find(f => f.name === n.toLowerCase())
+	const frame = _frames.find((f) => f.name === n.toLowerCase())
 	if (!frame) return newFrame(name)
 	return frame
 }
@@ -68,7 +68,7 @@ export function goto(passageName: string, frameName = "_", transition = true, sk
 	frameQueue.set(frame.name, {
 		passage: passage.name,
 		play: !skip,
-		transition
+		transition,
 	})
 
 	window.Alpine.nextTick(() => {
@@ -84,5 +84,5 @@ export function current(frame = "_") {
 
 export function active() {
 	const names = Object.values((window.Alpine.store("story") as any)._frames) as string[]
-	return names.map(n => get(n))
+	return names.map((n) => get(n))
 }

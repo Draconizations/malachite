@@ -1,10 +1,10 @@
 import _commonjs from "@rollup/plugin-commonjs"
+import _json from "@rollup/plugin-json"
 import _resolve from "@rollup/plugin-node-resolve"
 import _swc from "@rollup/plugin-swc"
 import _terser from "@rollup/plugin-terser"
 import { type OutputOptions, type RollupBuild, type RollupOptions, rollup } from "rollup"
 import _polyfill from "rollup-plugin-polyfill-node"
-import _json from "@rollup/plugin-json"
 
 // typescript shenanigans...
 const swc = _swc as unknown as typeof _swc.default
@@ -79,7 +79,7 @@ async function build(input: string, output: string) {
 }
 
 const input = "./src/malachite.ts"
-const sharedPlugins = [ json(), resolve(), commonjs(), polyfill(), swc()]
+const sharedPlugins = [json(), resolve(), commonjs(), polyfill(), swc()]
 
 const options: (RollupOptions & { output: OutputOptions })[] = [
 	{

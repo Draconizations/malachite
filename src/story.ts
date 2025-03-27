@@ -38,13 +38,19 @@ export function init() {
 	}
 
 	// get the user styles
-	const scripts = _storyData?.querySelectorAll(`script[type="text/twine-javascript"]`) as unknown as HTMLScriptElement[] || []
+	const scripts =
+		(_storyData?.querySelectorAll(
+			`script[type="text/twine-javascript"]`,
+		) as unknown as HTMLScriptElement[]) || []
 	scripts.forEach((s, i) => {
 		_scripts.push(new Passage(`tw-user-script-${i}`, [], s.innerText))
 	})
 
 	// same for the user styles
-	const styles = _storyData?.querySelectorAll(`style[type="text/twine-css"]`) as unknown as HTMLStyleElement[] || []
+	const styles =
+		(_storyData?.querySelectorAll(
+			`style[type="text/twine-css"]`,
+		) as unknown as HTMLStyleElement[]) || []
 	styles.forEach((s, i) => {
 		_styles.push(new Passage(`tw-user-style-${i}`, [], s.innerText))
 	})
@@ -82,5 +88,5 @@ export function getScripts() {
 }
 
 export default {
-	init
+	init,
 }
