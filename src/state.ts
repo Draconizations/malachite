@@ -61,8 +61,8 @@ export function jump(target: number) {
 	Object.entries(current(tt).data._frames).forEach(([k, v]) => {
 		frameQueue.set(k, {
 			passage: v,
-			transition: true,
-			play: false,
+			doTransition: true,
+			pushToState: false,
 		})
 	})
 
@@ -71,7 +71,7 @@ export function jump(target: number) {
 	window.Alpine.store("story", current().data)
 	window.$s = window.Alpine.store("story") as any
 
-	runFrameQueue(false, frameQueue)
+	runFrameQueue(false, false, frameQueue)
 
 	const frameMap = new Map<string, string>(
 		Array.from(frameQueue.entries()).map(([k, v]) => [k, v.passage]),

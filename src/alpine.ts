@@ -9,7 +9,7 @@ import { runFrameQueue } from "./utils.ts"
 let recursionCount = 0
 const recursionMax = 1000
 
-export const _frames: Record<string, { passage: string; transition: boolean; play: boolean }> =
+export const _frames: Record<string, { passage: string; transition: boolean }> =
 	Alpine.reactive({})
 
 export const _allowNavigation: {
@@ -82,11 +82,11 @@ Alpine.directive("frame", (el, data, { evaluate, effect }) => {
 
 	frameQueue.set(frame.name, {
 		passage: p,
-		play: false,
-		transition: false,
+		doTransition: false,
+		pushToState: true
 	})
 
-	runFrameQueue(false, frameQueue)
+	runFrameQueue(false, false, frameQueue)
 
 	effect(() => {
 		if (_frames[frame.name]) {
@@ -128,12 +128,12 @@ Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
 
 		frameQueue.set(frame.name, {
 			passage: passage.name,
-			play: !data.modifiers.includes("!play"),
-			transition: !data.modifiers.includes("!change"),
+			pushToState: !data.modifiers.includes("!play"),
+			doTransition: !data.modifiers.includes("!change"),
 		})
 
 		Alpine.nextTick(() => {
-			runFrameQueue(true, frameQueue)
+			runFrameQueue(true, true, frameQueue)
 		})
 	}
 

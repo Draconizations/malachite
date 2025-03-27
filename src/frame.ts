@@ -67,12 +67,12 @@ export function goto(passageName: string, frameName = "_", transition = true, sk
 
 	frameQueue.set(frame.name, {
 		passage: passage.name,
-		play: !skip,
-		transition,
+		pushToState: !skip,
+		doTransition: transition,
 	})
 
 	window.Alpine.nextTick(() => {
-		runFrameQueue(false, frameQueue)
+		runFrameQueue(true, true, frameQueue)
 	})
 }
 
