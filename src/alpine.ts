@@ -40,6 +40,7 @@ Alpine.directive("passage", (el, data, { evaluate }) => {
 	checkRecursion(dPrint(data))
 
 	const name = evaluate(data.expression)
+	const contents = el.innerHTML
 
 	if (typeof name !== "string") {
 		throw new TypeError(`${dPrint(data)}: expression did not evaluate to a string.`)
@@ -48,6 +49,12 @@ Alpine.directive("passage", (el, data, { evaluate }) => {
 	if (!passage) throw Error(`${dPrint(data)}: passage with name "${name}" not found.`)
 
 	render(el, passage.source, true)
+
+	const replace = el.querySelector('[x-contents]')
+	if (replace) {
+		replace.innerHTML = contents
+	}
+
 	Alpine.nextTick(() => {
 		recursionCount = 0
 	})
