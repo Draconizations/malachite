@@ -17,7 +17,11 @@ export function getTransitionDuration(el: Element) {
 	return Number.parseFloat(window.getComputedStyle(el).transitionDuration) * 1000
 }
 
-export function runFrameQueue(pushToHistory: boolean, clearQueue: boolean, frameQueue: Map<string, FrameQueueEntry>) {
+export function runFrameQueue(
+	pushToHistory: boolean,
+	clearQueue: boolean,
+	frameQueue: Map<string, FrameQueueEntry>,
+) {
 	if (frameQueue.size > 0) {
 		frameQueue.forEach((v, k) => {
 			const frame = getFrame(k)

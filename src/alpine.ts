@@ -9,8 +9,7 @@ import { getTransitionDuration, runFrameQueue } from "./utils.ts"
 let recursionCount = 0
 const recursionMax = 1000
 
-export const _frames: Record<string, { passage: string; transition: boolean }> =
-	Alpine.reactive({})
+export const _frames: Record<string, { passage: string; transition: boolean }> = Alpine.reactive({})
 
 export const _allowNavigation: {
 	back: boolean
@@ -83,7 +82,7 @@ Alpine.directive("frame", (el, data, { evaluate, effect }) => {
 	frameQueue.set(frame.name, {
 		passage: p,
 		doTransition: false,
-		pushToState: true
+		pushToState: true,
 	})
 
 	runFrameQueue(false, false, frameQueue)
@@ -153,20 +152,21 @@ Alpine.directive("fade", (el, { expression }, { evaluateLater, effect }) => {
 	effect(() => {
 		crossfade(async () => {
 			const duration = getTransitionDuration(el)
-				if (duration) {
-					el.classList.add("fading")
-					await new Promise((res) => setTimeout(res, duration))
-					el.classList.remove("fading")
-				}
+			if (duration) {
+				el.classList.add("fading")
+				await new Promise((res) => setTimeout(res, duration))
+				el.classList.remove("fading")
+			}
 		})
 	})
 })
 
-Alpine.directive("reveal", (el, data, { evaluate}) => {
+Alpine.directive("reveal", (el, data, { evaluate }) => {
 	el.classList.add("mala-reveal", "hide")
 
 	const text = evaluate(data.expression)
-	if (typeof text !== "string") throw Error(`${dPrint(data)}: expression did not evaluate to a string`)
+	if (typeof text !== "string")
+		throw Error(`${dPrint(data)}: expression did not evaluate to a string`)
 
 	const contents = el.innerHTML
 
@@ -177,31 +177,35 @@ Alpine.directive("reveal", (el, data, { evaluate}) => {
 	el.innerHTML = ""
 	el.appendChild(btn)
 
-	btn.addEventListener("click", async () => {
-		const duration = getTransitionDuration(el)
-		if (duration) {
-			el.classList.add("fading")
-			await new Promise((res) => setTimeout(res, duration))
-		}
+	btn.addEventListener(
+		"click",
+		async () => {
+			const duration = getTransitionDuration(el)
+			if (duration) {
+				el.classList.add("fading")
+				await new Promise((res) => setTimeout(res, duration))
+			}
 
-		const div = document.createElement("div")
-		div.innerHTML = contents
+			const div = document.createElement("div")
+			div.innerHTML = contents
 
-		el.classList.remove("hide")
-		el.classList.add("show")
-		
-		if (data.modifiers.includes("keep")) {
-			btn.disabled = true
-		} else {
-			el.innerHTML = ""
-		}
+			el.classList.remove("hide")
+			el.classList.add("show")
 
-		el.appendChild(div)
+			if (data.modifiers.includes("keep")) {
+				btn.disabled = true
+			} else {
+				el.innerHTML = ""
+			}
 
-		if (duration) el.classList.remove("fading")
-	}, {
-		once: true
-	})
+			el.appendChild(div)
+
+			if (duration) el.classList.remove("fading")
+		},
+		{
+			once: true,
+		},
+	)
 })
 
 /*

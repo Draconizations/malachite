@@ -129,7 +129,7 @@ const stateAPI = {
 	restart: () => {
 		load()
 	},
-	allow: _allowNavigation
+	allow: _allowNavigation,
 }
 
 const frameAPI = {
