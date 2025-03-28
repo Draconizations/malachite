@@ -54,9 +54,7 @@ const alpineAPI: MAlpine = _Alpine
 
 const engineAPI = {
 	version,
-	play: () => {
-		play()
-	},
+	play,
 	markup: (source: string | Passage) => {
 		if (source instanceof Passage) {
 			return markup(source.source)
@@ -208,6 +206,12 @@ const configAPI = {
 		},
 		set localSaveName(value: string) {
 			_Config.localSaveName = value
+		},
+		get maxHistory() {
+			return _Config.maxHistory
+		},
+		set maxHistory(value: number) {
+			_Config.maxHistory = value
 		},
 	},
 	Story: {

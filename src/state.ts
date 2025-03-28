@@ -22,7 +22,8 @@ export let _history: Snapshot[] = []
 export let _index = -1
 const _version = pkg.version
 
-export let max = 50
+// max amount of states the history stack can have
+export let max = Config.maxHistory
 
 export const SaveType = {
 	AUTO: 0,
@@ -31,9 +32,29 @@ export const SaveType = {
 }
 
 /**
- * Gets the current state in the history
+ * Initializes the state
+ *
+ * Called once on page load.
+ * Should be called after userscripts are loaded.
  */
-export function current(index?: number) {
+export function init() {
+	// TODO: configurable autoloading, etc.
+
+	load(getLocalSave())
+}
+
+export default {
+	init,
+}
+
+/* ----------------------------------------------------------------------------
+	HISTORY FUNCTIONS - manipulate the history array
+---------------------------------------------------------------------------- */
+
+/**
+ * Gets the state from the history at the specified index. Defaults to the current state
+ */
+export function getState(index?: number) {
 	const i = index ?? _index
 	if (i === -1)
 		return {
@@ -44,10 +65,15 @@ export function current(index?: number) {
 	return _history[i]
 }
 
+/**
+ * Jumps to a specific state in history.
+ * @param target positive jumps forward, negative jumps backwards
+ * @returns
+ */
 export function jump(target: number) {
 	const t = target
 	if (_index === _history.length - 1 && t < 0) {
-		snapshot(JSON.parse(JSON.stringify(window.Alpine.store("story"))))
+		saveState(JSON.parse(JSON.stringify(window.Alpine.store("story"))))
 	}
 
 	let tt = _index + t
@@ -58,7 +84,7 @@ export function jump(target: number) {
 
 	if (tt === _index) return
 
-	Object.entries(current(tt).data._frames).forEach(([k, v]) => {
+	Object.entries(getState(tt).data._frames).forEach(([k, v]) => {
 		frameQueue.set(k, {
 			passage: v,
 			doTransition: true,
@@ -68,7 +94,7 @@ export function jump(target: number) {
 
 	_index = tt
 
-	window.Alpine.store("story", current().data)
+	window.Alpine.store("story", getState().data)
 	window.$s = window.Alpine.store("story") as any
 
 	runFrameQueue(false, false, frameQueue)
@@ -86,54 +112,10 @@ export function jump(target: number) {
 }
 
 /**
- * Initializes the state
- *
- * Called once on page load.
- * Should be called after userscripts are loaded.
- */
-export function init() {
-	// TODO: configurable autoloading, etc.
-
-	load(getLocalSave())
-}
-
-/**
- * Loads in the state from a specified source.
- */
-export function load(encodedData?: string) {
-	// TODO: data validation?
-	const data = encodedData
-		? JSON.parse(encodedData)
-		: {
-				version: _version,
-				history: [emptyData],
-				index: 0,
-			}
-
-	_history = data.history
-	_index = data.index
-	max = 50
-
-	window.Alpine.store("story", current().data)
-	window.$s = window.Alpine.store("story") as any
-
-	if (Config.allowSave(0 /* AUTO */) === true) {
-		setLocalSave(_history, _index)
-	}
-
-	updateNavigation()
-}
-
-export function snapshot(data: Data, title?: string) {
-	const snap = createSnapshot(data, title)
-	_history[_index] = snap
-}
-
-/**
- * Creates a new moment in the history, replacing the current moment with the new moment.
+ * Pushes a new state onto the history stack, trimming the stack as needed.
  */
 export function push(data: Data, frames?: Map<string, FrameQueueEntry>, title?: string) {
-	snapshot(data, title)
+	saveState(data, title)
 
 	// check if we need to slice off future history
 	if (_index < _history.length - 1) {
@@ -160,17 +142,39 @@ export function push(data: Data, frames?: Map<string, FrameQueueEntry>, title?: 
 	updateNavigation()
 }
 
-export function overwrite(frames: Map<string, FrameQueueEntry> = new Map()) {
+/**
+ * Saves the state to the current moment in history.
+ * @param data
+ * @param title
+ */
+export function saveState(data: Data, title?: string) {
+	const snap = createSnapshot(data, title)
+	_history[_index] = snap
+}
+
+/**
+ * Overwrites the current state with updated frames.
+ *
+ * This is needed because a frame render can cause other frames
+ * to change or be intialized. Meaning that the snapshot created by a single push()
+ * does not automatically reflect what the player can currently *see*.
+ * @param frames frames to be updated
+ */
+export function updateFrames(frames: Map<string, FrameQueueEntry> = new Map()) {
 	const frameMap = new Map<string, string>(
 		Array.from(frames?.entries() ?? []).map(([k, v]) => [k, v.passage]),
 	)
 
 	// create a new snapshot for the current state
-	snapshot($s)
+	saveState($s)
 	if (Config.allowSave(0 /* AUTO */, frameMap) === true) {
 		setLocalSave(_history, _index)
 	}
 }
+
+/* ----------------------------------------------------------------------------
+	SNAPSHOT FUNCTIONS - individual moments of state
+---------------------------------------------------------------------------- */
 
 /**
  * Creates a snapshot with a given title and data set.
@@ -200,15 +204,57 @@ export function createSnapshot(data?: Data, title?: string): Snapshot {
 	}
 }
 
+/* ----------------------------------------------------------------------------
+	DATA FUNCTIONS - loading / saving the game
+---------------------------------------------------------------------------- */
+
+/**
+ * Loads in the save from the given data
+ */
+export function load(encodedData?: string) {
+	// TODO: data validation?
+	const data = encodedData
+		? JSON.parse(encodedData)
+		: {
+				version: _version,
+				history: [emptyData],
+				index: 0,
+			}
+
+	_history = data.history
+	_index = data.index
+	max = 50
+
+	window.Alpine.store("story", getState().data)
+	window.$s = window.Alpine.store("story") as any
+
+	if (Config.allowSave(0 /* AUTO */) === true) {
+		setLocalSave(_history, _index)
+	}
+
+	updateNavigation()
+}
+
+/**
+ * Retrieves a save stored in localstorage
+ * @param index
+ * @returns
+ */
 function getLocalSave(index = -1) {
-	const loc = location(index)
+	const loc = localSaveLocation(index)
 
 	const data = localStorage.getItem(loc)
 	if (data) return data
 }
 
+/**
+ * Creates a save and stores it in localstorage
+ * @param history
+ * @param current
+ * @param index which save slot to use
+ */
 function setLocalSave(history: any, current: number, index = -1) {
-	const loc = location(index)
+	const loc = localSaveLocation(index)
 
 	localStorage.setItem(
 		loc,
@@ -220,7 +266,16 @@ function setLocalSave(history: any, current: number, index = -1) {
 	)
 }
 
-function location(index = -1) {
+/* ----------------------------------------------------------------------------
+	UTILITIES - useful for other functions! not exported
+---------------------------------------------------------------------------- */
+
+/**
+ * Gets the string to use as the localstorage save key
+ * @param index save slot
+ * @returns
+ */
+function localSaveLocation(index = -1) {
 	// TODO: configurable save location names
 	const prefix = Config.localSaveName
 	const name = "save"
@@ -230,11 +285,10 @@ function location(index = -1) {
 	return [prefix, name, i].join(separator)
 }
 
-export function updateNavigation() {
+/**
+ * Updates whether navigation is allowed whenever history changes
+ */
+function updateNavigation() {
 	_allowNavigation.back = _index > 0
 	_allowNavigation.forward = _index < _history.length - 1
-}
-
-export default {
-	init,
 }

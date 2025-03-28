@@ -50,7 +50,9 @@ Alpine.directive("passage", (el, data, { evaluate }) => {
 
 	render(el, passage.source, true)
 
-	const replace = el.querySelector('[x-contents]')
+	// if there's an element with x-contents inside the embedded passage, replace it with
+	// the contents of the x-passage element
+	const replace = el.querySelector("[x-contents]")
 	if (replace) {
 		replace.innerHTML = contents
 	}
@@ -82,16 +84,19 @@ Alpine.directive("frame", (el, data, { evaluate, effect }) => {
 
 	const p =
 		(Alpine.store("story") as any)._frames[frameName] === undefined ||
+		// don't overwrite the frame contents on intialization unless we told it to
 		data.modifiers.includes("overwrite")
 			? passage.name
 			: (Alpine.store("story") as any)._frames[frameName]
 
 	frameQueue.set(frame.name, {
 		passage: p,
-		doTransition: false,
-		pushToState: true,
+		doTransition: false, // don't transition on frame initialization
+		pushToState: true, // definitely do push to $s._frames tho
 	})
 
+	// Run the queue, we don't want to create a new history object (1st false)
+	// TODO: check if we really do need to keep the queue after (2nd false)
 	runFrameQueue(false, false, frameQueue)
 
 	effect(() => {
@@ -134,11 +139,12 @@ Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
 
 		frameQueue.set(frame.name, {
 			passage: passage.name,
-			pushToState: true,
-			doTransition: !data.modifiers.includes("!change"),
+			pushToState: true, // do put these in $s._frames
+			doTransition: !data.modifiers.includes("!fade"), // transition unless told otherwise
 		})
 
 		Alpine.nextTick(() => {
+			// push to history unless .!play is present
 			runFrameQueue(!data.modifiers.includes("!play"), true, frameQueue)
 		})
 	}
@@ -150,6 +156,7 @@ Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
 	})
 })
 
+// Play a fade animation whenever the expression changes
 Alpine.directive("fade", (el, { expression }, { evaluateLater, effect }) => {
 	// TODO: make this configurable
 	el.classList.add("mala-fade")
@@ -168,6 +175,9 @@ Alpine.directive("fade", (el, { expression }, { evaluateLater, effect }) => {
 	})
 })
 
+// x-reveal! My favorite <3
+// display a link that disappears on click and reveals hidden text underneath
+// we can optionally keep the link as well
 Alpine.directive("reveal", (el, data, { evaluate }) => {
 	el.classList.add("mala-reveal", "hide")
 
@@ -179,7 +189,7 @@ Alpine.directive("reveal", (el, data, { evaluate }) => {
 
 	const btn = document.createElement("button")
 	btn.classList.add("tw-link", "mala-reveal-btn")
-	btn.innerText = text
+	btn.innerHTML = text
 
 	el.innerHTML = ""
 	el.appendChild(btn)
