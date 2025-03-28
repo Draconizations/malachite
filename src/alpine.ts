@@ -162,6 +162,40 @@ Alpine.directive("fade", (el, { expression }, { evaluateLater, effect }) => {
 	})
 })
 
+Alpine.directive("reveal", (el, data, { evaluate}) => {
+	el.classList.add("mala-reveal")
+
+	const text = evaluate(data.expression)
+	if (typeof text !== "string") throw Error(`${dPrint(data)}: expression did not evaluate to a string`)
+
+	const contents = el.innerHTML
+
+	const btn = document.createElement("button")
+	btn.classList.add("tw-link")
+	btn.innerText = text
+
+	el.innerHTML = ""
+	el.appendChild(btn)
+
+	btn.addEventListener("click", async () => {
+		const duration = getTransitionDuration(el)
+		if (duration) {
+			el.classList.add("fading")
+			await new Promise((res) => setTimeout(res, duration))
+		}
+
+		const div = document.createElement("div")
+		div.innerHTML = contents
+
+		el.innerHTML = ""
+		el.appendChild(div)
+
+		if (duration) el.classList.remove("fading")
+	}, {
+		once: true
+	})
+})
+
 /*
 	Allows easily accessing the story store with $s
 */
