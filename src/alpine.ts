@@ -163,7 +163,7 @@ Alpine.directive("fade", (el, { expression }, { evaluateLater, effect }) => {
 })
 
 Alpine.directive("reveal", (el, data, { evaluate}) => {
-	el.classList.add("mala-reveal")
+	el.classList.add("mala-reveal", "hide")
 
 	const text = evaluate(data.expression)
 	if (typeof text !== "string") throw Error(`${dPrint(data)}: expression did not evaluate to a string`)
@@ -171,7 +171,7 @@ Alpine.directive("reveal", (el, data, { evaluate}) => {
 	const contents = el.innerHTML
 
 	const btn = document.createElement("button")
-	btn.classList.add("tw-link")
+	btn.classList.add("tw-link", "mala-reveal-btn")
 	btn.innerText = text
 
 	el.innerHTML = ""
@@ -187,7 +187,15 @@ Alpine.directive("reveal", (el, data, { evaluate}) => {
 		const div = document.createElement("div")
 		div.innerHTML = contents
 
-		el.innerHTML = ""
+		el.classList.remove("hide")
+		el.classList.add("show")
+		
+		if (data.modifiers.includes("keep")) {
+			btn.disabled = true
+		} else {
+			el.innerHTML = ""
+		}
+
 		el.appendChild(div)
 
 		if (duration) el.classList.remove("fading")
