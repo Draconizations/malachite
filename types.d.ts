@@ -45,6 +45,9 @@ declare module "frame" {
 		state?: boolean
 	}
 	export const _frames: Frame[]
+	/**
+	 * Frame object. Can be configured from userscripts.
+	 */
 	export default class Frame {
 		#private
 		name: string
@@ -54,17 +57,53 @@ declare module "frame" {
 		constructor(name: string, config?: FrameConfig)
 		visible(): boolean
 	}
+	/**
+	 * Creates a new Frame instance and pushes it to the frame array
+	 * @param name
+	 * @param config
+	 * @returns
+	 */
 	export function newFrame(name?: string, config?: FrameConfig): Frame
+	/**
+	 * Gets a frame by its name. Creates a new frame if this frame isn't found.
+	 * @param name
+	 * @returns
+	 */
 	export function getFrame(name?: string): Frame
+	/**
+	 * Gets all frames that match a certain predicate
+	 * @param predicate
+	 * @returns
+	 */
 	export function filterFrames(predicate: (f: Frame) => boolean): Frame[]
+	/**
+	 * Gets every single frame
+	 * @returns
+	 */
 	export function allFrames(): Frame[]
+	/**
+	 * Swaps the specified frame to the given passage.
+	 * @param passageName name of the passage to swap to
+	 * @param frameName name of the frame to swap
+	 * @param transition whether to apply the transition class or not
+	 * @param skip whether to skip pushing to the history or not
+	 */
 	export function goto(
 		passageName: string,
 		frameName?: string,
 		transition?: boolean,
 		skip?: boolean,
 	): void
+	/**
+	 * Returns the current passage in the given frame
+	 * @param frame
+	 * @returns
+	 */
 	export function current(frame?: string): import("passage").default
+	/**
+	 * Returns the current passages from all frames (whether visible or not)
+	 * @returns
+	 */
 	export function active(): import("passage").default[]
 }
 declare module "state" {
@@ -73,7 +112,6 @@ declare module "state" {
 		_frames: Record<string, string>
 	} & Record<string, any>
 	type Snapshot = {
-		title: string
 		timestamp: string
 		data: Data
 	}
@@ -87,36 +125,82 @@ declare module "state" {
 		FILE: number
 	}
 	/**
-	 * Gets the current state in the history
-	 */
-	export function current(index?: number): Snapshot
-	export function jump(target: number): void
-	/**
 	 * Initializes the state
 	 *
 	 * Called once on page load.
 	 * Should be called after userscripts are loaded.
 	 */
 	export function init(): void
-	/**
-	 * Loads in the state from a specified source.
-	 */
-	export function load(encodedData?: string): void
-	export function snapshot(data: Data, title?: string): void
-	/**
-	 * Creates a new moment in the history, replacing the current moment with the new moment.
-	 */
-	export function push(data: Data, frames?: Map<string, FrameQueueEntry>, title?: string): void
-	export function overwrite(frames?: Map<string, FrameQueueEntry>): void
-	/**
-	 * Creates a snapshot with a given title and data set.
-	 */
-	export function createSnapshot(data?: Data, title?: string): Snapshot
-	export function updateNavigation(): void
 	const _default_1: {
 		init: typeof init
 	}
 	export default _default_1
+	/**
+	 * Gets the state from the history at the specified index. Defaults to the current state
+	 */
+	export function getState(index?: number): Snapshot
+	/**
+	 * Jumps to a specific state in history.
+	 * @param target positive jumps forward, negative jumps backwards
+	 * @returns
+	 */
+	export function jump(target: number): void
+	/**
+	 * Pushes a new state onto the history stack, trimming the stack as needed.
+	 */
+	export function push(data: Data, frames?: Map<string, FrameQueueEntry>): void
+	/**
+	 * Saves the state to the current moment in history.
+	 * @param data
+	 */
+	export function saveState(data: Data): void
+	/**
+	 * Overwrites the current state with updated frames.
+	 *
+	 * This is needed because a frame render can cause other frames
+	 * to change or be intialized. Meaning that the snapshot created by a single push()
+	 * does not automatically reflect what the player can currently *see*.
+	 * @param frames frames to be updated
+	 */
+	export function updateFrames(frames?: Map<string, FrameQueueEntry>): void
+	/**
+	 * Creates a snapshot with a given data set.
+	 */
+	export function createSnapshot(data?: Data): Snapshot
+	/**
+	 * Loads in the save from the given data
+	 */
+	export function load(encodedData?: string): void
+	/**
+	 * Retrieves a save stored in localstorage
+	 * @param index
+	 * @returns
+	 */
+	export function getLocalSave(index?: number): string
+	/**
+	 * Creates a save and stores it in localstorage
+	 * @param history
+	 * @param current
+	 * @param index which save slot to use
+	 */
+	export function setLocalSave(
+		history: any,
+		current: number,
+		index?: number,
+		title?: string,
+	): {
+		history: any
+		index: number
+		version: any
+		timestamp: string
+		title: string
+	}
+	/**
+	 * Gets the string to use as the localstorage save key
+	 * @param index save slot
+	 * @returns
+	 */
+	export function localSaveLocation(index?: number): string
 }
 declare module "utils" {
 	export interface FrameQueueEntry {
@@ -126,6 +210,14 @@ declare module "utils" {
 	}
 	export function getAttribute(el: Element | null, attr: string): string
 	export function getTransitionDuration(el: Element): number
+	/**
+	 * Loop through all frames in the queue. We queue them because otherwise
+	 * x-link with a goto in the event listener will push two separate states to the history
+	 * and we don't want that.
+	 * @param pushToHistory to push the frame changes to history or not
+	 * @param clearQueue to clear the queue after or not
+	 * @param frameQueue the queue itself
+	 */
 	export function runFrameQueue(
 		pushToHistory: boolean,
 		clearQueue: boolean,
@@ -250,6 +342,22 @@ declare module "api" {
 		allow: {
 			back: boolean
 			forward: boolean
+		}
+		load: {
+			fromLocal: (slot: number) => void
+		}
+		save: {
+			toLocal: (
+				slot: number,
+				title: string,
+			) => {
+				history: any
+				index: number
+				version: any
+				timestamp: string
+				title: string
+			}
+			getLocal: (slot: number) => any
 		}
 	}
 	const frameAPI: {

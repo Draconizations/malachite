@@ -11,7 +11,17 @@ import type Frame from "./frame.ts"
 import { type FrameConfig, active, allFrames, current, getFrame, goto, newFrame } from "./frame.ts"
 import { markup, render } from "./markup/index.ts"
 import Passage from "./passage.ts"
-import { SaveType, _history, _index, type emptyData, jump, load } from "./state.ts"
+import {
+	SaveType,
+	_history,
+	_index,
+	type emptyData,
+	getLocalSave,
+	jump,
+	load,
+	localSaveLocation,
+	setLocalSave,
+} from "./state.ts"
 import { filter, find, get, has, ifID, start, storyTitle } from "./story.ts"
 
 export default function () {
@@ -128,6 +138,23 @@ const stateAPI = {
 		load()
 	},
 	allow: _allowNavigation,
+	load: {
+		fromLocal: (slot: number) => {
+			const save = getLocalSave(slot)
+			if (!save) throw new Error(`No save data found at ${localSaveLocation(slot)}.`)
+			load(save)
+		},
+	},
+	save: {
+		toLocal: (slot: number, title: string) => {
+			return setLocalSave(_history, _index, slot, title)
+		},
+		getLocal: (slot: number): any => {
+			const data = localStorage.getItem(localSaveLocation(slot))
+			if (data) return JSON.parse(data)
+			return undefined
+		},
+	},
 }
 
 const frameAPI = {

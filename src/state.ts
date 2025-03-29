@@ -9,7 +9,6 @@ type Data = {
 } & Record<string, any>
 
 type Snapshot = {
-	title: string
 	timestamp: string
 	data: Data
 }
@@ -58,7 +57,6 @@ export function getState(index?: number) {
 	const i = index ?? _index
 	if (i === -1)
 		return {
-			title: "",
 			timestamp: "",
 			data: emptyData,
 		}
@@ -114,8 +112,8 @@ export function jump(target: number) {
 /**
  * Pushes a new state onto the history stack, trimming the stack as needed.
  */
-export function push(data: Data, frames?: Map<string, FrameQueueEntry>, title?: string) {
-	saveState(data, title)
+export function push(data: Data, frames?: Map<string, FrameQueueEntry>) {
+	saveState(data)
 
 	// check if we need to slice off future history
 	if (_index < _history.length - 1) {
@@ -145,10 +143,9 @@ export function push(data: Data, frames?: Map<string, FrameQueueEntry>, title?: 
 /**
  * Saves the state to the current moment in history.
  * @param data
- * @param title
  */
-export function saveState(data: Data, title?: string) {
-	const snap = createSnapshot(data, title)
+export function saveState(data: Data) {
+	const snap = createSnapshot(data)
 	_history[_index] = snap
 }
 
@@ -177,9 +174,9 @@ export function updateFrames(frames: Map<string, FrameQueueEntry> = new Map()) {
 ---------------------------------------------------------------------------- */
 
 /**
- * Creates a snapshot with a given title and data set.
+ * Creates a snapshot with a given data set.
  */
-export function createSnapshot(data?: Data, title?: string): Snapshot {
+export function createSnapshot(data?: Data): Snapshot {
 	const d = (data as Record<string, any>) ?? emptyData
 
 	// TODO: perform any data manipulation defined in user scripts here.
@@ -198,7 +195,6 @@ export function createSnapshot(data?: Data, title?: string): Snapshot {
 	}
 
 	return {
-		title: title ? title.toString() : "",
 		data: d as Data,
 		timestamp: new Date().toISOString(),
 	}
@@ -240,7 +236,7 @@ export function load(encodedData?: string) {
  * @param index
  * @returns
  */
-function getLocalSave(index = -1) {
+export function getLocalSave(index = -1) {
 	const loc = localSaveLocation(index)
 
 	const data = localStorage.getItem(loc)
@@ -253,21 +249,24 @@ function getLocalSave(index = -1) {
  * @param current
  * @param index which save slot to use
  */
-function setLocalSave(history: any, current: number, index = -1) {
+export function setLocalSave(history: any, current: number, index = -1, title?: string) {
 	const loc = localSaveLocation(index)
 
-	localStorage.setItem(
-		loc,
-		JSON.stringify({
-			history,
-			index: current,
-			version: _version,
-		}),
-	)
+	const data = {
+		history,
+		index: current,
+		version: _version,
+		timestamp: new Date().toISOString(),
+		title,
+	}
+
+	localStorage.setItem(loc, JSON.stringify(data))
+
+	return data
 }
 
 /* ----------------------------------------------------------------------------
-	UTILITIES - useful for other functions! not exported
+	UTILITIES - useful for other functions!
 ---------------------------------------------------------------------------- */
 
 /**
@@ -275,7 +274,7 @@ function setLocalSave(history: any, current: number, index = -1) {
  * @param index save slot
  * @returns
  */
-function localSaveLocation(index = -1) {
+export function localSaveLocation(index = -1) {
 	// TODO: configurable save location names
 	const prefix = Config.localSaveName
 	const name = "save"
