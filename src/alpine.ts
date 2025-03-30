@@ -163,12 +163,23 @@ Alpine.directive("fade", (el, { expression }, { evaluateLater, effect }) => {
 
 	const crossfade = evaluateLater(expression)
 
+	let prev: any = undefined
+
 	effect(() => {
-		crossfade(async () => {
+		crossfade(async (value) => {
+			if (prev === value) return
+			if (prev === undefined) {
+				el.dispatchEvent(new CustomEvent("fade", { bubbles: false, detail: value }))
+				prev = value
+				return
+			}
+			prev = value
+
 			const duration = getTransitionDuration(el)
 			if (duration) {
 				el.classList.add("fading")
 				await new Promise((res) => setTimeout(res, duration))
+				el.dispatchEvent(new CustomEvent("fade", { bubbles: false, detail: value }))
 				el.classList.remove("fading")
 			}
 		})
