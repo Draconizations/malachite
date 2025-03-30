@@ -217,7 +217,12 @@ export function load(encodedData?: string) {
 		? JSON.parse(encodedData)
 		: {
 				version: _version,
-				history: [emptyData],
+				history: [
+					{
+						data: emptyData,
+						timestamp: new Date().toISOString(),
+					},
+				],
 				index: 0,
 			}
 
