@@ -146,6 +146,13 @@ export function saveState(data: Data) {
 	_history[_index] = snap
 }
 
+export function saveFrames(frames: Record<string, string>) {
+	const curr = JSON.parse(JSON.stringify(getState())) as Data
+	curr.data._frames = frames
+
+	_history[_index] = createSnapshot(curr.data)
+}
+
 /**
  * Overwrites the current state with updated frames.
  *
@@ -160,7 +167,7 @@ export function updateFrames(frames: Map<string, FrameQueueEntry> = new Map()) {
 	)
 
 	// create a new snapshot for the current state
-	saveState($s)
+	saveFrames($s._frames)
 	if (Config.allowSave(0 /* AUTO */, frameMap) === true) {
 		setLocalSave(_history, _index)
 	}
