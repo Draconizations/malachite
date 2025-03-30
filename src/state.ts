@@ -70,9 +70,6 @@ export function getState(index?: number) {
  */
 export function jump(target: number) {
 	const t = target
-	if (_index === _history.length - 1 && t < 0) {
-		saveState(JSON.parse(JSON.stringify(window.Alpine.store("story"))))
-	}
 
 	let tt = _index + t
 
@@ -113,8 +110,6 @@ export function jump(target: number) {
  * Pushes a new state onto the history stack, trimming the stack as needed.
  */
 export function push(data: Data, frames?: Map<string, FrameQueueEntry>) {
-	saveState(data)
-
 	// check if we need to slice off future history
 	if (_index < _history.length - 1) {
 		_history.length = _index + 1
@@ -128,6 +123,8 @@ export function push(data: Data, frames?: Map<string, FrameQueueEntry>) {
 		_history.splice(0, extra)
 		_index -= extra
 	}
+
+	saveState(data)
 
 	const frameMap = new Map<string, string>(
 		Array.from(frames?.entries() ?? []).map(([k, v]) => [k, v.passage]),
@@ -177,7 +174,7 @@ export function updateFrames(frames: Map<string, FrameQueueEntry> = new Map()) {
  * Creates a snapshot with a given data set.
  */
 export function createSnapshot(data?: Data): Snapshot {
-	const d = (data as Record<string, any>) ?? emptyData
+	const d = JSON.parse(JSON.stringify((data as Record<string, any>) ?? emptyData)) as Data
 
 	// TODO: perform any data manipulation defined in user scripts here.
 

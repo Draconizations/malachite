@@ -67,7 +67,7 @@ export async function start() {
  */
 export function play(frames: Map<string, FrameQueueEntry> = new Map<string, FrameQueueEntry>()) {
 	// check if autosaving is allowed
-	push(JSON.parse(JSON.stringify($s)), frames)
+	push($s, frames)
 }
 
 export default {
