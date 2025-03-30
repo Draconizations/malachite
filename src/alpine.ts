@@ -157,9 +157,11 @@ Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
 })
 
 // Play a fade animation whenever the expression changes
-Alpine.directive("fade", (el, { expression }, { evaluateLater, effect }) => {
+Alpine.directive("fade", (el, { expression, modifiers }, { evaluateLater, effect }) => {
+	const useClass = !modifiers.includes("!class")
+	const init = !modifiers.includes("!init")
 	// TODO: make this configurable
-	el.classList.add("mala-fade")
+	if (useClass) el.classList.add("mala-fade")
 
 	const crossfade = evaluateLater(expression)
 
@@ -168,20 +170,32 @@ Alpine.directive("fade", (el, { expression }, { evaluateLater, effect }) => {
 	effect(() => {
 		crossfade(async (value) => {
 			if (prev === value) return
+
+			// don't run fade on initialization if we ask it not to
 			if (prev === undefined) {
+				el.dispatchEvent(new CustomEvent("fadestart", { bubbles: false, detail: value }))
 				el.dispatchEvent(new CustomEvent("fade", { bubbles: false, detail: value }))
+				el.dispatchEvent(new CustomEvent("fadeend", { bubbles: false, detail: value }))
 				prev = value
 				return
 			}
-			prev = value
 
-			const duration = getTransitionDuration(el)
-			if (duration) {
-				el.classList.add("fading")
-				await new Promise((res) => setTimeout(res, duration))
-				el.dispatchEvent(new CustomEvent("fade", { bubbles: false, detail: value }))
-				el.classList.remove("fading")
-			}
+			let duration = getTransitionDuration(el)
+			// start of fade
+			if (useClass && !(prev === undefined && !init)) el.classList.add("fading")
+			el.dispatchEvent(new CustomEvent("fadestart", { bubbles: false, detail: value }))
+			if (duration) await new Promise((res) => setTimeout(res, duration))
+
+			// middle of fade
+			el.dispatchEvent(new CustomEvent("fade", { bubbles: false, detail: value }))
+			if (useClass && !(prev === undefined && !init)) el.classList.remove("fading")
+
+			duration = getTransitionDuration(el)
+			if (duration) await new Promise((res) => setTimeout(res, duration))
+			// end of fade
+			el.dispatchEvent(new CustomEvent("fadeend", { bubbles: false, detail: value }))
+
+			prev = value
 		})
 	})
 })
