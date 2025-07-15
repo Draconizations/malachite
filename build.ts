@@ -26,7 +26,7 @@ const { values, positionals } = parseArgs({
 	allowPositionals: true,
 })
 
-const dist = positionals.length > 2 ? positionals[3] : "./build"
+const dist = positionals.length > 2 ? positionals[2] : "./build"
 const full = values.full
 
 const pck = await Bun.file("./package.json").json()
