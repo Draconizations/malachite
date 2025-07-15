@@ -1,0 +1,4 @@
+site_name: Malachite Docs
+site_url: https://draconizations.github.io/malachite/
+theme:
+  name: material
