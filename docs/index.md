@@ -1,17 +1,29 @@
-# Welcome to MkDocs
+# Malachite — A Story Format for Twee3
+!!! warning "WIP"
+    This documentation is a **heavy** work in progress. Most sections are still missing or incomplete. However, I am not accepting contributions at this time, as this is a personal project, still in the early stages. Please check back another time!
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+## Welcome to Malachite!
+This is the official documentation for **Malachite**, an advanced (though not minimal) story format for twine/twee3.
 
-## Commands
+### Why Malachite?
+There are plenty of official, well-documented story formats for twine/twee. I would not recommend developing a project with Malachite unless you have ran into multiple of the same pain points as I have:
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+* Your project requires a **Complex UI** with multiple separate passages displayed at the same time, each with a separate history.
 
-## Project layout
+    Most twine story formats are built on the assumption that only a single passage will be visible on the screen at any given time. While most formats do have functionality for embedding other passages inside that main passage, Malachite allows for multiple "windows" (AKA frames) to be present, each with a separate history.
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+* You are **familiar with** HTML *and* javascript and find **most abstractions** away from this **annoying to work with**.
+
+    Malachite is very light on the markup and heavy on the javascript. Most of Malachite's interactivity is built on top of [Alpine.js](https://alpinejs.dev/), a lightweight javascript framework that already has functionality like conditionals and looping built in.
+
+    Please check out *at least* the first few pages of [Alpine's documentation](https://alpinejs.dev/start-here), it will help you understand Malachite as well.
+
+* Your project requires a good amount of **reactivity with minimum hassle**.
+
+    TBA later. Tl;dr Alpine includes reactivity out of the box. Update a variable and it instantly ripples through the entire UI.
+
+* You need **more functionality** than a **minimal story format** out of the box.
+
+    Malchite is not (or at least, won't be) a *minimal* story format. There will be helper utilities and APIs for things commonly utilized in Interactive Fiction. Examples include crossfading, playing audio and storylets/quality based narratives.
+
+Even then, Malachite is still in heavy development and very unstable, not to mention (mostly) undocumented. Please do not expect this story format to be production ready in any reasonable timeframe, as this is a hobby project of a single developer right now.
