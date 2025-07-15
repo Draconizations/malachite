@@ -1,4 +1,59 @@
 site_name: Malachite Docs
 site_url: https://draconizations.github.io/malachite/
+repo_url: https://github.com/Draconizations/malachite
+repo_name: Draconizations/malachite
+
 theme:
   name: material
+  language: 'en'
+  features:
+    - content.code.copy
+    - content.tabs.link
+    - navigation.instant
+  palette: 
+    # Palette toggle for light mode
+    - scheme: default
+      media: "(prefers-color-scheme: light)"
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      media: "(prefers-color-scheme: dark)"
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    logo: material/diamond
+
+extra:
+  version:
+    provider: mike
+    default: latest
+    alias: true
+
+validation:
+  anchors: warn
+
+markdown_extensions:
+  - admonition
+  - sane_lists
+  - toc:
+      permalink: true
+  - footnotes
+  - codehilite:
+      guess_lang: false
+  - attr_list
+  - md_in_html
+  - extra
+  - pymdownx.blocks.caption
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.snippets
+  
