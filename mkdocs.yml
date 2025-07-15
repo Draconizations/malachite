@@ -3,6 +3,27 @@ site_url: https://draconizations.github.io/malachite/
 repo_url: https://github.com/Draconizations/malachite
 repo_name: Draconizations/malachite
 
+nav:
+  - Home: 'index.md'
+
+  - Getting Started:
+    - Installation: 'installation.md'
+    - Concepts: 'concepts.md'
+  
+  - Markup: 'markup.md'
+  
+  - Directives:
+    - About Alpine: 'alpine/about.md'
+    - x-passage:  'alpine/x-passage.md'
+    - x-frame: 'alpine/x-frame.md'
+    - x-link: 'alpine/x-link.md'
+    - x-fade: 'alpine/x-fade.md'
+    - x-reveal: 'alpine/x-reveal.md'
+    - $s magic: 'alpine/store.md'
+  
+  - Storage: 'storage.md'
+
+
 theme:
   name: material
   language: 'en'
