@@ -26,6 +26,7 @@ jobs:
       - name: Run tests
         run: bun test
   lint:
+    name: Run Biome CI
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
