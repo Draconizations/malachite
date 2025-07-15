@@ -165,7 +165,7 @@ Alpine.directive("fade", (el, { expression, modifiers }, { evaluateLater, effect
 
 	const crossfade = evaluateLater(expression)
 
-	let prev: any = undefined
+	let prev: any
 
 	effect(() => {
 		crossfade(async (value) => {

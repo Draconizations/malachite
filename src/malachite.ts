@@ -1,8 +1,7 @@
 import Alpine from "./alpine.ts"
 import setupGlobals from "./api.ts"
 import Engine from "./engine.ts"
-import State from "./state.ts"
-import { emptyData } from "./state.ts"
+import State, { emptyData } from "./state.ts"
 import Story from "./story.ts"
 ;(async () => {
 	setupGlobals()

@@ -1,5 +1,4 @@
-import { describe, expect, test } from "bun:test"
-import { afterEach, beforeEach } from "bun:test"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import * as Story from "../src/story.ts"
 
 let storyData: HTMLElement

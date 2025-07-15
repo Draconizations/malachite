@@ -8,11 +8,10 @@ import _Alpine, { _allowNavigation, type MAlpine } from "./alpine.ts"
 import _Config from "./config.ts"
 import { play, version } from "./engine.ts"
 import type Frame from "./frame.ts"
-import { type FrameConfig, active, allFrames, current, getFrame, goto, newFrame } from "./frame.ts"
+import { active, allFrames, current, type FrameConfig, getFrame, goto, newFrame } from "./frame.ts"
 import { markup, render } from "./markup/index.ts"
 import Passage from "./passage.ts"
 import {
-	SaveType,
 	_history,
 	_index,
 	type emptyData,
@@ -20,6 +19,7 @@ import {
 	jump,
 	load,
 	localSaveLocation,
+	SaveType,
 	setLocalSave,
 } from "./state.ts"
 import { filter, find, get, has, ifID, start, storyTitle } from "./story.ts"

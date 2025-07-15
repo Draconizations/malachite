@@ -3,8 +3,8 @@ import type { RenderRule } from "markdown-it/lib/renderer.mjs"
 
 const linkRegex: Array<[RegExp, string[]]> = [
 	[/^\[\[(.+?)\|(.+?)\]\s?(?:\[(.*?)\])?\]/, ["goto", "name", "frame"]],
-	[/^\[\[(.+?)\<\-(.+?)\]\s?(?:\[(.*?)\])?\]/, ["goto", "name", "frame"]],
-	[/^\[\[(.+?)\-\>(.+?)?\]\s?(?:\[(.*?)\])?\]/, ["name", "goto", "frame"]],
+	[/^\[\[(.+?)<-(.+?)\]\s?(?:\[(.*?)\])?\]/, ["goto", "name", "frame"]],
+	[/^\[\[(.+?)->(.+?)?\]\s?(?:\[(.*?)\])?\]/, ["name", "goto", "frame"]],
 	[/^\[\[(.+?)\]\s?(?:\[(.*?)\])?\]/, ["goto", "frame"]],
 ]
 
