@@ -107,7 +107,14 @@ const options: (RollupOptions & { output: OutputOptions })[] = [
 			format: "iife",
 		},
 
-		plugins: [...sharedPlugins, terser()],
+		plugins: [
+			...sharedPlugins,
+			terser({
+				format: {
+					ascii_only: true,
+				},
+			}),
+		],
 	},
 	{
 		input,
@@ -117,7 +124,18 @@ const options: (RollupOptions & { output: OutputOptions })[] = [
 			format: "iife",
 		},
 
-		plugins: [...sharedPlugins, ...(!full ? [terser()] : [])],
+		plugins: [
+			...sharedPlugins,
+			...(!full
+				? [
+						terser({
+							format: {
+								ascii_only: true,
+							},
+						}),
+					]
+				: []),
+		],
 	},
 ]
 
