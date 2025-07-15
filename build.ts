@@ -14,6 +14,8 @@ const terser = _terser as unknown as typeof _terser.default
 const polyfill = _polyfill as unknown as typeof _polyfill.default
 const json = _json as unknown as typeof _json.default
 
+const dist = Bun.argv.length > 1 ? Bun.argv[1] : "./dist"
+
 async function bundle() {
 	// we want to bundle each config separately
 	for (const o of options) {
@@ -41,12 +43,12 @@ async function bundle() {
 }
 
 async function build(input: string, output: string) {
-	console.log(`Building to ./dist/${output} using ./dist/${input}...`)
+	console.log(`Building to ${dist}/${output} using ${dist}/${input}...`)
 
 	// get the story json file and read it as json
 	const storyJson = await Bun.file("./story.json").json()
 	// also get the bundle file
-	const bundle = await Bun.file(`./dist/${input}`).text()
+	const bundle = await Bun.file(`${dist}/${input}`).text()
 
 	// put the bundle inside the HTML template
 	const source = `<!DOCTYPE html>
@@ -72,10 +74,10 @@ async function build(input: string, output: string) {
 	const format = `window.storyFormat(${JSON.stringify(story)});`
 
 	// and write that to the dist directory!
-	const formatFile = Bun.file(`./dist/${output}`)
+	const formatFile = Bun.file(`${dist}/${output}`)
 	await Bun.write(formatFile, format)
 
-	console.log(`Sucessfully built ./dist/${output}!\n`)
+	console.log(`Sucessfully built ${dist}/${output}!\n`)
 }
 
 const input = "./src/malachite.ts"
@@ -86,7 +88,7 @@ const options: (RollupOptions & { output: OutputOptions })[] = [
 		input,
 
 		output: {
-			file: "./dist/bundle.min.js",
+			file: `${dist}/bundle.min.js`,
 			format: "iife",
 		},
 
@@ -96,7 +98,7 @@ const options: (RollupOptions & { output: OutputOptions })[] = [
 		input,
 
 		output: {
-			file: "./dist/bundle.js",
+			file: `${dist}/bundle.js`,
 			format: "iife",
 		},
 
