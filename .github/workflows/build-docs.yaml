@@ -3,6 +3,8 @@ name: build-docs
 on:
   workflow_dispatch:
   push:
+    paths:
+      - 'docs/**'
     branches:
       - main
 
