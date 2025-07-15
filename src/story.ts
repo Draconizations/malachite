@@ -7,6 +7,8 @@ export let storyTitle = "A Malachite Story"
 
 export let start: Passage | undefined = undefined
 
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 const _passages: Passage[] = []
 const _styles: Passage[] = []
 const _scripts: Passage[] = []
@@ -19,25 +21,17 @@ const _scripts: Passage[] = []
 export function init() {
 	_storyData = document.querySelector("tw-storydata")
 
-	ifID = getAttribute(_storyData, "ifid") || "00000000-0000-4000-A000-000000000000"
-	storyTitle = getAttribute(_storyData, "name") || "A Malachite Story"
+	if (!_storyData) throw new Error("Missing tw-storydata element")
 
-	for (const p of Array.from(_storyData?.querySelectorAll("tw-passagedata") || [])) {
-		const name = getAttribute(p, "name") || "Passage"
-		const tags = getAttribute(p, "tags")?.split(" ") || []
-		const content = p.innerHTML
+	storyTitle = getAttribute(_storyData, "name") || ""
+	if (!storyTitle) throw new Error("Missing story name")
 
-		// everything else is a regular passage
-		const passage = new Passage(name, tags, content)
-		if (
-			passage.name.toLowerCase() === (getAttribute(_storyData, "start")?.toLowerCase() ?? "start")
-		) {
-			start = passage
-		}
-		_passages.push(passage)
-	}
+	ifID = getAttribute(_storyData, "ifid") || "nope"
+	if (!uuidRegex.test(ifID)) throw new Error("Invalid or missing IFID")
 
-	// get the user styles
+	initPassages()
+
+	// get the user scripts
 	const scripts =
 		(_storyData?.querySelectorAll(
 			`script[type="text/twine-javascript"]`,
@@ -54,6 +48,26 @@ export function init() {
 	styles.forEach((s, i) => {
 		_styles.push(new Passage(`tw-user-style-${i}`, [], s.innerText))
 	})
+}
+
+function initPassages() {
+	for (const p of Array.from(_storyData?.querySelectorAll("tw-passagedata") || [])) {
+		const name = getAttribute(p, "name") || "Passage"
+		const tags = getAttribute(p, "tags")?.split(" ") || []
+		const content = p.innerHTML
+
+		// we don't want duplicate passage names
+		if (_passages.find((p) => p.name === name))
+			throw new Error(`Duplicate passage name found: ${name}`)
+
+		const passage = new Passage(name, tags, content)
+		if (
+			passage.name.toLowerCase() === (getAttribute(_storyData, "start")?.toLowerCase() ?? "start")
+		) {
+			start = passage
+		}
+		_passages.push(passage)
+	}
 }
 
 /*
