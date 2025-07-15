@@ -5,6 +5,7 @@ import _swc from "@rollup/plugin-swc"
 import _terser from "@rollup/plugin-terser"
 import { type OutputOptions, type RollupBuild, type RollupOptions, rollup } from "rollup"
 import _polyfill from "rollup-plugin-polyfill-node"
+import { parseArgs } from "util"
 
 // typescript shenanigans...
 const swc = _swc as unknown as typeof _swc.default
@@ -14,32 +15,45 @@ const terser = _terser as unknown as typeof _terser.default
 const polyfill = _polyfill as unknown as typeof _polyfill.default
 const json = _json as unknown as typeof _json.default
 
-const dist = Bun.argv.length > 2 ? Bun.argv[2] : "./build"
+const { values, positionals } = parseArgs({
+	args: Bun.argv,
+	options: {
+		full: {
+			type: "boolean",
+		},
+	},
+	strict: true,
+	allowPositionals: true,
+})
 
-async function bundle() {
+const dist = positionals.length > 2 ? positionals[3] : "./build"
+const full = values.full
+
+const pck = await Bun.file("./package.json").json()
+const version = pck.version
+
+async function bundle(o: RollupOptions & { output: OutputOptions }) {
 	// we want to bundle each config separately
-	for (const o of options) {
-		console.log(`Bundling ${o.output.file ? `to ${o.output.file}` : "file"}...`)
+	console.log(`Bundling ${o.output.file ? `to ${o.output.file}` : "file"}...`)
 
-		let bundle: RollupBuild | undefined
-		let failed = false
-		try {
-			// TODO: better logging here
-			bundle = await rollup(o)
+	let bundle: RollupBuild | undefined
+	let failed = false
+	try {
+		// TODO: better logging here
+		bundle = await rollup(o)
 
-			await bundle.write(o.output)
-		} catch (e) {
-			failed = true
-			console.error(e)
-		}
-
-		if (bundle) await bundle.close()
-
-		// don't continue the build process if rollup failecd
-		if (failed) process.exit(1)
-
-		console.log(`Successfully bundled ${o.output.file ? `to ${o.output.file}` : "file"}!\n`)
+		await bundle.write(o.output)
+	} catch (e) {
+		failed = true
+		console.error(e)
 	}
+
+	if (bundle) await bundle.close()
+
+	// don't continue the build process if rollup failecd
+	if (failed) process.exit(1)
+
+	console.log(`Successfully bundled ${o.output.file ? `to ${o.output.file}` : "file"}!\n`)
 }
 
 async function build(input: string, output: string) {
@@ -47,6 +61,7 @@ async function build(input: string, output: string) {
 
 	// get the story json file and read it as json
 	const storyJson = await Bun.file("./story.json").json()
+	storyJson.version = version
 	// also get the bundle file
 	const bundle = await Bun.file(`${dist}/${input}`).text()
 
@@ -102,14 +117,15 @@ const options: (RollupOptions & { output: OutputOptions })[] = [
 			format: "iife",
 		},
 
-		plugins: sharedPlugins,
+		plugins: [...sharedPlugins, ...(!full ? [terser()] : [])],
 	},
 ]
 
 // bundle the format javascript to a singular file
-await bundle()
+await bundle(options[1])
+if (full) await bundle(options[0])
 // then embed that into the story format
 await build("bundle.js", "format.js")
-await build("bundle.min.js", "format.min.js")
+if (full) await build("bundle.min.js", "format.min.js")
 
 console.log("Done.")

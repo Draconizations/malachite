@@ -3,7 +3,7 @@
 	"module": "index.ts",
 	"type": "module",
 	"private": true,
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"scripts": {
 		"format": "bunx biome check --write --no-errors-on-unmatched .",
 		"types": "bunx tsc src/api.ts --declaration --allowJs --emitDeclarationOnly --outfile types.d.ts"
