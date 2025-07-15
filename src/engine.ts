@@ -1,9 +1,8 @@
 import pkg from "../package.json" with { type: "json" }
-import { _allowNavigation } from "./alpine.ts"
 import Config from "./config.ts"
 import { defaultLayout } from "./html.ts"
 import { render } from "./markup/index.ts"
-import { _history, push } from "./state.ts"
+import { push } from "./state.ts"
 import { getScripts, getStyles, start as storyStart } from "./story.ts"
 import type { FrameQueueEntry } from "./utils.ts"
 

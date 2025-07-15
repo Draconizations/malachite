@@ -1,7 +1,7 @@
 import pkg from "../package.json" with { type: "json" }
-import { _allowNavigation, _frames } from "./alpine.ts"
+import { _allowNavigation } from "./alpine.ts"
 import Config from "./config.ts"
-import { frameQueue, play } from "./engine.ts"
+import { frameQueue } from "./engine.ts"
 import { type FrameQueueEntry, runFrameQueue } from "./utils.ts"
 
 type Data = {
