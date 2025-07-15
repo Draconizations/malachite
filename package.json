@@ -10,7 +10,7 @@
 	},
 	"types": "./types.d.ts",
 	"devDependencies": {
-		"@biomejs/biome": "1.9.4",
+		"@biomejs/biome": "2",
 		"@happy-dom/global-registrator": "^18.0.1",
 		"@rollup/plugin-commonjs": "^28.0.2",
 		"@rollup/plugin-json": "^6.1.0",
