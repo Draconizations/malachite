@@ -14,7 +14,7 @@ const terser = _terser as unknown as typeof _terser.default
 const polyfill = _polyfill as unknown as typeof _polyfill.default
 const json = _json as unknown as typeof _json.default
 
-const dist = Bun.argv.length > 1 ? Bun.argv[1] : "./dist"
+const dist = Bun.argv.length > 2 ? Bun.argv[2] : "./build"
 
 async function bundle() {
 	// we want to bundle each config separately
