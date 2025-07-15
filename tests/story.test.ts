@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test"
+import Passage from "../src/passage.ts"
 import * as Story from "../src/story.ts"
 
 let storyData: HTMLElement
@@ -30,7 +31,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-	// global teardown
+	Story.finish()
 })
 
 function createPassage(name: string, tags = "", body?: string) {
@@ -66,5 +67,65 @@ describe("Malformed StoryData", () => {
 		const hehe = createPassage("hehe")
 		storyData.append(hehe, hehe.cloneNode())
 		expect(() => Story.init()).toThrow(/duplicate/i)
+	})
+})
+
+describe("Accessing Passages", () => {
+	beforeEach(() => {
+		storyData.append(createPassage("Hello World", "test hello", "Hello World!!"))
+		storyData.append(createPassage("Goodbye World", "", "Goodbye World."))
+
+		Story.init()
+	})
+
+	test("Get passage by name", () => {
+		const p = Story.get("Hello World")
+		expect(p).toBeInstanceOf(Passage)
+		expect(p?.name).toBe("Hello World")
+		expect(p?.source).toBe("Hello World!!")
+		expect(p?.tags).toBeArrayOfSize(2)
+	})
+
+	test("Get non-existent passage by name", () => {
+		const p = Story.get("Nope")
+		expect(p).toBeUndefined()
+	})
+
+	test("Find passage by predicate (tags)", () => {
+		const p = Story.find((passage) => passage.tags.includes("hello"))
+
+		expect(p).toBeInstanceOf(Passage)
+		expect(p?.name).toBe("Hello World")
+		expect(p?.source).toBe("Hello World!!")
+		expect(p?.tags).toBeArrayOfSize(2)
+	})
+
+	test("Find passage by predicate (source/regex)", () => {
+		const p = Story.find((passage) => /Hello/i.test(passage.source))
+
+		expect(p).toBeInstanceOf(Passage)
+		expect(p?.name).toBe("Hello World")
+		expect(p?.source).toBe("Hello World!!")
+		expect(p?.tags).toBeArrayOfSize(2)
+	})
+
+	test("Find non-existent passage by predicate (name)", () => {
+		const p = Story.find((passage) => passage.name.includes("You Lost The Game"))
+		expect(p).toBeUndefined()
+	})
+
+	test("Check if passage exists", () => {
+		const exists = Story.has("Goodbye World")
+		expect(exists).toBeTrue()
+	})
+
+	test("Check if non-existent passage exists", () => {
+		const exists = Story.has("Huh")
+		expect(exists).toBeFalse()
+	})
+
+	test("Find all passages by name/regex", () => {
+		const p = Story.filter((passage) => /World/i.test(passage.name))
+		expect(p).toBeArrayOfSize(2)
 	})
 })

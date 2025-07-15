@@ -9,9 +9,9 @@ export let start: Passage | undefined = undefined
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-const _passages: Passage[] = []
-const _styles: Passage[] = []
-const _scripts: Passage[] = []
+let _passages: Passage[] = []
+let _styles: Passage[] = []
+let _scripts: Passage[] = []
 
 /**
  * Initializes the Story.
@@ -48,6 +48,18 @@ export function init() {
 	styles.forEach((s, i) => {
 		_styles.push(new Passage(`tw-user-style-${i}`, [], s.innerText))
 	})
+}
+
+export function finish() {
+	_storyData = null
+	ifID = "00000000-0000-4000-A000-000000000000"
+	storyTitle = ""
+
+	start = undefined
+
+	_passages = []
+	_styles = []
+	_scripts = []
 }
 
 function initPassages() {
