@@ -12,7 +12,7 @@
       
       
       
-        <link rel="next" href="installation/">
+        <link rel="next" href="about/">
       
       
       <link rel="icon" href="assets/images/favicon.png">
@@ -20,7 +20,7 @@
     
     
       
-        <title>Malachite Docs</title>
+        <title>Welcome - Malachite Docs</title>
       
     
     
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Welcome
             
           </span>
         </div>
@@ -256,6 +256,44 @@
   
   
   
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Home
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
     <li class="md-nav__item md-nav__item--active">
       
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
@@ -268,7 +306,7 @@
           
   
   <span class="md-ellipsis">
-    Home
+    Welcome
     
   </span>
   
@@ -280,7 +318,7 @@
         
   
   <span class="md-ellipsis">
-    Home
+    Welcome
     
   </span>
   
@@ -313,9 +351,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#why-malachite" class="md-nav__link">
+  <a href="#where-to-go" class="md-nav__link">
     <span class="md-ellipsis">
-      Why Malachite?
+      Where to go?
     </span>
   </a>
   
@@ -329,6 +367,36 @@
     </ul>
   
 </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="about/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    About Malachite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
       
     </li>
   
@@ -697,9 +765,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#why-malachite" class="md-nav__link">
+  <a href="#where-to-go" class="md-nav__link">
     <span class="md-ellipsis">
-      Why Malachite?
+      Where to go?
     </span>
   </a>
   
@@ -736,28 +804,12 @@
 </div>
 <h2 id="welcome-to-malachite">Welcome to Malachite!<a class="headerlink" href="#welcome-to-malachite" title="Permanent link">&para;</a></h2>
 <p>This is the official documentation for <strong>Malachite</strong>, an advanced (though not minimal) story format for twine/twee3.</p>
-<h3 id="why-malachite">Why Malachite?<a class="headerlink" href="#why-malachite" title="Permanent link">&para;</a></h3>
-<p>There are plenty of official, well-documented story formats for twine/twee. I would not recommend developing a project with Malachite unless you have ran into multiple of the same pain points as I have:</p>
-<ul>
-<li>
-<p>Your project requires a <strong>Complex UI</strong> with multiple separate passages displayed at the same time, each with a separate history.</p>
-<p>Most twine story formats are built on the assumption that only a single passage will be visible on the screen at any given time. While most formats do have functionality for embedding other passages inside that main passage, Malachite allows for multiple "windows" (AKA frames) to be present, each with a separate history.</p>
-</li>
-<li>
-<p>You are <strong>familiar with</strong> HTML <em>and</em> javascript and find <strong>most abstractions</strong> away from this <strong>annoying to work with</strong>.</p>
-<p>Malachite is very light on the markup and heavy on the javascript. Most of Malachite's interactivity is built on top of <a href="https://alpinejs.dev/">Alpine.js</a>, a lightweight javascript framework that already has functionality like conditionals and looping built in.</p>
-<p>Please check out <em>at least</em> the first few pages of <a href="https://alpinejs.dev/start-here">Alpine's documentation</a>, it will help you understand Malachite as well.</p>
-</li>
-<li>
-<p>Your project requires a good amount of <strong>reactivity with minimum hassle</strong>.</p>
-<p>TBA later. Tl;dr Alpine includes reactivity out of the box. Update a variable and it instantly ripples through the entire UI.</p>
-</li>
-<li>
-<p>You need <strong>more functionality</strong> than a <strong>minimal story format</strong> out of the box.</p>
-<p>Malchite is not (or at least, won't be) a <em>minimal</em> story format. There will be helper utilities and APIs for things commonly utilized in Interactive Fiction. Examples include crossfading, playing audio and storylets/quality based narratives.</p>
-</li>
-</ul>
-<p>Even then, Malachite is still in heavy development and very unstable, not to mention (mostly) undocumented. Please do not expect this story format to be production ready in any reasonable timeframe, as this is a hobby project of a single developer right now.</p>
+<h3 id="where-to-go">Where to go?<a class="headerlink" href="#where-to-go" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Before</strong> getting started with Malachite, please read the format's <a href="/about">About Page</a>! It covers some very important topics and gotchas with the project in its current state.</li>
+<li>After you've read the above, head to <a href="/installation">Installation</a> to get started.</li>
+</ol>
+<p>TBA later.</p>
 
 
 
