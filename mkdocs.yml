@@ -4,7 +4,9 @@ repo_url: https://github.com/Draconizations/malachite
 repo_name: Draconizations/malachite
 
 nav:
-  - Home: 'index.md'
+  - Home:
+    - Welcome:  'index.md'
+    - About Malachite: 'about.md'
 
   - Getting Started:
     - Installation: 'installation.md'
