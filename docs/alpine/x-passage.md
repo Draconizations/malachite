@@ -4,16 +4,14 @@ Embeds one passage directly into another. Input must resolve to a valid passage 
 Embedded passages can read data from its parents, enabling widget-like functionality. It is also possible to directly embed html contents into the passage using `x-contents`.
 
 ## `x-passage="passage name"`
-!!! warning "Tip"
-    The expression inside the double quotes **MUST** resolve to a string! When passing a simple passage name, a common mistake is to not include the 'single quotes' around the name.
-
-Passing a passage name as a string
+You can pass any expression that evaluates to a valid passage name.
 ```html
-<div x-passage="'passage name'">
+<div x-passage="'The Feast'">
 </div>
 ```
+This will embed a passage with the name "The Feast".
 
-Passing a variable that resolves to a passage name.
+Here is another example that embeds a passage with the name "Another Passage".
 ```html
 <div x-data="{ title: 'Another Passage' }">
   <!-- resolves to "Another Passage" -->
@@ -30,7 +28,7 @@ Say we have a passage as described here.
   <p>{{dialogue}}</p>
 </div>
 ```
-We can re-use this passage inside another by using `x-passage`. In order to set each variable used here, we use `x-data`.
+We can re-use this passage inside another by using `x-passage`. Using `x-data` we can set the variables used.
 ```html
 <div
   x-passage="'Dialogue Box'"
