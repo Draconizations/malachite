@@ -13,7 +13,9 @@ nav:
   
   - General Concepts:
     - Markup: 'general/markup.md'
+    - Frames: 'general/frames.md'
     - Directives: 'general/directives.md'
+    - State: 'general/state.md'
     - Lifecycle: 'general/lifecycle.md'
   
   - Directives:
