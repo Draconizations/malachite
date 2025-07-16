@@ -31,6 +31,8 @@ export function init() {
 
 	initPassages()
 
+	if (!start) throw new Error("No start passage found")
+
 	// get the user scripts
 	const scripts =
 		(_storyData?.querySelectorAll(
@@ -74,7 +76,8 @@ function initPassages() {
 
 		const passage = new Passage(name, tags, content)
 		if (
-			passage.name.toLowerCase() === (getAttribute(_storyData, "start")?.toLowerCase() ?? "start")
+			passage.name.toLowerCase() ===
+			(getAttribute(_storyData, "startnode")?.toLowerCase() ?? "start")
 		) {
 			start = passage
 		}

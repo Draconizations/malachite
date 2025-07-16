@@ -42,7 +42,7 @@ function createPassage(name: string, tags = "", body?: string) {
 	return passage
 }
 
-describe("Malformed StoryData", () => {
+describe("StoryData", () => {
 	test("Throw on missing <tw-storydata>", () => {
 		storyData.remove()
 		expect(() => Story.init()).toThrow(/storydata/i)
@@ -67,6 +67,21 @@ describe("Malformed StoryData", () => {
 		const hehe = createPassage("hehe")
 		storyData.append(hehe, hehe.cloneNode())
 		expect(() => Story.init()).toThrow(/duplicate/i)
+	})
+
+	test("Get correct start node", () => {
+		storyData.append(createPassage("Hello World", "test hello", "Hello World!!"))
+		storyData.append(createPassage("Goodbye World", "", "Goodbye World."))
+
+		expect(() => Story.init()).not.toThrow()
+		expect(Story.start).not.toBeUndefined()
+		expect(Story.start).toBeInstanceOf(Passage)
+		expect(Story.start?.name).toBe("My Epic Story")
+	})
+
+	test("Throw on non-existent start node", () => {
+		storyData.setAttribute("startnode", "Nope")
+		expect(() => Story.init()).toThrow(/start/i)
 	})
 })
 
