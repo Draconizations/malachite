@@ -1,4 +1,3 @@
-import pkg from "../package.json" with { type: "json" }
 import Config from "./config.ts"
 import { defaultLayout } from "./html.ts"
 import { render } from "./markup/index.ts"
@@ -6,7 +5,8 @@ import { push } from "./state.ts"
 import { getScripts, getStyles, start as storyStart } from "./story.ts"
 import type { FrameQueueEntry } from "./utils.ts"
 
-export const version: string = pkg.version
+// @ts-ignore
+export const version: string = __VERSION__
 const _viewport = document.querySelector("#mala-viewport") || document.createElement("div")
 
 export const frameQueue = new Map<string, FrameQueueEntry>()

@@ -1,19 +1,12 @@
-import _commonjs from "@rollup/plugin-commonjs"
-import _json from "@rollup/plugin-json"
-import _resolve from "@rollup/plugin-node-resolve"
-import _swc from "@rollup/plugin-swc"
-import _terser from "@rollup/plugin-terser"
+import { parseArgs } from "node:util"
+import commonjs from "@rollup/plugin-commonjs"
+import json from "@rollup/plugin-json"
+import resolve from "@rollup/plugin-node-resolve"
+import replace from "@rollup/plugin-replace"
+import swc from "@rollup/plugin-swc"
+import terser from "@rollup/plugin-terser"
 import { type OutputOptions, type RollupBuild, type RollupOptions, rollup } from "rollup"
-import _polyfill from "rollup-plugin-polyfill-node"
-import { parseArgs } from "util"
-
-// typescript shenanigans...
-const swc = _swc as unknown as typeof _swc.default
-const commonjs = _commonjs as unknown as typeof _commonjs.default
-const resolve = _resolve as unknown as typeof _resolve.default
-const terser = _terser as unknown as typeof _terser.default
-const polyfill = _polyfill as unknown as typeof _polyfill.default
-const json = _json as unknown as typeof _json.default
+import polyfill from "rollup-plugin-polyfill-node"
 
 const { values, positionals } = parseArgs({
 	args: Bun.argv,
@@ -29,8 +22,8 @@ const { values, positionals } = parseArgs({
 const dist = positionals.length > 2 ? positionals[2] : "./build"
 const full = values.full
 
-const pck = await Bun.file("./package.json").json()
-const version = pck.version
+const pkg = await Bun.file("./package.json").json()
+const version = pkg.version
 
 async function bundle(o: RollupOptions & { output: OutputOptions }) {
 	// we want to bundle each config separately
@@ -96,7 +89,17 @@ async function build(input: string, output: string) {
 }
 
 const input = "./src/malachite.ts"
-const sharedPlugins = [json(), resolve(), commonjs(), polyfill(), swc()]
+const sharedPlugins = [
+	json(),
+	resolve(),
+	commonjs(),
+	polyfill(),
+	swc(),
+	replace({
+		__VERSION__: JSON.stringify(version),
+		preventAssignment: true,
+	}),
+]
 
 const options: (RollupOptions & { output: OutputOptions })[] = [
 	{
@@ -107,14 +110,7 @@ const options: (RollupOptions & { output: OutputOptions })[] = [
 			format: "iife",
 		},
 
-		plugins: [
-			...sharedPlugins,
-			terser({
-				format: {
-					ascii_only: true,
-				},
-			}),
-		],
+		plugins: [...sharedPlugins, terser()],
 	},
 	{
 		input,
@@ -124,18 +120,7 @@ const options: (RollupOptions & { output: OutputOptions })[] = [
 			format: "iife",
 		},
 
-		plugins: [
-			...sharedPlugins,
-			...(!full
-				? [
-						terser({
-							format: {
-								ascii_only: true,
-							},
-						}),
-					]
-				: []),
-		],
+		plugins: [...sharedPlugins, ...(!full ? [terser()] : [])],
 	},
 ]
 

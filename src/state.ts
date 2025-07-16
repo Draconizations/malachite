@@ -1,4 +1,3 @@
-import pkg from "../package.json" with { type: "json" }
 import { _allowNavigation } from "./alpine.ts"
 import Config from "./config.ts"
 import { frameQueue } from "./engine.ts"
@@ -19,7 +18,8 @@ export const emptyData: Data = {
 
 export let _history: Snapshot[] = []
 export let _index = -1
-const _version = pkg.version
+// @ts-ignore
+const _version = __VERSION__
 
 // max amount of states the history stack can have
 export let max = Config.maxHistory

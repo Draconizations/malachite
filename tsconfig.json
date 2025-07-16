@@ -11,9 +11,12 @@
 		// Bundler mode
 		"moduleResolution": "NodeNext",
 		"allowImportingTsExtensions": true,
-		"verbatimModuleSyntax": true,
 		"resolveJsonModule": true,
-		"noEmit": true,
+		"declaration": true,
+		"emitDeclarationOnly": true,
+
+		"rootDir": "src/",
+		"outFile": "dist/types.d.ts",
 
 		// Best practices
 		"strict": true,
@@ -24,5 +27,6 @@
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false
-	}
+	},
+	"files": ["src/api.ts"]
 }
