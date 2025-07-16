@@ -1,15 +1,16 @@
-# `x-passage="passage name"` 
+# Passage Directive
 Embeds one passage directly into another. Input must resolve to a valid passage name.
 
 Embedded passages can read data from its parents, enabling widget-like functionality. It is also possible to directly embed html contents into the passage using `x-contents`.
 
-## Example Usage
+## `x-passage="passage name"`
 !!! warning "Tip"
     The expression inside the double quotes **MUST** resolve to a string! When passing a simple passage name, a common mistake is to not include the 'single quotes' around the name.
 
 Passing a passage name as a string
 ```html
 <div x-passage="'passage name'">
+</div>
 ```
 
 Passing a variable that resolves to a passage name.
@@ -50,7 +51,7 @@ This will render as the following.
 ```
 
 ## `x-contents`
-We can also pass HTML children to a designated area inside the source passage, using `x-contents` on the element that should contain the HTML.
+We can also pass HTML children into a designated container inside the source passage, by using `x-contents` on the container.
 
 Source passage:
 ```html
