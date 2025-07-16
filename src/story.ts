@@ -65,6 +65,8 @@ export function finish() {
 }
 
 function initPassages() {
+	const startnode = getAttribute(_storyData, "startnode")
+
 	for (const p of Array.from(_storyData?.querySelectorAll("tw-passagedata") || [])) {
 		const name = getAttribute(p, "name") || "Passage"
 		const tags = getAttribute(p, "tags")?.split(" ") || []
@@ -75,10 +77,8 @@ function initPassages() {
 			throw new Error(`Duplicate passage name found: ${name}`)
 
 		const passage = new Passage(name, tags, content)
-		if (
-			passage.name.toLowerCase() ===
-			(getAttribute(_storyData, "startnode")?.toLowerCase() ?? "start")
-		) {
+
+		if (startnode !== null && getAttribute(p, "pid") === startnode) {
 			start = passage
 		}
 		_passages.push(passage)

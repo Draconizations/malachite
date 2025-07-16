@@ -22,9 +22,10 @@ beforeEach(() => {
 	storyData = document.createElement("tw-storydata")
 	storyData.setAttribute("name", "Malachite Test Story")
 	storyData.setAttribute("ifid", "00000000-0000-4000-A000-000000000000")
-	storyData.setAttribute("startnode", "My Epic Story")
+	storyData.setAttribute("startnode", "14")
 
 	startPassage = createPassage("My Epic Story")
+	startPassage.setAttribute("pid", "14")
 	storyData.append(startPassage)
 
 	document.body.prepend(storyData)
@@ -69,7 +70,13 @@ describe("StoryData", () => {
 		expect(() => Story.init()).toThrow(/duplicate/i)
 	})
 
-	test("Get correct start node", () => {
+	test("Throw on missing start node", () => {
+		storyData.removeAttribute("startnode")
+
+		expect(() => Story.init()).toThrow(/start/i)
+	})
+
+	test("Get correct start node ", () => {
 		storyData.append(createPassage("Hello World", "test hello", "Hello World!!"))
 		storyData.append(createPassage("Goodbye World", "", "Goodbye World."))
 
@@ -80,7 +87,7 @@ describe("StoryData", () => {
 	})
 
 	test("Throw on non-existent start node", () => {
-		storyData.setAttribute("startnode", "Nope")
+		storyData.setAttribute("startnode", "22")
 		expect(() => Story.init()).toThrow(/start/i)
 	})
 })
