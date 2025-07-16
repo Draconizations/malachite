@@ -11,7 +11,7 @@ Using `x-link` directly offers you the ability to style and customize the link h
 ## `x-link="passage name"`
 You can pass anything that resolves to a valid passage name.
 ```html
-<button x-link="'Next Up">Go to the next passage!</button>
+<button x-link="'Next Up'">Go to the next passage!</button>
 ```
 Like the [frame directive](./x-frame), links target the [unnamed frame](../general/frames#unnamed-frame) by default.
 
