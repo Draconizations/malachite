@@ -11,8 +11,9 @@ on:
       - synchronize
       - reopened
   push:
-    paths:
-      - 'src/**'
+    paths-ignore:
+      - 'docs/**'
+      - 'mkdocs.yml'
     branches:
       - 'main'
 
