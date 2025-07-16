@@ -11,7 +11,7 @@
         <link rel="canonical" href="https://draconizations.github.io/malachite/prerelease/alpine/x-passage/">
       
       
-        <link rel="prev" href="../../general/markup/">
+        <link rel="prev" href="../../general/directives/">
       
       
         <link rel="next" href="../x-frame/">
@@ -489,7 +489,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../general/directives.md" class="md-nav__link">
+      <a href="../../general/directives/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1063,15 +1063,12 @@
 <p>Embeds one passage directly into another. Input must resolve to a valid passage name.</p>
 <p>Embedded passages can read data from its parents, enabling widget-like functionality. It is also possible to directly embed html contents into the passage using <code>x-contents</code>.</p>
 <h2 id="x-passagepassage-name"><code>x-passage="passage name"</code><a class="headerlink" href="#x-passagepassage-name" title="Permanent link">&para;</a></h2>
-<div class="admonition warning">
-<p class="admonition-title">Tip</p>
-<p>The expression inside the double quotes <strong>MUST</strong> resolve to a string! When passing a simple passage name, a common mistake is to not include the 'single quotes' around the name.</p>
-</div>
-<p>Passing a passage name as a string
-<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span> <span class="na">x-passage</span><span class="o">=</span><span class="s">&quot;&#39;passage name&#39;&quot;</span><span class="p">&gt;</span>
+<p>You can pass any expression that evaluates to a valid passage name.
+<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span> <span class="na">x-passage</span><span class="o">=</span><span class="s">&quot;&#39;The Feast&#39;&quot;</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-</code></pre></div></p>
-<p>Passing a variable that resolves to a passage name.
+</code></pre></div>
+This will embed a passage with the name "The Feast".</p>
+<p>Here is another example that embeds a passage with the name "Another Passage".
 <div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span> <span class="na">x-data</span><span class="o">=</span><span class="s">&quot;{ title: &#39;Another Passage&#39; }&quot;</span><span class="p">&gt;</span>
   <span class="cm">&lt;!-- resolves to &quot;Another Passage&quot; --&gt;</span>
   <span class="p">&lt;</span><span class="nt">div</span> <span class="na">x-passage</span><span class="o">=</span><span class="s">&quot;title&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
@@ -1085,7 +1082,7 @@
   <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>{{dialogue}}<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
 </code></pre></div>
-We can re-use this passage inside another by using <code>x-passage</code>. In order to set each variable used here, we use <code>x-data</code>.
+We can re-use this passage inside another by using <code>x-passage</code>. Using <code>x-data</code> we can set the variables used.
 <div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span>
   <span class="na">x-passage</span><span class="o">=</span><span class="s">&quot;&#39;Dialogue Box&#39;&quot;</span>
   <span class="na">x-data</span><span class="o">=</span><span class="s">&quot;{</span>

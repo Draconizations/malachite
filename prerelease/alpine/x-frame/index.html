@@ -489,7 +489,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../general/directives.md" class="md-nav__link">
+      <a href="../../general/directives/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -679,9 +679,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#x-framenamepassage-name" class="md-nav__link">
+  <a href="#x-framename" class="md-nav__link">
     <span class="md-ellipsis">
-      x-frame:name="passage name"
+      x-frame:name
     </span>
   </a>
   
@@ -700,7 +700,7 @@
           <li class="md-nav__item">
   <a href="#overwrite" class="md-nav__link">
     <span class="md-ellipsis">
-      .overwrite
+      overwrite
     </span>
   </a>
   
@@ -1026,9 +1026,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#x-framenamepassage-name" class="md-nav__link">
+  <a href="#x-framename" class="md-nav__link">
     <span class="md-ellipsis">
-      x-frame:name="passage name"
+      x-frame:name
     </span>
   </a>
   
@@ -1047,7 +1047,7 @@
           <li class="md-nav__item">
   <a href="#overwrite" class="md-nav__link">
     <span class="md-ellipsis">
-      .overwrite
+      overwrite
     </span>
   </a>
   
@@ -1080,25 +1080,24 @@
 <h1 id="frame-directive">Frame Directive<a class="headerlink" href="#frame-directive" title="Permanent link">&para;</a></h1>
 <p>Creates a <a href="../general/frames">Frame</a> and initializes the contents with the passage specified.</p>
 <h2 id="x-framepassage-name"><code>x-frame="passage name"</code><a class="headerlink" href="#x-framepassage-name" title="Permanent link">&para;</a></h2>
-<p>Like the <a href="./x-passage">passage directive</a>, you can pass anything that resolves to a valid passage name.
+<p>Like the <a href="../x-passage">passage directive</a>, you can pass anything that resolves to a valid passage name.
 <div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span> <span class="na">x-frame</span><span class="o">=</span><span class="s">&quot;&#39;passage name&#39;&quot;</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
 </code></pre></div>
-The passage passed to <code>x-frame</code> will be rendered on frame initialization, unless another passage is already pressent in the <a href="../general/state">State</a></p>
+The passage passed to <code>x-frame</code> will be rendered on frame initialization, unless another passage is already pressent in the <a href="../../general/state">State</a></p>
 <div class="admonition warning">
 <p class="admonition-title">Tip</p>
-<p>Frames get initialized per element, <em>not</em> per name. Meaning each time an element with <code>x-frame</code> appears on the screen, that element will be initialized. In the future, it will be possible to configure default behavior per-name using the <a href="../api/config">Config API</a>.</p>
+<p>Frames get initialized per element, <em>not</em> per name. Meaning each time an element with <code>x-frame</code> appears on the screen, that element will be initialized. In the future, it will be possible to configure default behavior per-name using the <a href="../../api/config">Config API</a>.</p>
 </div>
-<h2 id="x-framenamepassage-name"><code>x-frame:name="passage name"</code><a class="headerlink" href="#x-framenamepassage-name" title="Permanent link">&para;</a></h2>
-<p>All <code>x-frame</code> directives reference the <a href="../general/frames#unnamed-frame">unnamed frame</a> by default. To use a different frame, you can specify a name by adding a colon and the name of the frame.
+<h2 id="x-framename"><code>x-frame:name</code><a class="headerlink" href="#x-framename" title="Permanent link">&para;</a></h2>
+<p>All <code>x-frame</code> directives reference the <a href="../../general/frames#unnamed-frame">unnamed frame</a> by default. To use a different frame, pass its name as the value.
 <div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span> <span class="na">x-frame:menu</span><span class="o">=</span><span class="s">&quot;&#39;Inventory Menu&#39;&quot;</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
 </code></pre></div>
 This assigns the parent div to a frame called "menu".</p>
 <h2 id="modifiers">Modifiers<a class="headerlink" href="#modifiers" title="Permanent link">&para;</a></h2>
-<p>The following modifiers are available for <code>x-frame</code>.</p>
-<h3 id="overwrite"><code>.overwrite</code><a class="headerlink" href="#overwrite" title="Permanent link">&para;</a></h3>
-<p><strong>Usage:</strong> <code>x-frame:name.overwrite="passage name"</code></p>
+<p>The following modifiers are available for the <code>x-frame</code> directive.</p>
+<h3 id="overwrite"><code>overwrite</code><a class="headerlink" href="#overwrite" title="Permanent link">&para;</a></h3>
 <p>Makes the default passage <em>always</em> render upon frame initialization, ignoring any current state.</p>
 
 
