@@ -26,7 +26,7 @@ That might be a lot at once, so let's break it down.
 `.modifiers`, separated by a period, can be chained together to modify the directive's behavior. Malachite directives have a convention where modifiers prefixed with a `!` (i.e. `!play`) *disable* a default behavior, while modifiers without a `!` *enable* additional behaviors.
 
 ### Expression
-Finally, `expression` is any valid javascript expression. `x-directive="variable ? 'yes' : 'no'"` 
+Finally, `expression` is any valid javascript expression. Including ternaries, function calls, and everything else: `x-directive="shouldSayYes() ? 'yes' : 'no'"`.
 
 !!! Warning "Tip"
     A lot of Malachite's built in directives expect the expression to evaluate to a *string*. This includes `x-passage`, `x-frame` and `x-link`, which take a passage name. Make sure you wrap your passage name in 'single quotes' *inside* the double quotes. I.e. `x-frame="'My Passage'"`.
