@@ -1,12 +1,9 @@
 name: CI
 on:
   pull_request:
-    paths:
-      - 'src/**'
-      - 'build.ts'
-      - 'package.json'
-      - 'story.json'
-      - 'tests/**'
+    paths-ignore:
+      - 'docs/**'
+      - 'mkdocs.yml'
     branches:
       - 'main'
     types:
