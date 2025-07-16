@@ -1,9 +1,12 @@
 name: CI
 on:
   pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - 'mkdocs.yml'
+    paths:
+      - 'src/**'
+      - 'build.ts'
+      - 'package.json'
+      - 'story.json'
+      - 'tests/**'
     branches:
       - 'main'
     types:
@@ -11,9 +14,12 @@ on:
       - synchronize
       - reopened
   push:
-    paths-ignore:
-      - 'docs/**'
-      - 'mkdocs.yml'
+    paths:
+      - 'src/**'
+      - 'build.ts'
+      - 'package.json'
+      - 'story.json'
+      - 'tests/**'
     branches:
       - 'main'
 
