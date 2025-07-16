@@ -1,4 +1,4 @@
-name: CI
+name: Source Tests
 on:
   pull_request:
     paths:
@@ -51,24 +51,3 @@ jobs:
   #         version: latest
   #     - name: Run Biome
   #       run: biome ci .
-  build:
-    name: Build & Commit
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install bun
-        uses: oven-sh/setup-bun@v2
-      - name: Install dependencies
-        run: bun install
-      - name: Build format.js
-        run: bun run build ./dist
-      - name: Typescript types
-        run: bun run types
-      - name: Commit build
-        run: |
-          git config user.name 'malachite[bot]'
-          git config user.email 'malachite[bot]@users.noreply.github.io'
-          git add ./dist
-          git commit -m "[bot] update dist"
-          git push
