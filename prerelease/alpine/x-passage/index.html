@@ -14,6 +14,8 @@
         <link rel="prev" href="../../general/markup/">
       
       
+        <link rel="next" href="../x-frame/">
+      
       
       <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.4">
@@ -72,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#x-passagepassage-name" class="md-skip">
+        <a href="#passage-directive" class="md-skip">
           Skip to content
         </a>
       
@@ -465,11 +467,55 @@
   
   
     <li class="md-nav__item">
+      <a href="../../general/frames.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Frames
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../general/directives.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Directives
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general/state.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    State
     
   </span>
   
@@ -602,13 +648,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#example-usage" class="md-nav__link">
+  <a href="#x-passagepassage-name" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Usage
+      x-passage="passage name"
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Example Usage">
+    <nav class="md-nav" aria-label="x-passage="passage name"">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -650,7 +696,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../x-frame.md" class="md-nav__link">
+      <a href="../x-frame/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -672,7 +718,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../x-link.md" class="md-nav__link">
+      <a href="../x-link/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -962,13 +1008,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#example-usage" class="md-nav__link">
+  <a href="#x-passagepassage-name" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Usage
+      x-passage="passage name"
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Example Usage">
+    <nav class="md-nav" aria-label="x-passage="passage name"">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1013,16 +1059,17 @@
   
 
 
-<h1 id="x-passagepassage-name"><code>x-passage="passage name"</code><a class="headerlink" href="#x-passagepassage-name" title="Permanent link">&para;</a></h1>
+<h1 id="passage-directive">Passage Directive<a class="headerlink" href="#passage-directive" title="Permanent link">&para;</a></h1>
 <p>Embeds one passage directly into another. Input must resolve to a valid passage name.</p>
 <p>Embedded passages can read data from its parents, enabling widget-like functionality. It is also possible to directly embed html contents into the passage using <code>x-contents</code>.</p>
-<h2 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">&para;</a></h2>
+<h2 id="x-passagepassage-name"><code>x-passage="passage name"</code><a class="headerlink" href="#x-passagepassage-name" title="Permanent link">&para;</a></h2>
 <div class="admonition warning">
 <p class="admonition-title">Tip</p>
 <p>The expression inside the double quotes <strong>MUST</strong> resolve to a string! When passing a simple passage name, a common mistake is to not include the 'single quotes' around the name.</p>
 </div>
 <p>Passing a passage name as a string
 <div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span> <span class="na">x-passage</span><span class="o">=</span><span class="s">&quot;&#39;passage name&#39;&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
 </code></pre></div></p>
 <p>Passing a variable that resolves to a passage name.
 <div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span> <span class="na">x-data</span><span class="o">=</span><span class="s">&quot;{ title: &#39;Another Passage&#39; }&quot;</span><span class="p">&gt;</span>
@@ -1056,7 +1103,7 @@ This will render as the following.
 <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
 </code></pre></div></p>
 <h2 id="x-contents"><code>x-contents</code><a class="headerlink" href="#x-contents" title="Permanent link">&para;</a></h2>
-<p>We can also pass HTML children to a designated area inside the source passage, using <code>x-contents</code> on the element that should contain the HTML.</p>
+<p>We can also pass HTML children into a designated container inside the source passage, by using <code>x-contents</code> on the container.</p>
 <p>Source passage:
 <div class="highlight"><pre><span></span><code>:: Dialogue Box
 <span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
