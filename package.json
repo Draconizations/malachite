@@ -8,7 +8,7 @@
 		"format": "bunx biome check --write --no-errors-on-unmatched .",
 		"types": "bunx tsc"
 	},
-	"types": "./types.d.ts",
+	"types": "./dist/types.d.ts",
 	"devDependencies": {
 		"@biomejs/biome": "2",
 		"@happy-dom/global-registrator": "^18.0.1",
