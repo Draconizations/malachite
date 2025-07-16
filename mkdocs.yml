@@ -9,21 +9,28 @@ nav:
     - About Malachite: 'about.md'
 
   - Getting Started:
-    - Installation: 'installation.md'
-    - Concepts: 'concepts.md'
+    - Installation: 'start/installation.md'
   
-  - Markup: 'markup.md'
+  - General Concepts:
+    - Markup: 'general/markup.md'
+    - Directives: 'general/directives.md'
+    - Lifecycle: 'general/lifecycle.md'
   
   - Directives:
-    - About Alpine: 'alpine/about.md'
     - x-passage:  'alpine/x-passage.md'
     - x-frame: 'alpine/x-frame.md'
     - x-link: 'alpine/x-link.md'
     - x-fade: 'alpine/x-fade.md'
     - x-reveal: 'alpine/x-reveal.md'
     - $s magic: 'alpine/store.md'
-  
-  - Storage: 'storage.md'
+
+  - API:
+    - Alpine: 'api/alpine.md'
+    - Config: 'api/config.md'
+    - Engine: 'api/engine.md'
+    - Frames: 'api/frame.md'
+    - Story: 'api/story.md'
+    - State: 'api/state.md'
 
 
 theme:
