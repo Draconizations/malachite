@@ -13,7 +13,7 @@ The passage passed to `x-frame` will be rendered on frame initialization, unless
     Frames get initialized per element, *not* per name. Meaning each time an element with `x-frame` appears on the screen, that element will be initialized. In the future, it will be possible to configure default behavior per-name using the [Config API](../../api/config).
 
 ## `x-frame:name`
-All `x-frame` directives reference the [unnamed frame](../../general/frames#unnamed-frame) by default. To use a different frame, you can specify a name by adding a colon and the name of the frame.
+All `x-frame` directives reference the [unnamed frame](../../general/frames#unnamed-frame) by default. To use a different frame, pass its name as the value.
 ```html
 <div x-frame:menu="'Inventory Menu'">
 </div>

@@ -19,7 +19,7 @@ Like the [frame directive](../x-frame), links target the [unnamed frame](../../g
     It is advised to use `x-link` on exclusively button elements. It is the easiest way to keep accessibility features (keyboard navigation, etc) functioning as they should.
 
 ## `x-link:frame`
-To target another frame, add a colon and the name of the frame.
+To target another frame, pass the frame name as the value.
 ```html
 <button x-link:menu="'Quest Menu'">Open Quest Log</button>
 ```

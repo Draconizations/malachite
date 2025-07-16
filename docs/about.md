@@ -10,7 +10,7 @@ There are plenty of official, well-documented story formats for twine/twee. I wo
 
 * You are **familiar with** HTML *and* javascript and find **most abstractions** away from this **annoying to work with**.
 
-    Malachite is very light on the markup and heavy on the javascript. Most of Malachite's interactivity is built on top of [Alpine.js](https://alpinejs.dev/), a lightweight javascript framework that already has functionality like conditionals and looping built in.
+    Malachite is very light on the markup and heavy on the javascript. Most of Malachite's interactivity is built on top of [AlpineJs](https://alpinejs.dev/), a lightweight javascript framework that already has functionality like conditionals and looping built in.
 
     Please check out *at least* the first few pages of [Alpine's documentation](https://alpinejs.dev/start-here), it will help you understand Malachite as well.
 
