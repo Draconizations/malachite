@@ -1058,13 +1058,8 @@
 <p>There's actually no default CSS that comes with Malachite yet, so passages <em>do not</em> fade in and out by default, <em>yet</em>. It will in the near future.</p>
 </div>
 <h2 id="anatomy-of-a-transition">Anatomy Of A Transition<a class="headerlink" href="#anatomy-of-a-transition" title="Permanent link">&para;</a></h2>
-<p>When an element transitions (i.e. a frame, or when using <code>x-fade</code> or <code>x-reveal</code>), a couple of things happen during the duration of the transition.</p>
-<ul>
-<li>the element gets the css classes <code>.fadeout</code> and <code>.fadein</code> assigned to it, depending on what state the element is transitioning to.</li>
-<li>the element dispatches the following events: <code>fadestart</code>, <code>fade</code> and <code>fadeend</code>.</li>
-</ul>
-<p>The transition duration of the element is determined by the <code>transition-duration</code> of the element's CSS.</p>
-<p>These events happen in the following order.</p>
+<p>When an element starts the transition (i.e. a frame, or when using <code>x-fade</code> or <code>x-reveal</code>), duration of the transition is determined by the CSS <code>transition-duration</code> property of the element. This property gets checked again at the peak of the transition.</p>
+<p>During a transition, the following things happen:</p>
 <!-- TODO: make a diagram for this? -->
 <ol>
 <li>Apply the <code>.fadestart</code> class</li>
@@ -1076,7 +1071,7 @@
 <li>Remove the <code>.fadeend</code>class</li>
 <li>Emit the <code>fadeend</code> event.</li>
 </ol>
-<p>The length of the <code>transition-duration</code> is determined right at step 3. and 6. Which means by applying styles to <code>.fadestart</code> and <code>.fadeend</code>, you can alter the transition behavior.</p>
+<p>The <code>transition-duration</code> is checked at step 3. and 6. Which means by applying styles to <code>.fadestart</code> and <code>.fadeend</code>, you can alter the transition behavior.</p>
 <h2 id="example-css-styling">Example CSS Styling<a class="headerlink" href="#example-css-styling" title="Permanent link">&para;</a></h2>
 <p>This will create a fade transition for every <code>div</code> element. Replace <code>div</code> with the selector you need.</p>
 <p><div class="highlight"><pre><span></span><code><span class="nt">div</span><span class="w"> </span><span class="p">{</span>
@@ -1092,7 +1087,8 @@
 <span class="w">  </span><span class="k">transition-timing-function</span><span class="p">:</span><span class="w"> </span><span class="kc">ease-out</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div>
-This will produce the same default fade effect that is included with Malachite.</p>
+This creates a transition that in total takes 0.6s to complete, with the element fading to 0% opacity using <code>ease-in</code> timing, then fading back in using <code>ease-out</code>.</p>
+<p>This is the same default fade effect that is included with Malachite.</p>
 
 
 
