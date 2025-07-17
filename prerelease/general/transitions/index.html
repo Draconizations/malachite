@@ -591,6 +591,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#example-css-styling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example CSS Styling
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1014,6 +1023,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#example-css-styling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example CSS Styling
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1045,17 +1063,34 @@
 - the element dispatches the following events: <code>fadestart</code>, <code>fade</code> and <code>fadeend</code>.</p>
 <p>The transition duration of the element is determined by the <code>transition-duration</code> of the element's CSS.</p>
 <p>These events happen in the following order.</p>
+<!-- TODO: make a diagram for this? -->
 <ol>
 <li>Apply the <code>.fadestart</code> class</li>
 <li>Emit the <code>fadestart</code> event.</li>
 <li>Wait for <code>transition-duration</code> to pass by</li>
-<li>Remove the <code>.fadestart</code> class</li>
-<li>Apply the <code>.fadeend</code> class</li>
+<li>Remove the <code>.fadestart</code> class and apply the <code>.fadeend</code> class</li>
 <li>Emit the <code>fade</code> event.</li>
 <li>Wait for <code>transition-duration</code> to pass by</li>
 <li>Remove the <code>.fadeend</code>class</li>
 <li>Emit the <code>fadeend</code> event.</li>
 </ol>
+<p>The length of the <code>transition-duration</code> is determined right at step 3. and 6. Which means by applying styles to <code>.fadestart</code> and <code>.fadeend</code>, you can alter the transition behavior.</p>
+<h2 id="example-css-styling">Example CSS Styling<a class="headerlink" href="#example-css-styling" title="Permanent link">&para;</a></h2>
+<p>This will create a fade transition for every <code>div</code> element. Replace <code>div</code> with the selector you need.</p>
+<p><div class="highlight"><pre><span></span><code><span class="nt">div</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">transition</span><span class="p">:</span><span class="w"> </span><span class="k">opacity</span><span class="w"> </span><span class="mf">0.3</span><span class="kt">s</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nt">div</span><span class="p">.</span><span class="nc">fadestart</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">opacity</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">transition-timing-function</span><span class="p">:</span><span class="w"> </span><span class="kc">ease-in</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nt">div</span><span class="p">.</span><span class="nc">fadeend</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">transition-timing-function</span><span class="p">:</span><span class="w"> </span><span class="kc">ease-out</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+This will produce the same default fade effect that is included with Malachite.</p>
 
 
 
