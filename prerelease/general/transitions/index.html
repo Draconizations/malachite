@@ -1072,6 +1072,7 @@
 <li>Emit the <code>fadeend</code> event.</li>
 </ol>
 <p>The <code>transition-duration</code> is checked at step 3. and 6. Which means by applying styles to <code>.fadestart</code> and <code>.fadeend</code>, you can alter the transition behavior.</p>
+<p>The <code>fadestart</code>, <code>fade</code> and <code>fadeend</code> events do <em>not</em> bubble.</p>
 <h2 id="example-css-styling">Example CSS Styling<a class="headerlink" href="#example-css-styling" title="Permanent link">&para;</a></h2>
 <p>This will create a fade transition for every <code>div</code> element. Replace <code>div</code> with the selector you need.</p>
 <p><div class="highlight"><pre><span></span><code><span class="nt">div</span><span class="w"> </span><span class="p">{</span>
