@@ -1058,9 +1058,11 @@
 <p>There's actually no default CSS that comes with Malachite yet, so passages <em>do not</em> fade in and out by default, <em>yet</em>. It will in the near future.</p>
 </div>
 <h2 id="anatomy-of-a-transition">Anatomy Of A Transition<a class="headerlink" href="#anatomy-of-a-transition" title="Permanent link">&para;</a></h2>
-<p>When an element transitions (i.e. a frame, or when using <code>x-fade</code> or <code>x-reveal</code>), a couple of things happen during the duration of the transition.
-- the element gets the css classes <code>.fadeout</code> and <code>.fadein</code> assigned to it, depending on what state the element is transitioning to.
-- the element dispatches the following events: <code>fadestart</code>, <code>fade</code> and <code>fadeend</code>.</p>
+<p>When an element transitions (i.e. a frame, or when using <code>x-fade</code> or <code>x-reveal</code>), a couple of things happen during the duration of the transition.</p>
+<ul>
+<li>the element gets the css classes <code>.fadeout</code> and <code>.fadein</code> assigned to it, depending on what state the element is transitioning to.</li>
+<li>the element dispatches the following events: <code>fadestart</code>, <code>fade</code> and <code>fadeend</code>.</li>
+</ul>
 <p>The transition duration of the element is determined by the <code>transition-duration</code> of the element's CSS.</p>
 <p>These events happen in the following order.</p>
 <!-- TODO: make a diagram for this? -->
