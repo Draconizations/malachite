@@ -180,19 +180,25 @@ Alpine.directive("fade", (el, { expression, modifiers }, { evaluateLater, effect
 				return
 			}
 
-			let duration = getTransitionDuration(el)
 			// start of fade
-			if (useClass && !(prev === undefined && !init)) el.classList.add("fading")
+			if (useClass && !(prev === undefined && !init)) el.classList.add("fadestart")
 			el.dispatchEvent(new CustomEvent("fadestart", { bubbles: false, detail: value }))
+
+			let duration = getTransitionDuration(el)
 			if (duration) await new Promise((res) => setTimeout(res, duration))
 
 			// middle of fade
+			if (useClass && !(prev === undefined && !init)) {
+				el.classList.remove("fadestart")
+				el.classList.add("fadeend")
+			}
 			el.dispatchEvent(new CustomEvent("fade", { bubbles: false, detail: value }))
-			if (useClass && !(prev === undefined && !init)) el.classList.remove("fading")
 
 			duration = getTransitionDuration(el)
 			if (duration) await new Promise((res) => setTimeout(res, duration))
+
 			// end of fade
+			if (useClass && !(prev === undefined && !init)) el.classList.remove("fadeend")
 			el.dispatchEvent(new CustomEvent("fadeend", { bubbles: false, detail: value }))
 
 			prev = value
@@ -222,17 +228,20 @@ Alpine.directive("reveal", (el, data, { evaluate }) => {
 	btn.addEventListener(
 		"click",
 		async () => {
-			const duration = getTransitionDuration(el)
+			// start the fade
+			el.classList.add("fadestart")
+			el.dispatchEvent(new CustomEvent("fadestart", { bubbles: false, detail: null }))
+
+			let duration = getTransitionDuration(el)
 			if (duration) {
-				el.classList.add("fading")
 				await new Promise((res) => setTimeout(res, duration))
 			}
 
 			const div = document.createElement("div")
 			div.innerHTML = contents
 
-			el.classList.remove("hide")
-			el.classList.add("show")
+			el.classList.remove("hide", "fadestart")
+			el.classList.add("show", "fadeend")
 
 			if (data.modifiers.includes("keep")) {
 				btn.disabled = true
@@ -242,7 +251,18 @@ Alpine.directive("reveal", (el, data, { evaluate }) => {
 
 			el.appendChild(div)
 
-			if (duration) el.classList.remove("fading")
+			el.dispatchEvent(new CustomEvent("fade", { bubbles: false, detail: null }))
+			if (duration) {
+				await new Promise((res) => setTimeout(res, duration / 2))
+			}
+
+			duration = getTransitionDuration(el)
+			if (duration) {
+				await new Promise((res) => setTimeout(res, duration))
+			}
+
+			el.classList.remove("fadeend")
+			el.dispatchEvent(new CustomEvent("fadeend", { bubbles: false, detail: null }))
 		},
 		{
 			once: true,

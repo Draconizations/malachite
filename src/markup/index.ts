@@ -28,13 +28,23 @@ export const markup = (source: string) => {
 
 export const render = async (el: Element, source: string, skip?: boolean) => {
 	const result = markup(source)
-	const duration = getTransitionDuration(el)
+	// TODO: move all transitions to its own function
+	let duration = getTransitionDuration(el)
 	if (duration > 0 && skip !== true) {
-		el.classList.add("fading")
+		el.classList.add("fadestart")
+		el.dispatchEvent(new CustomEvent("fadestart", { bubbles: false, detail: null }))
 		await new Promise((res) => setTimeout(res, duration))
 	}
 	el.innerHTML = result
 	if (duration > 0 && skip !== true) {
-		el.classList.remove("fading")
+		el.classList.remove("fadestart")
+		el.classList.add("fadeend")
+		el.dispatchEvent(new CustomEvent("fade", { bubbles: false, detail: null }))
+	}
+	duration = getTransitionDuration(el)
+	if (duration > 0 && skip !== true) {
+		await new Promise((res) => setTimeout(res, duration))
+		el.classList.remove("fadeend")
+		el.dispatchEvent(new CustomEvent("fadeend", { bubbles: false, detail: null }))
 	}
 }
