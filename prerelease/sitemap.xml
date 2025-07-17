@@ -2,34 +2,42 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://draconizations.github.io/malachite/prerelease/</loc>
-         <lastmod>2025-07-16</lastmod>
+         <lastmod>2025-07-17</lastmod>
     </url>
     <url>
          <loc>https://draconizations.github.io/malachite/prerelease/about/</loc>
-         <lastmod>2025-07-16</lastmod>
+         <lastmod>2025-07-17</lastmod>
     </url>
     <url>
          <loc>https://draconizations.github.io/malachite/prerelease/alpine/x-frame/</loc>
-         <lastmod>2025-07-16</lastmod>
+         <lastmod>2025-07-17</lastmod>
     </url>
     <url>
          <loc>https://draconizations.github.io/malachite/prerelease/alpine/x-link/</loc>
-         <lastmod>2025-07-16</lastmod>
+         <lastmod>2025-07-17</lastmod>
     </url>
     <url>
          <loc>https://draconizations.github.io/malachite/prerelease/alpine/x-passage/</loc>
-         <lastmod>2025-07-16</lastmod>
+         <lastmod>2025-07-17</lastmod>
+    </url>
+    <url>
+         <loc>https://draconizations.github.io/malachite/prerelease/alpine/x-reveal/</loc>
+         <lastmod>2025-07-17</lastmod>
     </url>
     <url>
          <loc>https://draconizations.github.io/malachite/prerelease/general/directives/</loc>
-         <lastmod>2025-07-16</lastmod>
+         <lastmod>2025-07-17</lastmod>
     </url>
     <url>
          <loc>https://draconizations.github.io/malachite/prerelease/general/markup/</loc>
-         <lastmod>2025-07-16</lastmod>
+         <lastmod>2025-07-17</lastmod>
+    </url>
+    <url>
+         <loc>https://draconizations.github.io/malachite/prerelease/general/transitions/</loc>
+         <lastmod>2025-07-17</lastmod>
     </url>
     <url>
          <loc>https://draconizations.github.io/malachite/prerelease/start/installation/</loc>
-         <lastmod>2025-07-16</lastmod>
+         <lastmod>2025-07-17</lastmod>
     </url>
 </urlset>

@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://draconizations.github.io/malachite/prerelease/alpine/x-passage/">
+        <link rel="canonical" href="https://draconizations.github.io/malachite/prerelease/general/transitions/">
       
       
-        <link rel="prev" href="../../general/transitions/">
+        <link rel="prev" href="../directives/">
       
       
-        <link rel="next" href="../x-frame/">
+        <link rel="next" href="../../alpine/x-passage/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>x-passage - Malachite Docs</title>
+        <title>Transitions - Malachite Docs</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#passage-directive" class="md-skip">
+        <a href="#passage-transitions" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              x-passage
+              Transitions
             
           </span>
         </div>
@@ -406,17 +406,19 @@
       
   
   
+    
   
   
+  
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -431,7 +433,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             General Concepts
@@ -445,7 +447,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../general/markup/" class="md-nav__link">
+      <a href="../markup/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -467,7 +469,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../general/frames.md" class="md-nav__link">
+      <a href="../frames.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -489,7 +491,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../general/directives/" class="md-nav__link">
+      <a href="../directives/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -511,7 +513,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../general/state.md" class="md-nav__link">
+      <a href="../state.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -530,10 +532,31 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../general/transitions/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Transitions
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -543,6 +566,35 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#anatomy-of-a-transition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anatomy Of A Transition
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -555,7 +607,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../general/lifecycle.md" class="md-nav__link">
+      <a href="../lifecycle.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -581,19 +633,17 @@
       
   
   
-    
   
   
-  
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -608,7 +658,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             Directives
@@ -619,31 +669,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    x-passage
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../alpine/x-passage/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -653,59 +682,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#x-passagepassage-name" class="md-nav__link">
-    <span class="md-ellipsis">
-      x-passage="passage name"
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="x-passage="passage name"">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#passing-data" class="md-nav__link">
-    <span class="md-ellipsis">
-      Passing Data
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#x-contents" class="md-nav__link">
-    <span class="md-ellipsis">
-      x-contents
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -718,7 +694,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../x-frame/" class="md-nav__link">
+      <a href="../../alpine/x-frame/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -740,7 +716,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../x-link/" class="md-nav__link">
+      <a href="../../alpine/x-link/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -762,7 +738,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../x-fade.md" class="md-nav__link">
+      <a href="../../alpine/x-fade.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -784,7 +760,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../x-reveal/" class="md-nav__link">
+      <a href="../../alpine/x-reveal/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -806,7 +782,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../store.md" class="md-nav__link">
+      <a href="../../alpine/store.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1030,33 +1006,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#x-passagepassage-name" class="md-nav__link">
+  <a href="#anatomy-of-a-transition" class="md-nav__link">
     <span class="md-ellipsis">
-      x-passage="passage name"
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="x-passage="passage name"">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#passing-data" class="md-nav__link">
-    <span class="md-ellipsis">
-      Passing Data
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#x-contents" class="md-nav__link">
-    <span class="md-ellipsis">
-      x-contents
+      Anatomy Of A Transition
     </span>
   </a>
   
@@ -1081,76 +1033,29 @@
   
 
 
-<h1 id="passage-directive">Passage Directive<a class="headerlink" href="#passage-directive" title="Permanent link">&para;</a></h1>
-<p>Embeds one passage directly into another. Input must resolve to a valid passage name.</p>
-<p>Embedded passages can read data from its parents, enabling widget-like functionality. It is also possible to directly embed html contents into the passage using <code>x-contents</code>.</p>
-<h2 id="x-passagepassage-name"><code>x-passage="passage name"</code><a class="headerlink" href="#x-passagepassage-name" title="Permanent link">&para;</a></h2>
-<p>You can pass any expression that evaluates to a valid passage name.
-<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span> <span class="na">x-passage</span><span class="o">=</span><span class="s">&quot;&#39;The Feast&#39;&quot;</span><span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-</code></pre></div>
-This will embed a passage with the name "The Feast".</p>
-<p>Here is another example that embeds a passage with the name "Another Passage".
-<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span> <span class="na">x-data</span><span class="o">=</span><span class="s">&quot;{ title: &#39;Another Passage&#39; }&quot;</span><span class="p">&gt;</span>
-  <span class="cm">&lt;!-- resolves to &quot;Another Passage&quot; --&gt;</span>
-  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">x-passage</span><span class="o">=</span><span class="s">&quot;title&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-</code></pre></div></p>
-<h3 id="passing-data">Passing Data<a class="headerlink" href="#passing-data" title="Permanent link">&para;</a></h3>
-<p>Say we have a passage as described here.
-<div class="highlight"><pre><span></span><code>:: Dialogue Box
-<span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">b</span> <span class="na">:style</span><span class="o">=</span><span class="s">&quot;{ color: nameColor }&quot;</span> <span class="p">&gt;</span>{{name}}<span class="p">&lt;/</span><span class="nt">b</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>{{dialogue}}<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-</code></pre></div>
-We can re-use this passage inside another by using <code>x-passage</code>. Using <code>x-data</code> we can set the variables used.
-<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span>
-  <span class="na">x-passage</span><span class="o">=</span><span class="s">&quot;&#39;Dialogue Box&#39;&quot;</span>
-  <span class="na">x-data</span><span class="o">=</span><span class="s">&quot;{</span>
-<span class="s">    name: &#39;Steve&#39;,</span>
-<span class="s">    dialogue: &#39;Hi there!&#39;,</span>
-<span class="s">    nameColor: &#39;red&#39;</span>
-<span class="s">  }&quot;</span>
-<span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-</code></pre></div>
-This will render as the following.
-<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">b</span> <span class="na">style</span><span class="o">=</span><span class="s">&quot;color: red;&quot;</span> <span class="p">&gt;</span>Steve<span class="p">&lt;/</span><span class="nt">b</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Hi there!<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-</code></pre></div></p>
-<h2 id="x-contents"><code>x-contents</code><a class="headerlink" href="#x-contents" title="Permanent link">&para;</a></h2>
-<p>We can also pass HTML children into a designated container inside the source passage, by using <code>x-contents</code> on the container.</p>
-<p>Source passage:
-<div class="highlight"><pre><span></span><code>:: Dialogue Box
-<span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">b</span> <span class="na">:style</span><span class="o">=</span><span class="s">&quot;{ color: nameColor }&quot;</span> <span class="p">&gt;</span>{{name}}<span class="p">&lt;/</span><span class="nt">b</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">x-contents</span><span class="p">&gt;&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-</code></pre></div>
-Usage with <code>x-passage</code>:
-<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span>
-  <span class="na">x-passage</span><span class="o">=</span><span class="s">&quot;&#39;Dialogue Box&#39;&quot;</span>
-  <span class="na">x-data</span><span class="o">=</span><span class="s">&quot;{</span>
-<span class="s">    name: &#39;Steve&#39;,</span>
-<span class="s">    nameColor: &#39;red&#39;</span>
-<span class="s">  }&quot;</span>
-<span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Hi there!<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>The weather is great right now. Let&#39;s go for a walk.<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-</code></pre></div>
-Renders as:
-<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">b</span> <span class="na">style</span><span class="o">=</span><span class="s">&quot;color: red;&quot;</span> <span class="p">&gt;</span>Steve<span class="p">&lt;/</span><span class="nt">b</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Hi there!<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>The weather is great right now. Let&#39;s go for a walk.<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
-  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-</code></pre></div></p>
+<h1 id="passage-transitions">Passage Transitions<a class="headerlink" href="#passage-transitions" title="Permanent link">&para;</a></h1>
+<p>Malachite has built in support for transitioning between passages. By default, passages inside a frame will fade in and out. Transitions are further customizable using CSS.</p>
+<div class="admonition danger">
+<p class="admonition-title">WIP</p>
+<p>There's actually no default CSS that comes with Malachite yet, so passages <em>do not</em> fade in and out by default, <em>yet</em>. It will in the near future.</p>
+</div>
+<h2 id="anatomy-of-a-transition">Anatomy Of A Transition<a class="headerlink" href="#anatomy-of-a-transition" title="Permanent link">&para;</a></h2>
+<p>When an element transitions (i.e. a frame, or when using <code>x-fade</code> or <code>x-reveal</code>), a couple of things happen during the duration of the transition.
+- the element gets the css classes <code>.fadeout</code> and <code>.fadein</code> assigned to it, depending on what state the element is transitioning to.
+- the element dispatches the following events: <code>fadestart</code>, <code>fade</code> and <code>fadeend</code>.</p>
+<p>The transition duration of the element is determined by the <code>transition-duration</code> of the element's CSS.</p>
+<p>These events happen in the following order.</p>
+<ol>
+<li>Apply the <code>.fadestart</code> class</li>
+<li>Emit the <code>fadestart</code> event.</li>
+<li>Wait for <code>transition-duration</code> to pass by</li>
+<li>Remove the <code>.fadestart</code> class</li>
+<li>Apply the <code>.fadeend</code> class</li>
+<li>Emit the <code>fade</code> event.</li>
+<li>Wait for <code>transition-duration</code> to pass by</li>
+<li>Remove the <code>.fadeend</code>class</li>
+<li>Emit the <code>fadeend</code> event.</li>
+</ol>
 
 
 
