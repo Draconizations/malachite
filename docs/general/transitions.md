@@ -6,6 +6,7 @@ Malachite has built in support for transitioning between passages. By default, p
 
 ## Anatomy Of A Transition
 When an element transitions (i.e. a frame, or when using `x-fade` or `x-reveal`), a couple of things happen during the duration of the transition.
+
 - the element gets the css classes `.fadeout` and `.fadein` assigned to it, depending on what state the element is transitioning to.
 - the element dispatches the following events: `fadestart`, `fade` and `fadeend`.
 
