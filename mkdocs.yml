@@ -16,6 +16,7 @@ nav:
     - Frames: 'general/frames.md'
     - Directives: 'general/directives.md'
     - State: 'general/state.md'
+    - Transitions: 'general/transitions.md'
     - Lifecycle: 'general/lifecycle.md'
   
   - Directives:

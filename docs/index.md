@@ -7,5 +7,5 @@ This is the official documentation for **Malachite**, an advanced (though not mi
 
 ### Where to go?
 1. **Before** getting started with Malachite, please read the format's [About Page](./about)! It covers some very important topics and gotchas with the project in its current state.
-2. After you've read the above, head to [Installation](./installation) to get started.
+2. After you've read the above, head to [Installation](./start/installation) to get started.
 3. The sidebar includes all important concepts and APIs available with Malachite.
