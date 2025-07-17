@@ -21,6 +21,8 @@ During a transition, the following things happen:
 
 The `transition-duration` is checked at step 3. and 6. Which means by applying styles to `.fadestart` and `.fadeend`, you can alter the transition behavior.
 
+The `fadestart`, `fade` and `fadeend` events do *not* bubble.
+
 ## Example CSS Styling
 This will create a fade transition for every `div` element. Replace `div` with the selector you need.
 
