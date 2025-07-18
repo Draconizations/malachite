@@ -23,12 +23,14 @@ import {
 	setLocalSave,
 } from "./state.ts"
 import { filter, find, get, has, ifID, start, storyTitle } from "./story.ts"
+import { doTransition } from "./transition.ts"
 
 export default function () {
 	window.Engine = engineAPI
 	window.Story = storyAPI
 	window.State = stateAPI
 	window.Frames = frameAPI
+	window.Utils = utilAPI
 	window.Config = configAPI
 
 	window.Alpine = alpineAPI
@@ -46,6 +48,8 @@ declare global {
 	// @ts-ignore
 	const Frames: typeof frameAPI
 	// @ts-ignore
+	const Utils: typeof utilAPI
+	// @ts-ignore
 	const Config: typeof configAPI
 	// @ts-ignore
 	const $s: typeof emptyData & Record<string, any>
@@ -55,6 +59,7 @@ declare global {
 		Alpine: typeof alpineAPI
 		State: typeof stateAPI
 		Frames: typeof frameAPI
+		Utils: typeof utilAPI
 		Config: typeof configAPI
 		$s: typeof emptyData & Record<string, any>
 	}
@@ -217,6 +222,24 @@ const frameAPI = {
 	 */
 	active: (): (Passage | undefined)[] => {
 		return active()
+	},
+}
+
+const utilAPI = {
+	/**
+	 * Makes the target element perform a transition. The visual aspect of the transtiion is
+	 * determined by the element's CSS. Read [the documentation](https://draconizations.github.io/malachite/prerelease/general/directives/) for more information.
+	 * @param el
+	 * @param detail
+	 * @param bubble
+	 */
+	transition: (el: Element, detail: any, bubble?: boolean) => {
+		doTransition(el, detail, {
+			applyClass: true,
+			emitEvent: true,
+			delay: true,
+			bubble: bubble ?? false,
+		})
 	},
 }
 
