@@ -18,6 +18,33 @@ declare module "passage" {
         constructor(name: string, tags: string[], source: string);
     }
 }
+declare module "transition" {
+    interface TransitionSettings {
+        applyClass: boolean;
+        emitEvent: boolean;
+        delay: boolean;
+        bubble: boolean;
+        action?: () => void;
+    }
+    export function doTransition(el: Element, detail: any, settings: TransitionSettings): Promise<void>;
+}
+declare module "markup/link" {
+    import type { RuleInline } from "markdown-it/lib/parser_inline.mjs";
+    import type { RenderRule } from "markdown-it/lib/renderer.mjs";
+    export const linkRule: RuleInline;
+    export const linkRender: RenderRule;
+}
+declare module "markup/variable" {
+    import type { RuleInline } from "markdown-it/lib/parser_inline.mjs";
+    import type { RenderRule } from "markdown-it/lib/renderer.mjs";
+    export const variableRule: RuleInline;
+    export const variableRender: RenderRule;
+}
+declare module "markup/index" {
+    import type Passage from "passage";
+    export const markup: (source: string) => string;
+    export const render: (el: Element, source: string, skip?: boolean, passage?: Passage) => Promise<void>;
+}
 declare module "story" {
     import Passage from "passage";
     export let ifID: string;
@@ -101,6 +128,23 @@ declare module "frame" {
      * @returns
      */
     export function active(): (import("passage.ts").default | undefined)[];
+}
+declare module "utils" {
+    export interface FrameQueueEntry {
+        passage: string;
+        doTransition: boolean;
+        pushToState: boolean;
+    }
+    export function getAttribute(el: Element | null, attr: string): string | null;
+    /**
+     * Loop through all frames in the queue. We queue them because otherwise
+     * x-link with a goto in the event listener will push two separate states to the history
+     * and we don't want that.
+     * @param pushToHistory to push the frame changes to history or not
+     * @param clearQueue to clear the queue after or not
+     * @param frameQueue the queue itself
+     */
+    export function runFrameQueue(pushToHistory: boolean, clearQueue: boolean, frameQueue: Map<string, FrameQueueEntry>): void;
 }
 declare module "state" {
     import { type FrameQueueEntry } from "utils";
@@ -194,40 +238,6 @@ declare module "state" {
      */
     export function localSaveLocation(index?: number): string;
 }
-declare module "utils" {
-    export interface FrameQueueEntry {
-        passage: string;
-        doTransition: boolean;
-        pushToState: boolean;
-    }
-    export function getAttribute(el: Element | null, attr: string): string | null;
-    export function getTransitionDuration(el: Element): number;
-    /**
-     * Loop through all frames in the queue. We queue them because otherwise
-     * x-link with a goto in the event listener will push two separate states to the history
-     * and we don't want that.
-     * @param pushToHistory to push the frame changes to history or not
-     * @param clearQueue to clear the queue after or not
-     * @param frameQueue the queue itself
-     */
-    export function runFrameQueue(pushToHistory: boolean, clearQueue: boolean, frameQueue: Map<string, FrameQueueEntry>): void;
-}
-declare module "markup/link" {
-    import type { RuleInline } from "markdown-it/lib/parser_inline.mjs";
-    import type { RenderRule } from "markdown-it/lib/renderer.mjs";
-    export const linkRule: RuleInline;
-    export const linkRender: RenderRule;
-}
-declare module "markup/variable" {
-    import type { RuleInline } from "markdown-it/lib/parser_inline.mjs";
-    import type { RenderRule } from "markdown-it/lib/renderer.mjs";
-    export const variableRule: RuleInline;
-    export const variableRender: RenderRule;
-}
-declare module "markup/index" {
-    export const markup: (source: string) => string;
-    export const render: (el: Element, source: string, skip?: boolean) => Promise<void>;
-}
 declare module "engine" {
     import type { FrameQueueEntry } from "utils";
     export const version: string;
@@ -286,6 +296,7 @@ declare module "api" {
         const Alpine: typeof alpineAPI;
         const State: typeof stateAPI;
         const Frames: typeof frameAPI;
+        const Utils: typeof utilAPI;
         const Config: typeof configAPI;
         const $s: typeof emptyData & Record<string, any>;
         interface Window {
@@ -294,6 +305,7 @@ declare module "api" {
             Alpine: typeof alpineAPI;
             State: typeof stateAPI;
             Frames: typeof frameAPI;
+            Utils: typeof utilAPI;
             Config: typeof configAPI;
             $s: typeof emptyData & Record<string, any>;
         }
@@ -378,6 +390,16 @@ declare module "api" {
          * @returns
          */
         active: () => (Passage | undefined)[];
+    };
+    const utilAPI: {
+        /**
+         * Makes the target element perform a transition. The visual aspect of the transtiion is
+         * determined by the element's CSS. Read [the documentation](https://draconizations.github.io/malachite/prerelease/general/directives/) for more information.
+         * @param el
+         * @param detail
+         * @param bubble
+         */
+        transition: (el: Element, detail: any, bubble?: boolean) => void;
     };
     const configAPI: {
         State: {
