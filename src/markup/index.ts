@@ -1,6 +1,7 @@
 import { unescape as unesc } from "html-escaper"
 import Markdown, { type PluginSimple } from "markdown-it"
-import { getTransitionDuration } from "../utils.ts"
+import type Passage from "../passage.ts"
+import { doTransition } from "../transition.ts"
 import { linkRender, linkRule } from "./link.ts"
 import { variableRender, variableRule } from "./variable.ts"
 
@@ -26,25 +27,17 @@ export const markup = (source: string) => {
 	return unesc(markdown.renderInline(source))
 }
 
-export const render = async (el: Element, source: string, skip?: boolean) => {
+export const render = async (el: Element, source: string, skip?: boolean, passage?: Passage) => {
 	const result = markup(source)
-	// TODO: move all transitions to its own function
-	let duration = getTransitionDuration(el)
-	if (duration > 0 && skip !== true) {
-		el.classList.add("fadestart")
-		el.dispatchEvent(new CustomEvent("fadestart", { bubbles: false, detail: null }))
-		await new Promise((res) => setTimeout(res, duration))
-	}
-	el.innerHTML = result
-	if (duration > 0 && skip !== true) {
-		el.classList.remove("fadestart")
-		el.classList.add("fadeend")
-		el.dispatchEvent(new CustomEvent("fade", { bubbles: false, detail: null }))
-	}
-	duration = getTransitionDuration(el)
-	if (duration > 0 && skip !== true) {
-		await new Promise((res) => setTimeout(res, duration))
-		el.classList.remove("fadeend")
-		el.dispatchEvent(new CustomEvent("fadeend", { bubbles: false, detail: null }))
-	}
+	const detail = passage ?? null
+
+	await doTransition(el, detail, {
+		applyClass: !skip,
+		emitEvent: !skip,
+		delay: !skip,
+		bubble: false,
+		action: () => {
+			el.innerHTML = result
+		},
+	})
 }

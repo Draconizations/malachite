@@ -13,10 +13,6 @@ export function getAttribute(el: Element | null, attr: string) {
 	return el?.attributes.getNamedItem(attr)?.value || null
 }
 
-export function getTransitionDuration(el: Element) {
-	return Number.parseFloat(window.getComputedStyle(el).transitionDuration) * 1000
-}
-
 /**
  * Loop through all frames in the queue. We queue them because otherwise
  * x-link with a goto in the event listener will push two separate states to the history

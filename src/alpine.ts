@@ -4,7 +4,8 @@ import { frameQueue } from "./engine.ts"
 import { getFrame } from "./frame.ts"
 import { render } from "./markup/index.ts"
 import { get } from "./story.ts"
-import { getTransitionDuration, runFrameQueue } from "./utils.ts"
+import { doTransition } from "./transition.ts"
+import { runFrameQueue } from "./utils.ts"
 
 let recursionCount = 0
 const recursionMax = 1000
@@ -159,7 +160,6 @@ Alpine.directive("link", (el, data, { evaluate, cleanup }) => {
 // Play a fade animation whenever the expression changes
 Alpine.directive("fade", (el, { expression, modifiers }, { evaluateLater, effect }) => {
 	const useClass = !modifiers.includes("!class")
-	const init = !modifiers.includes("!init")
 	// TODO: make this configurable
 	if (useClass) el.classList.add("mala-fade")
 
@@ -171,35 +171,12 @@ Alpine.directive("fade", (el, { expression, modifiers }, { evaluateLater, effect
 		crossfade(async (value) => {
 			if (prev === value) return
 
-			// don't run fade on initialization if we ask it not to
-			if (prev === undefined) {
-				el.dispatchEvent(new CustomEvent("fadestart", { bubbles: false, detail: value }))
-				el.dispatchEvent(new CustomEvent("fade", { bubbles: false, detail: value }))
-				el.dispatchEvent(new CustomEvent("fadeend", { bubbles: false, detail: value }))
-				prev = value
-				return
-			}
-
-			// start of fade
-			if (useClass && !(prev === undefined && !init)) el.classList.add("fadestart")
-			el.dispatchEvent(new CustomEvent("fadestart", { bubbles: false, detail: value }))
-
-			let duration = getTransitionDuration(el)
-			if (duration) await new Promise((res) => setTimeout(res, duration))
-
-			// middle of fade
-			if (useClass && !(prev === undefined && !init)) {
-				el.classList.remove("fadestart")
-				el.classList.add("fadeend")
-			}
-			el.dispatchEvent(new CustomEvent("fade", { bubbles: false, detail: value }))
-
-			duration = getTransitionDuration(el)
-			if (duration) await new Promise((res) => setTimeout(res, duration))
-
-			// end of fade
-			if (useClass && !(prev === undefined && !init)) el.classList.remove("fadeend")
-			el.dispatchEvent(new CustomEvent("fadeend", { bubbles: false, detail: value }))
+			doTransition(el, value, {
+				applyClass: useClass && prev !== undefined,
+				emitEvent: true,
+				delay: prev !== undefined,
+				bubble: false,
+			})
 
 			prev = value
 		})
@@ -228,41 +205,25 @@ Alpine.directive("reveal", (el, data, { evaluate }) => {
 	btn.addEventListener(
 		"click",
 		async () => {
-			// start the fade
-			el.classList.add("fadestart")
-			el.dispatchEvent(new CustomEvent("fadestart", { bubbles: false, detail: null }))
+			doTransition(el, null, {
+				applyClass: true,
+				emitEvent: true,
+				delay: true,
+				bubble: false,
+				action: () => {
+					const div = document.createElement("div")
+					div.classList.add("mala-reveal-content")
+					div.innerHTML = contents
 
-			let duration = getTransitionDuration(el)
-			if (duration) {
-				await new Promise((res) => setTimeout(res, duration))
-			}
+					if (data.modifiers.includes("keep")) {
+						btn.disabled = true
+					} else {
+						el.innerHTML = ""
+					}
 
-			const div = document.createElement("div")
-			div.innerHTML = contents
-
-			el.classList.remove("hide", "fadestart")
-			el.classList.add("show", "fadeend")
-
-			if (data.modifiers.includes("keep")) {
-				btn.disabled = true
-			} else {
-				el.innerHTML = ""
-			}
-
-			el.appendChild(div)
-
-			el.dispatchEvent(new CustomEvent("fade", { bubbles: false, detail: null }))
-			if (duration) {
-				await new Promise((res) => setTimeout(res, duration / 2))
-			}
-
-			duration = getTransitionDuration(el)
-			if (duration) {
-				await new Promise((res) => setTimeout(res, duration))
-			}
-
-			el.classList.remove("fadeend")
-			el.dispatchEvent(new CustomEvent("fadeend", { bubbles: false, detail: null }))
+					el.appendChild(div)
+				},
+			})
 		},
 		{
 			once: true,
