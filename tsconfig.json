@@ -14,9 +14,8 @@
 		"resolveJsonModule": true,
 		"declaration": true,
 		"emitDeclarationOnly": true,
-
 		"rootDir": "src/",
-		"outFile": "dist/types.d.ts",
+		"outDir": "dist/types",
 
 		// Best practices
 		"strict": true,
@@ -28,5 +27,5 @@
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false
 	},
-	"files": ["src/api.ts"]
+	"files": ["src/api.ts"],
 }
