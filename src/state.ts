@@ -19,7 +19,7 @@ export const emptyData: Data = {
 export let _history: Snapshot[] = []
 export let _index = -1
 // @ts-ignore
-const _version = __VERSION__
+const _version = typeof __VERSION__ !== "undefined" ? __VERSION__ : "dev"
 
 // max amount of states the history stack can have
 export let max = Config.maxHistory

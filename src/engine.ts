@@ -6,7 +6,7 @@ import { getScripts, getStyles, start as storyStart } from "./story.ts"
 import type { FrameQueueEntry } from "./utils.ts"
 
 // @ts-ignore
-export const version: string = __VERSION__
+export const version: string = typeof __VERSION__ !== "undefined" ? __VERSION__ : "dev"
 const _viewport = document.querySelector("#mala-viewport") || document.createElement("div")
 
 export const frameQueue = new Map<string, FrameQueueEntry>()

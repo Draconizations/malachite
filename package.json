@@ -6,12 +6,12 @@
 	"version": "0.1.0",
 	"scripts": {
 		"format": "npx biome check --write --no-errors-on-unmatched .",
-		"types": "rollup --config"
+		"types": "rollup --config",
+		"test": "vitest"
 	},
 	"types": "./dist/types.d.ts",
 	"devDependencies": {
 		"@biomejs/biome": "2",
-		"@happy-dom/global-registrator": "^18.0.1",
 		"@rollup/plugin-commonjs": "^28.0.2",
 		"@rollup/plugin-json": "^6.1.0",
 		"@rollup/plugin-node-resolve": "^16.0.0",
@@ -25,6 +25,7 @@
 		"@types/markdown-it": "^14.1.2",
 		"@types/node": "^26.1.0",
 		"alpinejs": "^3.14.8",
+		"happy-dom": "^20.10.6",
 		"html-escaper": "^3.0.3",
 		"lefthook": "^1.11.2",
 		"markdown-it": "^14.1.0",
