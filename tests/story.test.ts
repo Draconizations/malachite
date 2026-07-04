@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test"
+import { afterEach, beforeEach, describe, expect, test } from "vitest"
 import Passage from "../src/passage.ts"
 import * as Story from "../src/story.ts"
 
@@ -105,7 +105,7 @@ describe("Accessing Passages", () => {
 		expect(p).toBeInstanceOf(Passage)
 		expect(p?.name).toBe("Hello World")
 		expect(p?.source).toBe("Hello World!!")
-		expect(p?.tags).toBeArrayOfSize(2)
+		expect(p?.tags).toHaveLength(2)
 	})
 
 	test("Get non-existent passage by name", () => {
@@ -119,7 +119,7 @@ describe("Accessing Passages", () => {
 		expect(p).toBeInstanceOf(Passage)
 		expect(p?.name).toBe("Hello World")
 		expect(p?.source).toBe("Hello World!!")
-		expect(p?.tags).toBeArrayOfSize(2)
+		expect(p?.tags).toHaveLength(2)
 	})
 
 	test("Find passage by predicate (source/regex)", () => {
@@ -128,7 +128,7 @@ describe("Accessing Passages", () => {
 		expect(p).toBeInstanceOf(Passage)
 		expect(p?.name).toBe("Hello World")
 		expect(p?.source).toBe("Hello World!!")
-		expect(p?.tags).toBeArrayOfSize(2)
+		expect(p?.tags).toHaveLength(2)
 	})
 
 	test("Find non-existent passage by predicate (name)", () => {
@@ -138,16 +138,16 @@ describe("Accessing Passages", () => {
 
 	test("Check if passage exists", () => {
 		const exists = Story.has("Goodbye World")
-		expect(exists).toBeTrue()
+		expect(exists).toBe(true)
 	})
 
 	test("Check if non-existent passage exists", () => {
 		const exists = Story.has("Huh")
-		expect(exists).toBeFalse()
+		expect(exists).toBe(false)
 	})
 
 	test("Find all passages by name/regex", () => {
 		const p = Story.filter((passage) => /World/i.test(passage.name))
-		expect(p).toBeArrayOfSize(2)
+		expect(p).toHaveLength(2)
 	})
 })
