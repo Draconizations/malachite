@@ -41,8 +41,10 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install
+      - name: Build format.min.js
+        run: pnpm build
       - name: Build format.js
-        run: node build.ts ./dist
+        run: pnpm build --full
       - name: Typescript types
         run: pnpm types
       - name: Commit build

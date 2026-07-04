@@ -20,8 +20,8 @@ const { values, positionals } = parseArgs({
 	allowPositionals: true,
 })
 
-const dist = positionals.length > 2 ? positionals[2] : "./build"
-const full = values.full
+const dist = positionals.length > 2 ? positionals[2] : "./dist"
+const full = values.full ?? false
 
 const pkg = JSON.parse(readFileSync("./package.json", "utf8"))
 const version = pkg.version
@@ -114,9 +114,11 @@ const options: RollupOptions & { output: OutputOptions } = {
 
 // bundle the format javascript to a singular file
 await bundle(options)
-if (full) await bundle(options)
-// then embed that into the story format
-await build("bundle.js", "format.js")
-if (full) await build("bundle.min.js", "format.min.js")
+if (full) {
+	// then embed that into the story format
+	await build("bundle.js", "format.js")
+} else {
+	if (!full) await build("bundle.min.js", "format.min.js")
+}
 
 console.log("Done.")
