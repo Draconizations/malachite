@@ -32,4 +32,4 @@ The following modifiers are available for the `x-link` directive.
 Prevents the new state from being pushed to the history.
 
 ### `!fade`
-Prevents the target frame from fading in and out when the link is clicked.
+Prevents the target frame playing its transition when the link is clicked.
