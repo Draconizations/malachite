@@ -1,25 +1,9 @@
 name: Dist
 on:
-  pull_request:
-    paths:
-      - 'src/**'
-      - 'build.ts'
-      - 'package.json'
-      - 'story.json'
-    branches:
-      - 'main'
+  workflow_run:
+    workflows: [Tests]
     types:
-      - opened
-      - synchronize
-      - reopened
-  push:
-    paths:
-      - 'src/**'
-      - 'build.ts'
-      - 'package.json'
-      - 'story.json'
-    branches:
-      - 'main'
+      - completed
 
 permissions:
   contents: write

@@ -1,7 +1,8 @@
-name: Source Tests
+name: Tests
 on:
   pull_request:
     paths:
+      - '.github/**'
       - 'src/**'
       - 'build.ts'
       - 'package.json'
@@ -15,6 +16,7 @@ on:
       - reopened
   push:
     paths:
+      - '.github/**'
       - 'src/**'
       - 'build.ts'
       - 'package.json'
