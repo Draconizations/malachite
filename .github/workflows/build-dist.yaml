@@ -41,12 +41,10 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install
-      - name: Build format.min.js
-        run: pnpm build
-      - name: Build format.js
-        run: pnpm build --full
-      - name: Typescript types
-        run: pnpm types
+      - name: Build dist
+        run: pnpm build |
+             pnpm build --full
+             pnpm types
       - name: Commit build
         run: |
           git config user.name 'github-actions[bot]'
