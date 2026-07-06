@@ -8,10 +8,10 @@
 		"build": "node build.ts",
 		"build:full": "node build.ts --full",
 		"format": "npx biome check --write --no-errors-on-unmatched .",
-		"types": "rollup --config",
+		"types": "tsc",
 		"test": "vitest"
 	},
-	"types": "./dist/types.d.ts",
+	"types": "./dist/types/api.d.ts",
 	"devDependencies": {
 		"@biomejs/biome": "2",
 		"@rollup/plugin-commonjs": "^28.0.2",

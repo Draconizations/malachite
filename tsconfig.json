@@ -15,7 +15,7 @@
 		"declaration": true,
 		"emitDeclarationOnly": true,
 		"rootDir": "src/",
-		"outDir": "dist/types",
+		"outDir": "./dist/types",
 
 		// Best practices
 		"strict": true,
@@ -28,4 +28,5 @@
 		"noPropertyAccessFromIndexSignature": false
 	},
 	"files": ["src/api.ts"],
+	"include": ["src/api.ts"]
 }
