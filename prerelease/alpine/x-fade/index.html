@@ -1117,13 +1117,14 @@
 <p>If any reactive variables are referenced in the <code>x-fade</code> expression, it will re-evaluate when any of those variables are updated. This causes the element to play a transition.</p>
 <h3 id="element-contents">Element Contents<a class="headerlink" href="#element-contents" title="Permanent link">&para;</a></h3>
 <p><code>x-fade</code> <em>starts</em> playing the transition when the expression is re-evaluated. If one of the values of the expression is displayed inside the element, it will visibly change before the transition can complete.</p>
-<p>To prevent this, change the displayed content in response to the <code>fade</code> event. I.e. with a text display:
+<p>To prevent this, change the displayed content in response to the <code>fade</code> event. For example, a simple text display:
 <div class="highlight"><pre><span></span><code>&lt;h2
   x-fade=&quot;$s.title&quot;
   @fade=&quot;$el.innerText = $s.title&quot;
   x-init=&quot;$el.innerText = $s.title&quot;&gt;
 &lt;/h2&gt;
-</code></pre></div></p>
+</code></pre></div>
+A workaround for this in the form of a modifier will be added in the future.</p>
 <h2 id="modifiers">Modifiers<a class="headerlink" href="#modifiers" title="Permanent link">&para;</a></h2>
 <p>The following modifiers are available for the <code>x-fade</code> directive.</p>
 <h3 id="class"><code>!class</code><a class="headerlink" href="#class" title="Permanent link">&para;</a></h3>
