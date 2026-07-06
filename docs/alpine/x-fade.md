@@ -9,7 +9,7 @@ If any reactive variables are referenced in the `x-fade` expression, it will re-
 ### Element Contents
 `x-fade` *starts* playing the transition when the expression is re-evaluated. If one of the values of the expression is displayed inside the element, it will visibly change before the transition can complete.
 
-To prevent this, change the displayed content in response to the `fade` event. I.e. with a text display:
+To prevent this, change the displayed content in response to the `fade` event. For example, a simple text display:
 ```hmtl
 <h2
   x-fade="$s.title"
@@ -17,6 +17,7 @@ To prevent this, change the displayed content in response to the `fade` event. I
   x-init="$el.innerText = $s.title">
 </h2>
 ```
+A workaround for this in the form of a modifier will be added in the future.
 
 ## Modifiers
 The following modifiers are available for the `x-fade` directive.
